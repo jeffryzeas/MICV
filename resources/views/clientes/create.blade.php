@@ -1,5 +1,12 @@
 <x-layout titulo="Registrar cliente" activo="clientes-nuevo">
 
+    @if($solicitud ?? null)
+        <div class="mb-5 rounded-2xl bg-azul-800 text-white p-4 flex items-center gap-4">
+            <span class="size-14 shrink-0 rounded-xl bg-white/15 font-black text-2xl flex items-center justify-center tabular-nums">{{ $solicitud->turno }}</span>
+            <div><p class="font-semibold">Atendiendo el turno {{ $solicitud->turno }} del autoservicio</p>
+                <p class="text-sm text-white/75">{{ $solicitud->nombre }} llenó sus datos desde el celular. Revíselos, tómele la foto si hace falta y guarde.</p></div>
+        </div>
+    @endif
     <p class="text-gray-500 mb-5">Primero elija el país del documento: el formulario se adapta (documentos, seguro social, municipio o cantón, código telefónico). El número se revisa con las reglas de cada país, y lo que se puede leer de él (fecha, departamento…) se llena solo.</p>
 
     <div class="bg-white rounded-xl shadow p-6" id="boxConsulta">
@@ -10,7 +17,7 @@
             <div>
                 <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">1. Nacionalidad / país del documento</label>
                 <select id="paisDoc" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                    @foreach(\App\Support\Pais::DATOS as $cod => $p)<option value="{{ $cod }}">{{ $p['bandera'] }} {{ $p['nombre'] }}</option>@endforeach
+                    @foreach(\App\Support\Pais::porRegion() as $region => $lista)<optgroup label="{{ $region }}">@foreach($lista as $cod => $p)<option value="{{ $cod }}">{{ $p['bandera'] }} {{ $p['nombre'] }}</option>@endforeach</optgroup>@endforeach
                 </select>
             </div>
             <div>
@@ -51,6 +58,7 @@
             <input type="hidden" name="tipo_documento" id="fTipo" value="cedula">
             <input type="hidden" name="pais" id="fPais" value="NI">
             <input type="hidden" name="numero_documento" id="fNumero">
+            @if($solicitud ?? null)<input type="hidden" name="autoservicio_id" value="{{ $solicitud->id }}">@endif
             <nav data-indice></nav>
             <p id="docResumen" class="font-semibold text-azul-800 mb-2"></p>
             <div id="datosCedulaAuto" class="mb-4 p-3 bg-blue-50 rounded-lg text-sm" style="display:none;">
@@ -93,7 +101,7 @@
 
     (function () {
         const PAISES = @json(\App\Support\Pais::paraJs());
-        const AYUDA = @json(\App\Support\Documentos::AYUDA);
+        const AYUDA = @json(\App\Support\Documentos::ayudas());
         const pais = document.getElementById('paisDoc'), tipo = document.getElementById('tipoDoc');
         function ayuda() { const a = document.getElementById('ayudaDoc'); if (a) a.textContent = AYUDA[tipo.value] || ''; }
         pais.addEventListener('change', function () {
@@ -104,6 +112,25 @@
         });
         tipo.addEventListener('change', ayuda);
     })();
+
+    @if($solicitud ?? null)
+    // Turno del autoservicio: se pone el documento y se consulta solo.
+    window.addEventListener('load', function () {
+        const d = @json(['pais' => $solicitud->datos['pais'] ?? 'NI', 'tipo' => $solicitud->datos['tipo_documento'] ?? '', 'numero' => $solicitud->numero_documento]);
+        const p = document.getElementById('paisDoc'), t = document.getElementById('tipoDoc');
+        p.value = d.pais; p.dispatchEvent(new Event('change'));
+        t.value = d.tipo; t.dispatchEvent(new Event('change'));
+        setTimeout(function () {
+            if (d.tipo === 'cedula') {
+                const n = d.numero || '';
+                [['cedP1', 0, 3], ['cedP2', 3, 9], ['cedP3', 9, 13], ['cedP4', 13, 14]].forEach(([id, a, b]) => { const el = document.getElementById(id); if (el) { el.value = n.slice(a, b); el.dispatchEvent(new Event('input', { bubbles: true })); } });
+            } else {
+                const el = document.getElementById('numeroDoc'); el.value = d.numero || ''; el.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            continuarRegistro();
+        }, 250);
+    });
+    @endif
 
     async function continuarRegistro() {
         if (!window.JZDocumento) {

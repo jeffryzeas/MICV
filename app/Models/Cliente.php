@@ -77,7 +77,11 @@ class Cliente extends Model
             return $q->where('user_id', $u->id);
         }
         $cyberId = $u?->cyber_id ?? 0;
-        return $q->whereHas('cybers', fn ($w) => $w->where('cybers.id', $cyberId));
+        $bloqueados = DocumentoBloqueado::lista();
+        return $q->whereHas('cybers', fn ($w) => $w->where('cybers.id', $cyberId))
+            // Lista privada: los Cybers no ven a esas personas.
+            ->when($bloqueados, fn ($w) => $w->where(fn ($x) => $x->whereNull('numero_documento')
+                ->orWhereNotIn(\Illuminate\Support\Facades\DB::raw("UPPER(REPLACE(numero_documento, '-', ''))"), $bloqueados)));
     }
 
     public function esVisiblePara(?User $u): bool
@@ -90,6 +94,9 @@ class Cliente extends Model
         }
         if ($u->esCliente()) {
             return (int) $this->user_id === (int) $u->id;
+        }
+        if (DocumentoBloqueado::estaBloqueado($this->numero_documento)) {
+            return false; // lista privada
         }
         return $u->cyber_id && $this->cybers()->where('cybers.id', $u->cyber_id)->exists();
     }
@@ -170,7 +177,7 @@ class Cliente extends Model
             'cuil_ar'            => 'CUIL',
             'residencia_pa', 'residencia_do' => 'Residencia',
             'residencia_hn', 'residencia_sv', 'residencia_gt', 'residencia_mx' => 'Residencia',
-            default              => 'Documento',
+            default              => \App\Support\Pais::todosLosDocumentos()[$this->tipo_documento] ?? 'Documento',
         };
     }
 

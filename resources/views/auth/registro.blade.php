@@ -8,18 +8,11 @@
             <div class="relative">
                 <span id="regBandera" class="absolute left-3 top-1/2 -translate-y-1/2 text-xl leading-none pointer-events-none">{{ \App\Support\Pais::de(old('pais', 'NI'))['bandera'] }}</span>
                 <select name="pais" id="regPais" required class="w-full appearance-none border border-gray-300 rounded-lg pl-11 pr-9 py-2.5 bg-white font-semibold text-gray-800 focus:outline-none focus:border-[#0B3C74]">
-                    <optgroup label="Centroamérica y el Caribe">
-                        @foreach(['NI', 'CR', 'HN', 'SV', 'GT', 'PA', 'DO', 'CU'] as $cod)<option value="{{ $cod }}" data-bandera="{{ \App\Support\Pais::DATOS[$cod]['bandera'] }}" @selected(old('pais', 'NI') === $cod)>{{ \App\Support\Pais::DATOS[$cod]['nombre'] }}</option>@endforeach
-                    </optgroup>
-                    <optgroup label="Norteamérica">
-                        @foreach(['MX', 'US'] as $cod)<option value="{{ $cod }}" data-bandera="{{ \App\Support\Pais::DATOS[$cod]['bandera'] }}" @selected(old('pais') === $cod)>{{ \App\Support\Pais::DATOS[$cod]['nombre'] }}</option>@endforeach
-                    </optgroup>
-                    <optgroup label="Sudamérica">
-                        @foreach(['CO', 'VE', 'EC', 'PE', 'BO', 'CL', 'AR', 'UY', 'PY'] as $cod)<option value="{{ $cod }}" data-bandera="{{ \App\Support\Pais::DATOS[$cod]['bandera'] }}" @selected(old('pais') === $cod)>{{ \App\Support\Pais::DATOS[$cod]['nombre'] }}</option>@endforeach
-                    </optgroup>
-                    <optgroup label="Europa y otros">
-                        @foreach(['ES', 'OT'] as $cod)<option value="{{ $cod }}" data-bandera="{{ \App\Support\Pais::DATOS[$cod]['bandera'] }}" @selected(old('pais') === $cod)>{{ \App\Support\Pais::DATOS[$cod]['nombre'] }}</option>@endforeach
-                    </optgroup>
+                    @foreach(\App\Support\Pais::porRegion() as $region => $lista)
+                        <optgroup label="{{ $region }}">
+                            @foreach($lista as $cod => $p)<option value="{{ $cod }}" data-bandera="{{ $p['bandera'] }}" @selected(old('pais', 'NI') === $cod)>{{ $p['nombre'] }}</option>@endforeach
+                        </optgroup>
+                    @endforeach
                 </select>
                 <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none"></i>
             </div>

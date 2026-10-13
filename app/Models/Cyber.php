@@ -14,12 +14,12 @@ class Cyber extends Model
 
     protected $fillable = [
         'codigo', 'nombre', 'logo', 'color_primario', 'color_secundario',
-        'direccion', 'telefono', 'correo', 'activo',
+        'direccion', 'telefono', 'correo', 'activo', 'autoservicio',
     ];
 
     protected function casts(): array
     {
-        return ['activo' => 'boolean'];
+        return ['activo' => 'boolean', 'autoservicio' => 'boolean'];
     }
 
     public function usuarios(): HasMany

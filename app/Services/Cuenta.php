@@ -44,15 +44,58 @@ class Cuenta
             $c = $u->cliente;
             if ($c) {
                 if ($borrarFicha || !$c->cybers()->exists()) {
-                    Archivos::borrar($c->foto);
-                    $c->delete();
+                    self::borrarFicha($c);
                 } else {
                     $c->update(['user_id' => null]);
                 }
             }
-            CodigoVerificacion::where('user_id', $u->id)->delete();
-            DB::table('sessions')->where('user_id', $u->id)->delete();
-            $u->delete();
+            self::borrarUsuario($u);
         });
+    }
+
+    /**
+     * Borra a una persona por completo, sin dejar rastro: su ficha, su foto,
+     * su tarjeta, su usuario del sistema, sus códigos, sus sesiones y su
+     * historial en la auditoría.
+     */
+    public static function borrarTodo(\App\Models\Cliente $c): void
+    {
+        DB::transaction(function () use ($c) {
+            $u = $c->user_id ? User::find($c->user_id) : null;
+            self::borrarFicha($c);
+            if ($u && !$u->esAdmin() && !$u->esCyber()) {
+                self::borrarUsuario($u);
+            }
+        });
+    }
+
+    protected static function borrarFicha(\App\Models\Cliente $c): void
+    {
+        Archivos::borrar($c->foto);
+        if (class_exists(\App\Models\Tarjeta::class) && \Illuminate\Support\Facades\Schema::hasTable('tarjetas')) {
+            foreach (\App\Models\Tarjeta::where('cliente_id', $c->id)->get() as $t) {
+                Archivos::borrar($t->logo);
+                $t->delete();
+            }
+        }
+        $c->delete();
+    }
+
+    protected static function borrarUsuario(User $u): void
+    {
+        $email = $u->email;
+        CodigoVerificacion::where('user_id', $u->id)->delete();
+        DB::table('sessions')->where('user_id', $u->id)->delete();
+        \App\Models\RegistroPendiente::where('email', $email)->delete();
+        // Auditoría: se borra lo que hizo la persona y lo que la menciona.
+        \App\Models\Actividad::where('user_id', $u->id)->delete();
+        if ($email) {
+            \App\Models\Actividad::where('detalle', 'like', '%' . $email . '%')->delete();
+            // Las solicitudes de eliminación se conservan sin datos personales (solo como prueba).
+            \App\Models\SolicitudEliminacion::where('email', $email)->update([
+                'email' => 'borrado-' . substr(hash('sha256', $email), 0, 10), 'nombre' => null, 'motivo' => null, 'user_id' => null, 'ip' => null,
+            ]);
+        }
+        $u->delete();
     }
 }

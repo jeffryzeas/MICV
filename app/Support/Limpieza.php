@@ -15,6 +15,7 @@ class Limpieza
             'auditoria'  => Actividad::where('created_at', '<', now()->subMonths(12))->delete(),
             'codigos'    => CodigoVerificacion::where('expira_en', '<', now()->subDay())->delete(),
             'pendientes' => RegistroPendiente::where('created_at', '<', now()->subHours(RegistroPendiente::HORAS_VIGENCIA))->delete(),
+            'autoservicio' => \App\Models\AutoservicioSolicitud::where('created_at', '<', now()->subDays(\App\Models\AutoservicioSolicitud::DIAS_GUARDADO))->delete(),
         ];
     }
 }

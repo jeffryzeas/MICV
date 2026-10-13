@@ -67,31 +67,4 @@ class CuentaController extends Controller
     {
         return view('legal.eliminar');
     }
-
-    public function publicaGuardar(Request $request)
-    {
-        $d = $request->validate([
-            'email'  => ['required', 'email', 'max:150'],
-            'nombre' => ['required', 'string', 'max:150'],
-            'motivo' => ['nullable', 'string', 'max:1000'],
-        ], [], ['email' => 'correo']);
-        if (\App\Support\AntiBot::esRobot($request)) {
-            \App\Models\Actividad::registrar('robot_bloqueado', 'eliminar · ' . $request->ip());
-            return back()->withInput($request->except('password', 'password_confirmation'))->withErrors(['general' => 'No pudimos procesar el formulario. Espere unos segundos e intente de nuevo.']);
-        }
-        if ($error = Recaptcha::verificar($request->input('recaptcha_token'), 'eliminar')) {
-            return back()->withInput()->withErrors(['general' => $error]);
-        }
-        $user = \App\Models\User::where('email', mb_strtolower($d['email']))->first();
-        $yaHay = SolicitudEliminacion::where('email', mb_strtolower($d['email']))->where('estado', 'pendiente')->exists();
-        if (!$yaHay) {
-            SolicitudEliminacion::create([
-                'user_id' => $user?->id, 'email' => mb_strtolower($d['email']), 'nombre' => $d['nombre'],
-                'motivo' => $d['motivo'] ?? null, 'origen' => 'publica', 'estado' => 'pendiente', 'ip' => $request->ip(),
-            ]);
-            Actividad::registrar('eliminacion_solicitada_publica', mb_strtolower($d['email']));
-        }
-        // Mismo mensaje exista o no la cuenta (no se revela quién está registrado).
-        return back()->with('mensaje', 'Recibimos su solicitud. Si hay una cuenta con ese correo, un administrador la revisará y le escribiremos.');
-    }
 }

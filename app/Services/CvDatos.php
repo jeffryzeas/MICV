@@ -126,9 +126,10 @@ class CvDatos
         // países se usa el escudo personalizado (si el admin subió uno).
         $escudo = null;
         if ($cv['mostrar_escudo'] || $cv['marca_agua_activa']) {
-            $escudo = $pais['escudo']
-                ? Archivos::dataUriLocal(resource_path('cv/' . $pais['escudo']))
-                : ($c->pais === 'OT' ? Archivos::dataUri($cfg->escudo) : null); // país sin escudo: el CV va limpio
+            $escudo = !empty($pais['escudo_subido'])
+                ? Archivos::dataUri($pais['escudo_subido'])
+                : ($pais['escudo'] ? Archivos::dataUriLocal(resource_path('cv/' . $pais['escudo']))
+                : ($c->pais === 'OT' ? Archivos::dataUri($cfg->escudo) : null)); // país sin escudo: el CV va limpio
         }
 
         return [

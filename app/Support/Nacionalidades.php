@@ -54,11 +54,23 @@ class Nacionalidades
         'CN' => 'Chinese', 'TW' => 'Taiwanese', 'JP' => 'Japanese', 'KR' => 'South Korean', 'IN' => 'Indian',
     ];
 
+    /** La lista de fábrica más los países que creó el administrador. */
+    public static function lista(): array
+    {
+        $l = self::LISTA;
+        foreach (Pais::todos() as $c => $p) {
+            if (!empty($p['personalizado']) && !isset($l[$c]) && !empty($p['gentilicio'])) {
+                $l[$c] = [$p['nombre'], $p['gentilicio'], $p['gentilicio_f'] ?? $p['gentilicio']];
+            }
+        }
+        return $l;
+    }
+
     /** Para el JS: [{c, m, f}] */
     public static function paraJs(): array
     {
         $r = [];
-        foreach (self::LISTA as $c => [$pais, $m, $f]) {
+        foreach (self::lista() as $c => [$pais, $m, $f]) {
             $r[] = ['c' => $c, 'p' => $pais, 'm' => $m, 'f' => $f];
         }
         return $r;
@@ -71,7 +83,7 @@ class Nacionalidades
             return true;
         }
         $t = mb_strtolower(trim($texto));
-        foreach (self::LISTA as [, $m, $f]) {
+        foreach (self::lista() as [, $m, $f]) {
             if ($t === mb_strtolower($m) || $t === mb_strtolower($f)) {
                 return true;
             }
@@ -82,7 +94,7 @@ class Nacionalidades
     /** Gentilicio correcto según el sexo, a partir del código de país. */
     public static function de(string $codigo, ?string $sexo = null): ?string
     {
-        $n = self::LISTA[$codigo] ?? null;
+        $n = self::lista()[$codigo] ?? null;
         return $n ? ($sexo === 'F' ? $n[2] : $n[1]) : null;
     }
 }

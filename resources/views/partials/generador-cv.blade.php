@@ -3,7 +3,7 @@
     $esUsuario = auth()->user()?->esCliente();
     $correoDestino = $esUsuario ? auth()->user()->email : $cliente->correo;
 @endphp
-<div id="generar-cv" class="bg-white rounded-xl shadow p-4 sm:p-6 mb-5" data-vista="{{ route('cv.vista', $cliente) }}" data-pdf="{{ route('cv.pdf', $cliente) }}" data-enviar="{{ route('cv.enviar', $cliente) }}">
+<div id="generar-cv" class="bg-white rounded-xl shadow p-4 sm:p-6 mb-5" data-vista="{{ route('cv.vista', $cliente) }}" data-pdf="{{ route('cv.pdf', $cliente) }}" data-word="{{ route('cv.word', $cliente) }}" data-enviar="{{ route('cv.enviar', $cliente) }}">
     <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><i data-lucide="file-text" class="size-[18px] text-oro-500"></i> Currículum en PDF</h2>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="space-y-4">
@@ -19,7 +19,7 @@
                         </label>
                     @endforeach
                 </div>
-                <p class="text-[11px] text-gray-400 mt-1">Los diseños Pro siempre salen en <b>una sola hoja</b>. @if($cliente->datosPais()['escudo'])El Clásico lleva el escudo de {{ $cliente->datosPais()['nombre'] }}.@else El Clásico es formal, con marco doble.@endif</p>
+                <p class="text-[11px] text-gray-400 mt-1">Los diseños Pro siempre salen en <b>una sola hoja</b>. @if($cliente->datosPais()['escudo'] || !empty($cliente->datosPais()['escudo_subido']))El Clásico lleva el escudo de {{ $cliente->datosPais()['nombre'] }}.@else El Clásico es formal, con marco doble.@endif</p>
             </div>
             <div id="bloquePaleta">
                 <p class="text-xs font-semibold uppercase text-azul-800 mb-2">Colores (diseños Pro)</p>
@@ -50,6 +50,9 @@
             <div class="flex flex-col gap-2 pt-1">
                 <button type="button" onclick="jzCv('descargar')" class="inline-flex items-center justify-center gap-1.5 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-3 rounded-lg transition-colors">
                     <i data-lucide="download" class="size-4"></i> Descargar PDF
+                </button>
+                <button type="button" onclick="jzCv('word')" class="inline-flex items-center justify-center gap-1.5 bg-[#2B579A] hover:bg-[#1e3f73] text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors">
+                    <i data-lucide="file-type" class="size-4"></i> Descargar en Word (.docx)
                 </button>
                 <div class="grid grid-cols-2 gap-2">
                     <button type="button" onclick="jzCv('ver')" class="inline-flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold px-3 py-2.5 rounded-lg">
@@ -92,13 +95,14 @@
 
     // Al exportar se pregunta (igual que la foto) el idioma del CV.
     window.jzCv = function (accion) {
-        const titulos = { descargar: 'Descargar el CV', ver: 'Ver el CV', correo: @json($esUsuario ? 'Enviar el CV a mi correo' : 'Enviar el CV por correo') };
-        const botones = { descargar: 'Descargar', ver: 'Ver PDF', correo: 'Enviar' };
+        const titulos = { descargar: 'Descargar el CV', word: 'CV en Word (editable)', ver: 'Ver el CV', correo: @json($esUsuario ? 'Enviar el CV a mi correo' : 'Enviar el CV por correo') };
+        const botones = { descargar: 'Descargar', word: 'Descargar Word', ver: 'Ver PDF', correo: 'Enviar' };
         const idiomaActual = sel('idioma', 'es');
         const opcion = (n, v, txt, on) => '<label class="jz-op"><input type="radio" name="' + n + '" value="' + v + '"' + (on ? ' checked' : '') + '><span>' + txt + '</span></label>';
         let html = '<div class="text-left space-y-3">';
         if (tieneFoto) html += '<div><p class="jz-op-t">¿Lleva foto?</p><div class="jz-ops">' + opcion('sw_foto', '1', '📷 Con foto', true) + opcion('sw_foto', '0', 'Sin foto', false) + '</div></div>';
         html += '<div><p class="jz-op-t">Idioma</p><div class="jz-ops">' + opcion('sw_idioma', 'es', '🇪🇸 Español', idiomaActual === 'es') + opcion('sw_idioma', 'en', '🇺🇸 English', idiomaActual === 'en') + '</div></div>';
+        if (accion === 'word') html += '<p class="text-xs text-gray-500">Sale en un diseño sencillo para que pueda cambiar cualquier texto en Word.</p>';
         if (accion === 'correo') html += '<p class="text-xs text-gray-500">Se enviará a <b>' + @json($correoDestino ?? '') + '</b>.</p>';
         html += '</div>';
         Swal.fire({
@@ -109,6 +113,7 @@
             if (!r.isConfirmed) return;
             const o = opciones(r.value.foto, r.value.idioma);
             if (accion === 'descargar') { window.location = caja.dataset.pdf + qs(Object.assign(o, { descargar: 1 })); return; }
+            if (accion === 'word') { window.location = caja.dataset.word + qs({ foto: o.foto, idioma: o.idioma, paleta: o.paleta }); return; }
             if (accion === 'ver') { window.open(caja.dataset.pdf + qs(o), '_blank'); return; }
             Swal.fire({ title: 'Enviando su CV…', text: 'Estamos preparando el PDF y enviándolo.', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             try {

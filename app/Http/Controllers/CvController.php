@@ -46,6 +46,26 @@ class CvController extends Controller
         ]);
     }
 
+    /** CV en Word (.docx) editable. */
+    public function word(Request $request, Cliente $cliente)
+    {
+        abort_unless($cliente->esVisiblePara($request->user()), 403, 'No tiene acceso a este CV.');
+        $opc = $this->opciones($request);
+        try {
+            $docx = \App\Services\CvWord::generar($cliente, $opc[3], $opc[2], $request->user());
+        } catch (\Throwable $e) {
+            report($e);
+            return response()->view('errores.pdf', ['error' => $this->detalleError($e)], 500);
+        }
+        Actividad::registrar('cv_word', "#{$cliente->id} {$cliente->nombreCompleto()} ({$opc[3]})");
+        $nombre = preg_replace('/\.pdf$/', '.docx', str_replace('_' . $opc[0] . '.pdf', '.pdf', $this->nombreArchivo($cliente, $opc)));
+        return response($docx, 200, [
+            'Content-Type'        => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'Content-Disposition' => 'attachment; filename="' . $nombre . '"',
+            'Cache-Control'       => 'no-store',
+        ]);
+    }
+
     /** Envía el CV en PDF al correo de la persona (o al de la cuenta del usuario). */
     public function enviar(Request $request, Cliente $cliente)
     {

@@ -51,9 +51,18 @@ class Correo
         ])->render();
 
         try {
-            Mail::mailer(self::MAILER)->html($html, function ($m) use ($para, $asunto, $cfg, $adjuntos) {
+            // HTML + versión de solo texto: los filtros de spam desconfían de los correos solo HTML.
+            $texto = self::aTexto($html);
+            Mail::mailer(self::MAILER)->send([], [], function ($m) use ($para, $asunto, $cfg, $adjuntos, $html, $texto) {
                 $m->to($para)->subject($asunto)
-                  ->from($cfg->smtp_desde_correo, $cfg->smtp_desde_nombre ?: $cfg->nombre_negocio);
+                  ->from($cfg->smtp_desde_correo, $cfg->smtp_desde_nombre ?: $cfg->nombre_negocio)
+                  ->html($html)->text($texto);
+                if ($cfg->marca_correo && strcasecmp($cfg->marca_correo, $cfg->smtp_desde_correo) !== 0) {
+                    $m->replyTo($cfg->marca_correo, $cfg->nombre_negocio);
+                }
+                $h = $m->getSymfonyMessage()->getHeaders();
+                $h->addTextHeader('X-Entity-Ref-ID', bin2hex(random_bytes(8))); // Gmail no agrupa los códigos en un hilo
+                $h->addTextHeader('Auto-Submitted', 'auto-generated');
                 foreach ($adjuntos as [$contenido, $nombre, $tipo]) {
                     $m->attachData($contenido, $nombre, ['mime' => $tipo]);
                 }
@@ -66,5 +75,19 @@ class Correo
             }
             throw new RuntimeException('No se pudo enviar el correo: ' . $msg, 0, $e);
         }
+    }
+
+    /** Convierte el HTML del correo en texto limpio (con los enlaces escritos). */
+    public static function aTexto(string $html): string
+    {
+        $html = preg_replace('#<(style|title|head)[^>]*>.*?</\1>#si', '', $html);
+        $html = preg_replace('#<div style="display:none[^"]*"[^>]*>.*?</div>#si', '', $html);
+        $html = preg_replace_callback('#<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>#si', fn ($m) => trim(strip_tags($m[2])) . ' (' . $m[1] . ')', $html);
+        $html = preg_replace('#<br\s*/?>#i', "\n", $html);
+        $html = preg_replace('#</(p|div|tr|h[1-6]|li|table)>#i', "\n", $html);
+        $t = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $t = preg_replace("/[ \t\x{200B}\x{00A0}]+/u", ' ', $t);
+        $t = preg_replace("/ *\n */", "\n", $t);
+        return trim(preg_replace("/\n{3,}/", "\n\n", $t));
     }
 }

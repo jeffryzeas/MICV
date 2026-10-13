@@ -83,7 +83,9 @@ class CartaGenerator
             'residencia'=> 'cédula de residencia',
             'partida_nacimiento' => 'código de persona',
             'otro'      => 'documento de identidad',
-            default     => 'cédula de identidad',
+            default     => isset(\App\Support\Pais::reglasPersonalizadas()[$cliente->tipo_documento])
+                ? mb_strtolower(\App\Support\Pais::reglasPersonalizadas()[$cliente->tipo_documento]['nombre'])
+                : 'cédula de identidad',
         };
     }
 

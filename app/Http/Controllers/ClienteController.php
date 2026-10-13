@@ -62,7 +62,17 @@ class ClienteController extends Controller
             return redirect()->route('dashboard')->withErrors(['general' => 'Su usuario no tiene un Cyber asignado. Hable con el administrador.']);
         }
 
+        // Atender un turno del autoservicio: el formulario se abre lleno con lo que la persona escribió.
+        $solicitud = null;
+        if ($request->filled('autoservicio')) {
+            $solicitud = \App\Models\AutoservicioSolicitud::query()->de($u)->where('estado', 'pendiente')->find($request->integer('autoservicio'));
+            if ($solicitud) {
+                $request->session()->now('_old_input', $solicitud->datos + ['autoservicio_id' => $solicitud->id, 'cyber_id' => $solicitud->cyber_id]);
+            }
+        }
+
         return view('clientes.create', [
+            'solicitud'    => $solicitud,
             'clienteNuevo' => new Cliente(),
             'cybers'       => $u->esAdmin() ? Cyber::where('activo', true)->orderBy('nombre')->get() : collect(),
         ]);
@@ -72,6 +82,10 @@ class ClienteController extends Controller
     {
         $r = $guardar->registrar($request);
         $c = $r['cliente'];
+        if ($request->filled('autoservicio_id')) {
+            \App\Models\AutoservicioSolicitud::query()->de($request->user())->whereKey($request->integer('autoservicio_id'))
+                ->update(['estado' => 'atendida', 'cliente_id' => $c->id, 'atendida_por' => $request->user()->id, 'atendida_en' => now()]);
+        }
         Actividad::registrar($r['ya_existia'] ? 'cliente_vincular' : 'cliente_crear', "#{$c->id} {$c->nombreCompleto()}");
 
         $msg = $r['ya_existia']
@@ -121,11 +135,11 @@ class ClienteController extends Controller
         abort_unless($u->esAdmin(), 403, 'Solo el administrador puede eliminar clientes.');
 
         $nombre = $cliente->nombreCompleto();
-        Archivos::borrar($cliente->foto);
-        $cliente->delete();
-        Actividad::registrar('cliente_eliminar', $nombre);
+        $teniaCuenta = (bool) $cliente->user_id;
+        \App\Services\Cuenta::borrarTodo($cliente);
+        Actividad::registrar('cliente_eliminar', '#' . $cliente->id); // sin datos personales
 
-        return redirect()->route('clientes.index')->with('mensaje', "Cliente $nombre eliminado del sistema.");
+        return redirect()->route('clientes.index')->with('mensaje', "Se eliminó a $nombre" . ($teniaCuenta ? ' y su usuario del sistema' : '') . '. No quedó ningún dato suyo.');
     }
 
     protected function autorizar(Request $request, Cliente $cliente): void

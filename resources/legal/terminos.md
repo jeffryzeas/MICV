@@ -62,7 +62,7 @@ Si usted incumple estas reglas, podemos **borrar el contenido, suspender o cerra
 El uso de la plataforma por los **usuarios es gratuito**, salvo que se anuncie otra cosa antes de contratar. Los servicios que preste un **Cyber afiliado** en su local (por ejemplo, impresión o atención) los cobra el Cyber por su cuenta y bajo su responsabilidad.
 
 ## 10. Eliminación de la cuenta
-1. Puede pedir la eliminación desde **Mi cuenta → Privacidad y cuenta** o en la página [Eliminar mi cuenta]({{url_eliminar}}), sin necesidad de iniciar sesión.
+1. Puede pedir la eliminación dentro de la app, en **Privacidad y cuenta → Solicitar eliminación**, confirmando con su contraseña. Los pasos también están en la página [Eliminar mi cuenta]({{url_eliminar}}).
 2. Un administrador revisa la solicitud para confirmar que es usted y le avisamos por correo cuando se completa.
 3. Al eliminarla se borran su cuenta, su ficha, su foto y sus documentos, salvo los datos que la ley nos obligue a conservar.
 

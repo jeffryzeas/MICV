@@ -64,6 +64,27 @@ class Archivos
         return $ruta;
     }
 
+    /** Guarda bytes ya procesados (p. ej. una foto recortada en el navegador). */
+    public static function guardarBinario(string $contenido, string $carpeta, string $ext = 'jpg'): string
+    {
+        $ruta = trim($carpeta, '/') . '/' . Str::random(32) . '.' . $ext;
+        Storage::disk(self::DISCO)->put($ruta, $contenido);
+        return $ruta;
+    }
+
+    /** data:image/...;base64,... → [bytes, extensión] o null si no es una imagen válida. */
+    public static function desdeDataUri(?string $uri, int $maxBytes = 12_000_000): ?array
+    {
+        if (!$uri || !preg_match('#^data:image/(png|jpe?g|webp);base64,(.+)$#s', $uri, $m)) {
+            return null;
+        }
+        $bin = base64_decode($m[2], true);
+        if ($bin === false || strlen($bin) > $maxBytes || !@getimagesizefromstring($bin)) {
+            return null;
+        }
+        return [$bin, $m[1] === 'jpeg' ? 'jpg' : $m[1]];
+    }
+
     public static function existe(?string $ruta): bool
     {
         try {

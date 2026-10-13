@@ -39,7 +39,7 @@
                 <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Tipo de documento</label>
                 <select name="tipo_documento" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
                     <option value="">Todos</option>
-                    @foreach(\App\Support\Pais::DATOS as $pc => $pd)
+                    @foreach(\App\Support\Pais::todos() as $pc => $pd)
                         <optgroup label="{{ $pd['bandera'] }} {{ $pd['nombre'] }}">
                         @foreach($pd['documentos'] as $k => $t)
                             @if($k !== 'pasaporte' || $pc === 'OT')<option value="{{ $k }}" @selected($tipoDoc === $k)>{{ $t }}</option>@endif

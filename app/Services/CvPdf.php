@@ -13,17 +13,47 @@ class CvPdf
     /** @param bool $esperarAjuste  true en los CV Pro: espera a que el script los ajuste a una hoja. */
     public static function desdeHtml(string $html, bool $esperarAjuste = false): string
     {
-        $cfg = config('micv.pdf');
-
-        $b = Browsershot::html($html)
+        $b = self::navegador($html)
             ->format('Letter')
             ->margins(0, 0, 0, 0)
             ->showBackground()
-            ->emulateMedia('print')
-            ->timeout(max(10, (int) $cfg['timeout']));
+            ->emulateMedia('print');
 
         // Respeta el tamaño y márgenes definidos con @page en la plantilla.
         $b->setOption('preferCSSPageSize', true);
+
+        if ($esperarAjuste) {
+            $b->waitForFunction('window.cvListo === true', null, 15000);
+        }
+
+        return $b->pdf();
+    }
+
+    /** PDF de un tamaño exacto en milímetros (tarjetas). Espera window.tarjetaLista. */
+    public static function pdfTamano(string $html, float $anchoMm, float $altoMm): string
+    {
+        $b = self::navegador($html)->paperSize($anchoMm, $altoMm, 'mm')->margins(0, 0, 0, 0)->showBackground()->emulateMedia('print');
+        $b->setOption('preferCSSPageSize', true);
+        $b->waitForFunction('window.tarjetaLista === true', null, 15000);
+        return $b->pdf();
+    }
+
+    /** PNG de un elemento en alta resolución (escala 4 ≈ 380 ppp). Espera window.tarjetaLista. */
+    public static function png(string $html, string $selector, int $escala = 4): string
+    {
+        $b = self::navegador($html)->windowSize(900, 700)->select($selector)->hideBackground();
+        // Browsershot limita la escala a 3; Chrome acepta más, y para imprimir conviene 4.
+        $b->setOption('viewport.deviceScaleFactor', max(1, min(5, $escala)));
+        $b->waitForFunction('window.tarjetaLista === true', null, 15000);
+        return $b->screenshot();
+    }
+
+    /** Browsershot ya configurado para este servidor (Chrome, Node, permisos). */
+    public static function navegador(string $html): Browsershot
+    {
+        $cfg = config('micv.pdf');
+
+        $b = Browsershot::html($html)->timeout(max(10, (int) $cfg['timeout']));
 
         if (filled($cfg['chrome_path'])) {
             $b->setChromePath($cfg['chrome_path']);
@@ -67,11 +97,7 @@ class CvPdf
 
         $b->addChromiumArguments(['disable-dev-shm-usage', 'font-render-hinting=none']);
 
-        if ($esperarAjuste) {
-            $b->waitForFunction('window.cvListo === true', null, 15000);
-        }
-
-        return $b->pdf();
+        return $b;
     }
 
     /** En Linux busca node/npm en las rutas típicas (PHP-FPM a veces no trae PATH). */

@@ -11,7 +11,7 @@
         <div>
             <label class="{{ $lb }}">País del documento</label>
             <select name="pais" id="fPais" class="{{ $in }}">
-                @foreach(\App\Support\Pais::DATOS as $cod => $p)<option value="{{ $cod }}" @selected($paisActual === $cod)>{{ $p['bandera'] }} {{ $p['nombre'] }}</option>@endforeach
+                @foreach(\App\Support\Pais::porRegion() as $region => $lista)<optgroup label="{{ $region }}">@foreach($lista as $cod => $p)<option value="{{ $cod }}" @selected($paisActual === $cod)>{{ $p['bandera'] }} {{ $p['nombre'] }}</option>@endforeach</optgroup>@endforeach
             </select>
             <p class="text-[11px] text-gray-400 mt-1">El país que emitió el documento. Ej.: un nicaragüense con DIMEX elige Costa Rica.</p>
         </div>
@@ -59,7 +59,7 @@
             caja.className = 'live-status show ' + (ok ? 'ok' : 'err'); caja.innerHTML = html || 'Documento disponible.';
         }, 450);
     }
-    const AYUDA = @json(\App\Support\Documentos::AYUDA);
+    const AYUDA = @json(\App\Support\Documentos::ayudas());
     function ayuda() { document.getElementById('ayudaNumDoc').textContent = AYUDA[tipo.value] || ''; }
     num.addEventListener('input', consultar); tipo.addEventListener('change', function () { ayuda(); consultar(); }); pais.addEventListener('change', ayuda); ayuda();
 })();

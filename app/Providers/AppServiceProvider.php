@@ -82,6 +82,16 @@ class AppServiceProvider extends ServiceProvider
         // Guardar formularios y vistas previas.
         RateLimiter::for('guardar', fn (Request $r) => Limit::perMinute(30)->by('guardar:' . $quien($r)));
         RateLimiter::for('vista', fn (Request $r) => Limit::perMinute(120)->by('vista:' . $quien($r)));
+        // Autoservicio público: por IP (varias personas pueden usar el mismo wifi del Cyber).
+        RateLimiter::for('autoservicio', fn (Request $r) => [
+            Limit::perMinute(6)->by('auto:' . $r->ip()),
+            Limit::perDay(60)->by('auto-dia:' . $r->ip()),
+        ]);
+        // Quitar el fondo usa bastante procesador: límite propio.
+        RateLimiter::for('fondo', fn (Request $r) => [
+            Limit::perMinute(10)->by('fondo:' . $quien($r)),
+            Limit::perDay(300)->by('fondo-dia:' . $quien($r)),
+        ]);
         RateLimiter::for('sensible', fn (Request $r) => [
             Limit::perMinute(5)->by('sens:' . $quien($r)),
             Limit::perDay(30)->by('sens-dia:' . $quien($r)),

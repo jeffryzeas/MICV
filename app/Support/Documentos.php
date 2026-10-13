@@ -102,6 +102,16 @@ class Documentos
         23 => 'Santo Domingo de los Tsáchilas', 24 => 'Santa Elena', 30 => 'Exterior',
     ];
 
+    /** Ayudas de fábrica más las de los documentos creados por el admin. */
+    public static function ayudas(): array
+    {
+        $a = self::AYUDA;
+        foreach (Pais::reglasPersonalizadas() as $clave => $d) {
+            $a[$clave] = ($d['ayuda'] ?? '') ?: (($d['formato'] ?? '') === 'numeros' ? 'Solo números.' : 'Letras y números.');
+        }
+        return $a;
+    }
+
     /** La cédula panameña necesita los guiones (8-123-4567). */
     public static function limpiarPanama(string $n): string
     {
@@ -314,6 +324,16 @@ class Documentos
                 break;
 
             default:
+                // Documentos creados por el administrador (formato y largo).
+                $reglas = Pais::reglasPersonalizadas()[$tipo] ?? null;
+                if ($reglas) {
+                    $min = max(1, (int) ($reglas['min'] ?? 3)); $max = max($min, (int) ($reglas['max'] ?? 20));
+                    $clase = ($reglas['formato'] ?? '') === 'numeros' ? '\\d' : '[A-Z0-9]';
+                    if (!preg_match('/^' . $clase . '{' . $min . ',' . $max . '}$/', $n)) {
+                        return $mal(($reglas['nombre'] ?? 'El documento') . ': ' . (($reglas['formato'] ?? '') === 'numeros' ? 'solo números' : 'letras y números') . ', de ' . $min . ($max > $min ? ' a ' . $max : '') . ' caracteres.');
+                    }
+                    break;
+                }
                 if (strlen($n) < 3) return $mal('El número es muy corto.');
         }
         return $r;

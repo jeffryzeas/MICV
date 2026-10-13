@@ -51,7 +51,7 @@ class Legal
     {
         $e = fn ($v) => str_replace(['*', '_', '[', ']', '<', '>'], ['\\*', '\\_', '\\[', '\\]', '&lt;', '&gt;'], (string) $v);
         $pais = Pais::de($cfg->legal_pais ?: 'CR')['nombre'];
-        $oficial = self::NOMBRE_OFICIAL[$cfg->legal_pais ?: 'CR'] ?? 'el país del responsable';
+        $oficial = self::NOMBRE_OFICIAL[$cfg->legal_pais ?: 'CR'] ?? (Pais::de($cfg->legal_pais)['oficial'] ?? null) ?? ('la República de ' . $pais);
         return [
             '{{marca}}'               => $e($cfg->nombre_negocio ?: 'Mi CV'),
             '{{responsable}}'         => $e($cfg->legal_responsable ?: ($cfg->nombre_negocio ?: 'el titular de la plataforma')),

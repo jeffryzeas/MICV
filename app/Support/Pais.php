@@ -246,30 +246,173 @@ class Pais
         5 => 'Guanacaste', 6 => 'Puntarenas', 7 => 'Limón',
     ];
 
+    /** Regiones para agrupar las listas de países. */
+    public const REGIONES = [
+        'Centroamérica y el Caribe' => ['NI', 'CR', 'HN', 'SV', 'GT', 'PA', 'DO', 'CU'],
+        'Norteamérica'              => ['MX', 'US'],
+        'Sudamérica'                => ['CO', 'VE', 'EC', 'PE', 'BO', 'CL', 'AR', 'UY', 'PY'],
+        'Europa'                    => ['ES'],
+    ];
+
+    private static ?array $cache = null;
+
+    /**
+     * Todos los países: los de fábrica más los que el administrador creó o
+     * ajustó (escudo propio, tipos de documento extra, activo/inactivo).
+     */
+    public static function todos(): array
+    {
+        if (self::$cache !== null) {
+            return self::$cache;
+        }
+        $todos = self::DATOS;
+        try {
+            $filas = \Illuminate\Support\Facades\Schema::hasTable('paises') ? \App\Models\PaisAdmin::all() : collect();
+        } catch (\Throwable $e) {
+            $filas = collect(); // la base de datos todavía no está lista (instalación)
+        }
+        $otro = $todos['OT']; unset($todos['OT']);
+        foreach ($filas as $f) {
+            $extra = [];
+            foreach ((array) $f->documentos as $d) {
+                if (!empty($d['clave']) && !empty($d['nombre'])) {
+                    $extra[$d['clave']] = $d['nombre'];
+                }
+            }
+            if ($f->nuevo) {
+                $d = (array) $f->datos;
+                $todos[$f->codigo] = [
+                    'nombre'       => $d['nombre'] ?? $f->codigo,
+                    'bandera'      => self::banderaDe($f->codigo),
+                    'gentilicio'   => $d['gentilicio'] ?? '',
+                    'gentilicio_f' => $d['gentilicio_f'] ?? ($d['gentilicio'] ?? ''),
+                    'telefono'     => $d['telefono'] ?? '',
+                    'documentos'   => $extra + ['pasaporte' => 'Pasaporte'],
+                    'seguro'       => !empty($d['seguro_largo']) ? 'Seguro' : null,
+                    'seguro_largo' => $d['seguro_largo'] ?? null,
+                    'municipio'    => $d['municipio'] ?? 'Municipio',
+                    'departamento' => $d['departamento'] ?? 'Departamento',
+                    'companias'    => array_values(array_filter(array_map('trim', explode(',', $d['companias'] ?? '')))) ?: ['Otro'],
+                    'ley'          => $d['ley'] ?? null,
+                    'oficial'      => $d['oficial'] ?? null,
+                    'escudo'       => null,
+                    'ciudad_def'   => $d['ciudad'] ?? '',
+                    'personalizado'=> true,
+                ];
+            } elseif (isset($todos[$f->codigo])) {
+                $todos[$f->codigo]['documentos'] = $todos[$f->codigo]['documentos'] + $extra;
+            } else {
+                continue;
+            }
+            $todos[$f->codigo]['activo'] = (bool) $f->activo;
+            if ($f->escudo) {
+                $todos[$f->codigo]['escudo_subido'] = $f->escudo;
+            }
+        }
+        $todos['OT'] = $otro;
+        return self::$cache = $todos;
+    }
+
+    /** Solo los países activos (para las listas donde se elige). */
+    public static function activos(): array
+    {
+        return array_filter(self::todos(), fn ($p) => $p['activo'] ?? true);
+    }
+
+    /** Países activos agrupados por región: ['Región' => ['NI' => [...], ...]]. */
+    public static function porRegion(): array
+    {
+        $act = self::activos();
+        $r = [];
+        $usados = [];
+        foreach (self::REGIONES as $region => $codigos) {
+            foreach ($codigos as $c) {
+                if (isset($act[$c])) {
+                    $r[$region][$c] = $act[$c];
+                    $usados[$c] = true;
+                }
+            }
+        }
+        foreach ($act as $c => $p) {
+            if (!isset($usados[$c]) && $c !== 'OT') {
+                $r['Otros países'][$c] = $p;
+            }
+        }
+        $r['Otros países']['OT'] = self::todos()['OT'];
+        return $r;
+    }
+
+    public static function limpiarCache(): void
+    {
+        self::$cache = null;
+    }
+
+    /** Bandera en emoji a partir del código ISO (CR → 🇨🇷). */
+    public static function banderaDe(string $codigo): string
+    {
+        $c = strtoupper($codigo);
+        if (!preg_match('/^[A-Z]{2}$/', $c)) {
+            return '🌎';
+        }
+        return mb_chr(0x1F1E6 + ord($c[0]) - 65) . mb_chr(0x1F1E6 + ord($c[1]) - 65);
+    }
+
     public static function de(?string $codigo): array
     {
-        return self::DATOS[$codigo] ?? self::DATOS['NI'];
+        $t = self::todos();
+        return $t[$codigo] ?? $t['NI'];
     }
 
     public static function codigos(): array
     {
-        return array_keys(self::DATOS);
+        return array_keys(self::todos());
+    }
+
+    /** Códigos de teléfono para el selector (los de fábrica más los de países creados). */
+    public static function telefonos(): array
+    {
+        $t = self::CODIGOS_TELEFONO;
+        foreach (self::todos() as $p) {
+            if (!empty($p['personalizado']) && !empty($p['telefono']) && !isset($t[$p['telefono']])) {
+                $t[$p['telefono']] = $p['bandera'] . ' ' . $p['telefono'];
+            }
+        }
+        return $t;
     }
 
     /** Todos los tipos de documento de todos los países. */
     public static function todosLosDocumentos(): array
     {
         $t = [];
-        foreach (self::DATOS as $p) {
+        foreach (self::todos() as $p) {
             $t += $p['documentos'];
         }
         return $t;
     }
 
+    /** Reglas de los documentos creados por el admin: clave => [formato, min, max, ayuda, nombre]. */
+    public static function reglasPersonalizadas(): array
+    {
+        $r = [];
+        try {
+            $filas = \Illuminate\Support\Facades\Schema::hasTable('paises') ? \App\Models\PaisAdmin::all() : collect();
+        } catch (\Throwable $e) {
+            return [];
+        }
+        foreach ($filas as $f) {
+            foreach ((array) $f->documentos as $d) {
+                if (!empty($d['clave'])) {
+                    $r[$d['clave']] = $d;
+                }
+            }
+        }
+        return $r;
+    }
+
     /** País al que pertenece un tipo de documento (para clientes viejos). */
     public static function paisDeDocumento(?string $tipo): string
     {
-        foreach (self::DATOS as $cod => $p) {
+        foreach (self::todos() as $cod => $p) {
             if (array_key_exists((string) $tipo, $p['documentos']) && $tipo !== 'pasaporte') {
                 return $cod;
             }
@@ -281,7 +424,7 @@ class Pais
     public static function paraJs(): array
     {
         $r = [];
-        foreach (self::DATOS as $cod => $p) {
+        foreach (self::todos() as $cod => $p) {
             $r[$cod] = collect($p)->only(['nombre', 'gentilicio', 'telefono', 'documentos', 'seguro_largo', 'municipio', 'departamento', 'companias'])->all();
         }
         return $r;

@@ -20,7 +20,7 @@
                     <input type="text" name="legal_identificacion" value="{{ old('legal_identificacion', $cfg->legal_identificacion) }}" maxlength="60" class="{{ $in }}"></div>
                 <div><label class="{{ $lb }}">País de la ley aplicable *</label>
                     <select name="legal_pais" class="{{ $in }}">
-                        @foreach(\App\Support\Pais::DATOS as $cod => $p)
+                        @foreach(\App\Support\Pais::activos() as $cod => $p)
                             <option value="{{ $cod }}" @selected(old('legal_pais', $cfg->legal_pais ?: 'CR') === $cod)>{{ $p['bandera'] ?? '' }} {{ $p['nombre'] }}</option>
                         @endforeach
                     </select></div>

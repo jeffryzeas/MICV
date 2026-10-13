@@ -23,4 +23,25 @@ class Color
         [$r, $g, $b] = array_map('intval', explode(' ', self::rgb($hex, '#C9971F')));
         return (int) ($r * $f) . ' ' . (int) ($g * $f) . ' ' . (int) ($b * $f);
     }
+
+    /** Luminancia relativa (0 = negro, 1 = blanco). */
+    public static function luminancia(string $hex): float
+    {
+        [$r, $g, $b] = array_map(fn ($v) => (int) $v / 255, explode(' ', self::rgb($hex, '#000000')));
+        $f = fn ($c) => $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
+        return 0.2126 * $f($r) + 0.7152 * $f($g) + 0.0722 * $f($b);
+    }
+
+    /** Texto legible sobre un fondo: blanco o casi negro. */
+    public static function textoSobre(string $hex): string
+    {
+        return self::luminancia($hex) > 0.45 ? '#111827' : '#ffffff';
+    }
+
+    /** Oscurece un color hexadecimal y lo devuelve en hexadecimal. */
+    public static function oscurecerHex(string $hex, float $f = 0.7): string
+    {
+        [$r, $g, $b] = array_map('intval', explode(' ', self::rgb($hex, '#000000')));
+        return sprintf('#%02x%02x%02x', (int) ($r * $f), (int) ($g * $f), (int) ($b * $f));
+    }
 }

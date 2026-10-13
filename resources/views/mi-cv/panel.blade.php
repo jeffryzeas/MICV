@@ -19,7 +19,9 @@
             @endif
             <div class="flex-1 min-w-0 text-center sm:text-left">
                 <p class="text-white/70 text-sm">{{ $p['bandera'] }} {{ $cliente->nacionalidad ?: $p['nombre'] }}</p>
-                <h1 class="text-2xl sm:text-3xl font-bold leading-tight">Hola, {{ $cliente->primer_nombre }} 👋</h1>
+                <h1 class="text-2xl sm:text-3xl font-bold leading-tight inline-flex items-center gap-2 justify-center sm:justify-start flex-wrap">Hola, {{ $cliente->primer_nombre }}
+                    @if(auth()->user()->verificado())<span class="inline-flex items-center gap-1 bg-white/95 text-[#0f5fa8] text-xs font-semibold rounded-full pl-1 pr-2.5 py-0.5 shadow">@include('partials.verificado', ['tam' => 18]) Verificado</span>@endif
+                </h1>
                 <p class="text-white/80 mt-0.5">{{ $cliente->profesion ?: 'Agregue su profesión u oficio para que su CV destaque' }}</p>
                 @if($siguiente)
                     <a href="{{ route('mi-cv.editar') }}#{{ $siguiente[2] }}" class="mt-4 inline-flex items-center gap-2 bg-white text-azul-800 hover:bg-oro-500 hover:text-white font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors">
@@ -58,11 +60,12 @@
     </section>
 
     {{-- Accesos rápidos --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
+    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 mb-5">
         @foreach([
             [route('mi-cv.editar'), 'user-round-pen', 'Mis datos', 'Foto, documento, estudios…', 'bg-blue-50 text-azul-800'],
             ['#generar-cv', 'file-text', 'Mi CV en PDF', count(\App\Services\CvDatos::DISENOS) . ' diseños · ES / EN', 'bg-amber-50 text-amber-700'],
             [route('cartas.index'), 'mail', 'Mis cartas', 'Presentación, solicitud…', 'bg-emerald-50 text-emerald-700'],
+            [route('tarjetas.mia'), 'contact', 'Mi tarjeta', '20 diseños · QR a WhatsApp', 'bg-violet-50 text-violet-700'],
             [route('mi-cuenta.mostrar'), 'shield-check', 'Mi cuenta', 'Privacidad y datos', 'bg-gray-100 text-gray-700'],
         ] as [$url, $icono, $titulo, $sub, $color])
             <a href="{{ $url }}" class="group bg-white rounded-xl shadow p-4 hover:shadow-lg hover:-translate-y-0.5 transition">

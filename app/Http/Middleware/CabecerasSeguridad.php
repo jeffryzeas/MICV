@@ -21,7 +21,7 @@ class CabecerasSeguridad
         $h->set('X-Content-Type-Options', 'nosniff');
         $h->set('X-Frame-Options', 'SAMEORIGIN');
         $h->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $h->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+        $h->set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(), payment=(), usb=()');
         $h->set('Cross-Origin-Opener-Policy', 'same-origin');
         if ($request->isSecure()) {
             $h->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
@@ -34,7 +34,7 @@ class CabecerasSeguridad
                 "style-src 'self' 'unsafe-inline'",
                 "img-src 'self' data: blob:",
                 "font-src 'self' data:",
-                "connect-src 'self' https://www.google.com",
+                "connect-src 'self' data: blob: https://www.google.com",
                 "frame-src 'self' blob: https://www.google.com https://www.recaptcha.net",
                 "frame-ancestors 'self'",
                 "object-src 'none'",

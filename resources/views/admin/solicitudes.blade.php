@@ -3,7 +3,7 @@
     $color = ['pendiente' => 'bg-amber-50 text-amber-700', 'aprobada' => 'bg-emerald-50 text-emerald-700', 'rechazada' => 'bg-red-50 text-red-700', 'cancelada' => 'bg-gray-100 text-gray-600'];
 @endphp
 <x-layout titulo="Solicitudes de eliminación" activo="solicitudes">
-    <p class="text-gray-500 mb-4 text-sm">Las personas piden borrar su cuenta desde su panel o desde la página pública <a href="{{ route('eliminar.mostrar') }}" target="_blank" class="underline">/eliminar-cuenta</a>. Al aprobar, se borran su usuario, su foto, su CV y sus códigos, y se le avisa por correo. Atiéndalas pronto: las leyes de protección de datos fijan plazos cortos para responder.</p>
+    <p class="text-gray-500 mb-4 text-sm">Las personas piden borrar su cuenta desde dentro de la app (Privacidad y cuenta), confirmando con su contraseña. Al aprobar, se borran su usuario, su foto, su CV y sus códigos, y se le avisa por correo. Atiéndalas pronto: las leyes de protección de datos fijan plazos cortos para responder.</p>
 
     <div class="flex flex-wrap gap-2 mb-4">
         @foreach($tabs as $k => $t)

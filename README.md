@@ -7,6 +7,159 @@ cada Cyber tiene sus usuarios y ve solo a sus clientes. El admin lo ve todo.
 Los PDF se hacen con **Chromium + Node** (Browsershot + Puppeteer). El PDF sale
 igual a la vista previa del navegador: fuentes, colores, foto, marco, todo.
 
+## Novedades de la versión 10
+
+### Punto de venta (menú "Punto de venta")
+Cada Cyber tiene su propio inventario, caja y ventas. El admin elige en qué Cyber trabajar con el selector de arriba.
+
+- **Vender:**
+  - Cuadrícula de productos con búsqueda, categorías y favoritos.
+  - Lector de código de barras: se escanea en la búsqueda y se agrega solo.
+  - Artículo libre: "Otro", para cobrar algo que no está en la lista.
+  - Descuento por línea o a toda la venta.
+  - Cliente de la lista o nombre escrito.
+- **Cobrar:**
+  - Efectivo con botones de billetes del país y cálculo del cambio.
+  - Tarjeta y transferencia, con el nombre de cada país: SINPE Móvil, Yape/Plin, Nequi, Bizum…
+  - Pagos combinados.
+  - Teclado: F2 busca, F9 cobra, Enter confirma, Esc empieza otra venta.
+- **Comprobante:**
+  - Para impresora térmica de 80 o 58 mm.
+  - Imagen PNG para enviar por WhatsApp y envío por correo.
+  - Reimpresión desde "Ventas".
+- **Caja:**
+  - Abrir con fondo inicial y registrar entradas o salidas de efectivo.
+  - Cerrar con arqueo por billetes y monedas: dice si cuadra, sobra o falta.
+  - Reporte del turno para imprimir e historial de cierres.
+- **Productos e inventario:**
+  - Productos y servicios, categorías con color, código de barras, costo y ganancia.
+  - Impuesto general, exento u otra tasa.
+  - Existencias con aviso de "por agotarse", ajustes con motivo e historial de movimientos (kardex).
+  - Botón para cargar de una vez los servicios típicos de un Cyber.
+- **Proveedores y compras:** cada compra suma al inventario y actualiza el costo promedio. Se puede anular.
+- **Anular ventas:**
+  - Con motivo, y el inventario se devuelve.
+  - Con la caja ya cerrada, solo el admin puede anular.
+- **Reportes:**
+  - Hoy, semana, mes o rango de fechas.
+  - Ticket promedio, ganancia bruta, ventas por día, por forma de pago y por usuario.
+  - Lo más vendido y productos por agotarse.
+  - Descarga para Excel (CSV).
+- **Configuración por país:**
+  - Moneda y símbolo, decimales e impuesto (nombre y tasa).
+  - Identificación fiscal (RUC, NIT, RTN, cédula jurídica…), datos del negocio, ancho del tiquete y numeración.
+  - **Revise la tasa con su contador:** las leyes cambian.
+- **Importante:**
+  - El comprobante es **interno** y no sustituye la **factura electrónica**.
+  - Donde la ley la pide (por ejemplo Costa Rica, México o Guatemala), use su sistema autorizado.
+
+### Fotos carné y pasaporte (menú "Fotos carné y pasaporte")
+- Se toma la foto con la cámara web o se sube.
+- El sistema **quita el fondo** (unos 4 segundos) y lo pone blanco, celeste, gris o del color que quiera.
+- Recorte con guía de la cara, brillo y contraste.
+- Medidas:
+  - 2,5×3 cm, 3×4 cm, pasaporte 3,5×4,5 cm, 4×5 cm, EE. UU. 2×2" o la que quiera.
+- Papel:
+  - Hoja carta, A4 o papel fotográfico 10×15. El sistema calcula cuántas caben, con líneas de corte.
+- Desde la ficha del cliente puede poner la foto directo en su CV.
+- **Instalación (una sola vez):**
+
+  ```bash
+  php artisan micv:modelo-fondo
+  ```
+
+  Descarga unos 170 MB del modelo U²-Net (proyecto rembg, licencia Apache-2.0).
+- **La cámara del navegador solo funciona con https.**
+
+### CV en Word (.docx)
+Botón "Descargar en Word" junto al PDF. Sale en español o inglés, con o sin foto, en un diseño sencillo para editar cualquier texto.
+
+### Autoservicio por QR (menú "Autoservicio (QR)")
+- Imprima el afiche y póngalo en el mostrador. La persona escanea el QR, llena sus datos desde su celular y recibe un **número de turno**.
+- En la pantalla del Cyber aparecen al instante, con sonido y número en el menú.
+- Al tocar **Atender**, se abre "Registrar cliente" ya lleno. Se revisa y se guarda con todas las validaciones de siempre.
+- Se puede pausar.
+- Los datos que nadie atiende se borran solos a los 7 días.
+- Los documentos de la lista privada no se reciben.
+
+### Otros cambios
+- Menú con grupos plegables. El admin tiene "Configuración" y "Seguridad".
+- Los mensajes de "guardado" ahora son un aviso pequeño que se va solo.
+- Al imprimir solo sale el contenido, sin el menú.
+
+### Librerías nuevas (se instalan con `npm install`)
+- `docx` (MIT): CV en Word.
+- `onnxruntime-web` (MIT): corre el modelo para quitar el fondo, sin GPU.
+- `sharp` (Apache-2.0): procesa las imágenes.
+
+### Actualizar desde la v9
+```bash
+npm install
+php artisan migrate --force
+php artisan micv:modelo-fondo
+php artisan optimize:clear && php artisan optimize
+```
+
+## Novedades de la versión 9
+
+### Para la persona (usuario)
+- **Tarjeta de presentación**, aparte del CV, en el menú "Mi tarjeta de presentación":
+  - **20 diseños** en 5 categorías (Oficina y negocios, Transporte y mandados, Profesionales, Oficios y servicios, Belleza, comida y eventos). Cada diseño trae los íconos de su oficio: moto y paquete para mandados, taxi, balanza para abogado, estetoscopio para salud, etc.
+  - Puede usar su **foto**, su **logo** o el ícono del oficio, y cambiar el color.
+  - **Código QR** que abre WhatsApp con su número, guarda su contacto o abre su sitio web. Lleva su logo (o el de WhatsApp) en el centro. Se probaron los 20 diseños con un lector de QR: todos se leen.
+  - Descargas: **PNG en alta calidad** (1296 × 816 px, unos 380 ppp), **PDF de una tarjeta** (8,56 × 5,4 cm) y **hoja carta con 10 tarjetas** y marcas de corte.
+  - Botón **WhatsApp**: en el celular abre el menú de compartir con la imagen lista. En computadora la descarga y ofrece abrir WhatsApp.
+  - **Enviar a mi correo** con la imagen y la hoja de 10 adjuntas.
+  - El Cyber y el admin también pueden hacerla desde la ficha del cliente.
+- **Ícono de verificado** junto al nombre, en el panel y en la barra de arriba.
+- **Aviso al salir sin guardar** con el diseño del sistema (Guardar ahora / Salir sin guardar / Seguir editando).
+  - Al cerrar la pestaña, el navegador muestra su propio mensaje. Ese no se puede cambiar: ningún navegador lo permite.
+- **Textos legales dentro del sistema:** con la sesión abierta se ven con el mismo menú, logo y diseño.
+
+### Para el Cyber
+- **Panel nuevo:**
+  - Saludo y búsqueda rápida.
+  - Accesos directos.
+  - Números del mes: clientes, CV, cartas, tarjetas y correos.
+  - Gráfica de 6 meses.
+  - Últimos clientes con foto, avance de la ficha y botones de CV y tarjeta.
+  - Cumpleaños del día y fichas por completar.
+
+### Para el admin
+- **Lista privada:**
+  - Bloquea un número de documento: ningún Cyber puede registrarlo, buscarlo ni ver esa ficha.
+  - Opcional: desactivar también la cuenta de esa persona.
+- **Avisos por correo:**
+  - Recordatorios para que la gente termine su CV: a quienes lo tienen incompleto, a quienes no entran hace tiempo, a todos o a una sola persona.
+  - Se puede usar `{nombre}` y `{avance}`.
+  - Máximo 100 por envío.
+- **Países y documentos:**
+  - Crear países nuevos con su escudo, gentilicio, código de teléfono y tipos de documento (solo números o letras y números, con largo mínimo y máximo).
+  - En los países que ya vienen: cambiar el escudo, agregar documentos o desactivarlos.
+- **Borrar un cliente borra todo:**
+  - Su usuario, sesiones, códigos, tarjeta, foto, logo y su historial de actividad.
+  - En las solicitudes de eliminación, el correo queda cifrado.
+- **Eliminación de cuenta solo dentro de la app:**
+  - Ya no hay formulario público.
+  - La página `/eliminar-cuenta` sigue existiendo y explica los pasos. Google Play pide esa página, y explicar los pasos dentro de la app cumple el requisito.
+
+### Para que los códigos no caigan en spam
+- Los correos salen con versión en texto además de HTML, con "Responder a" y cabeceras de correo automático. Eso ayuda, pero lo que más pesa es lo siguiente:
+  1. Use un **dominio propio** (ej. `no-responder@sudominio.com`), no una cuenta @gmail.com.
+  2. En el DNS del dominio configure **SPF**, **DKIM** y **DMARC**. Su proveedor de correo (Google Workspace, Zoho, Brevo, Amazon SES…) le da los registros.
+  3. Que `MAIL_FROM_ADDRESS` sea del mismo dominio con el que se envía.
+  4. No mande muchos avisos de golpe al principio. Suba poco a poco.
+
+### Librerías nuevas (ya incluidas, sin internet)
+- `public/vendor/qr-code-styling.min.js`: QR con diseño. Licencia MIT.
+- `resources/tarjetas/iconos/*.svg`: íconos Lucide. Licencia ISC.
+
+### Actualizar desde la v8
+```bash
+php artisan migrate --force
+php artisan optimize:clear && php artisan optimize
+```
+
 ## Novedades de la versión 8
 
 - **Registro:** el país se elige en una lista desplegable con bandera, agrupada por región. Ya no ocupa media pantalla.

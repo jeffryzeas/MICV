@@ -19,6 +19,12 @@ class DocumentoController extends Controller
             return response()->json(['ok' => true, 'vacio' => true]);
         }
 
+        if (\App\Models\DocumentoBloqueado::estaBloqueado($numero) && !$request->user()->esAdmin()) {
+            $msg = \App\Models\DocumentoBloqueado::MENSAJE;
+            return response()->json(['ok' => true, 'bloqueado' => true, 'numero_limpio' => $numero, 'numero_ui' => $numero, 'existe' => false,
+                'cr' => ['valida' => false, 'errores' => [$msg]], 'cedula' => $tipo === 'cedula' ? ['valida' => false, 'errores' => [$msg]] : null]);
+        }
+
         $numeroUi = $numero;
         if ($tipo === 'cedula' && strlen($numero) === 14) {
             $numeroUi = substr($numero, 0, 3) . '-' . substr($numero, 3, 6) . '-' . substr($numero, 9, 4) . substr($numero, 13, 1);

@@ -129,6 +129,9 @@ class ClienteGuardar
     /** Cédula: fecha, municipio, departamento y edad salen de la cédula. Otros: son obligatorios. */
     protected function completarSegunDocumento(array $d): array
     {
+        if (\App\Models\DocumentoBloqueado::estaBloqueado($d['numero_documento'] ?? null) && !request()->user()?->esAdmin()) {
+            throw ValidationException::withMessages(['numero_documento' => \App\Models\DocumentoBloqueado::MENSAJE]);
+        }
         $pais = Pais::de($d['pais'] ?? 'NI');
         if (!array_key_exists($d['tipo_documento'], $pais['documentos'])) {
             throw ValidationException::withMessages(['tipo_documento' => 'Ese tipo de documento no corresponde a ' . $pais['nombre'] . '.']);

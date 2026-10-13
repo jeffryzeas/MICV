@@ -91,7 +91,7 @@ Usted puede, sin costo:
 Cómo ejercerlos:
 1. **Ver y corregir:** en **Mis datos**, en cualquier momento.
 2. **Descargar una copia:** en **Mi cuenta → Privacidad y cuenta → Descargar mis datos**.
-3. **Eliminar:** en **Mi cuenta → Solicitar eliminación**, o en [Eliminar mi cuenta]({{url_eliminar}}) sin iniciar sesión.
+3. **Eliminar:** dentro de la app, en **Privacidad y cuenta → Solicitar eliminación**, confirmando con su contraseña (los pasos están en [Eliminar mi cuenta]({{url_eliminar}})). Si ya no puede entrar a su correo, escríbanos.
 4. **Cualquier otra solicitud:** escriba a **{{correo}}** desde el correo de su cuenta, diciendo qué derecho quiere ejercer. Podemos pedirle un dato para confirmar que es usted.
 
 Respondemos dentro del plazo que fije la ley de su país y, como máximo, en **10 días hábiles**. Si no queda conforme, puede reclamar ante la autoridad de protección de datos de su país (vea la tabla del punto 12).

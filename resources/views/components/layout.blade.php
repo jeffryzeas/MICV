@@ -106,6 +106,14 @@
     -webkit-overflow-scrolling: touch;
 }
 </style>
+<style>
+/* Al imprimir (reportes de caja, etc.) solo sale el contenido, sin menú ni encabezado. */
+@media print {
+    #appSidebar, body > div > div > header, body > div > div > footer, .swal2-container, .print\:hidden { display: none !important; }
+    body, main { background: #fff !important; }
+    main { padding: 0 !important; }
+}
+</style>
 </head>
 <body class="min-h-screen bg-gray-100 text-gray-800 antialiased">
 <div class="flex min-h-screen">
@@ -141,17 +149,23 @@
 
         <nav id="jzMenu" class="flex-1 overflow-y-auto overscroll-contain py-1 px-3 space-y-1">
             @foreach(($menuItems ?? []) as $item)
-                <a href="{{ $item['onclick'] ?? null ? '#' : $item['url'] }}"
-                   @if(!empty($item['onclick'])) onclick="{{ $item['onclick'] }}; return false;" @endif
-                   data-menu-texto="{{ mb_strtolower($item['label']) }}"
-                   class="jz-item-menu flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-                          {{ ($activo ?? '') === $item['id'] ? 'bg-oro-500/20 text-oro-300' : 'text-white/75 hover:bg-white/5 hover:text-white' }}">
-                    <i data-lucide="{{ $item['icon'] }}" class="size-[18px] shrink-0"></i>
-                    <span>{{ $item['label'] }}</span>
-                    @if(!empty($item['badge']))
-                        <span class="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">{{ $item['badge'] }}</span>
-                    @endif
-                </a>
+                @if(!empty($item['hijos']))
+                    @php $abierto = collect($item['hijos'])->contains(fn ($h) => ($activo ?? '') === $h['id']); @endphp
+                    <details class="jz-grupo-menu group/g" @if($abierto) open data-abierto="1" @endif>
+                        <summary class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer list-none select-none {{ $abierto ? 'text-white' : 'text-white/75 hover:bg-white/5 hover:text-white' }}">
+                            <i data-lucide="{{ $item['icon'] }}" class="size-[18px] shrink-0"></i>
+                            <span>{{ $item['label'] }}</span>
+                            <i data-lucide="chevron-down" class="size-4 ml-auto transition-transform group-open/g:rotate-180"></i>
+                        </summary>
+                        <div class="ml-4 pl-2 border-l border-white/10 space-y-0.5 mt-0.5 mb-1">
+                            @foreach($item['hijos'] as $hijo)
+                                @include('partials.menu-item', ['item' => $hijo, 'grupo' => $item['label']])
+                            @endforeach
+                        </div>
+                    </details>
+                @else
+                    @include('partials.menu-item', ['item' => $item])
+                @endif
             @endforeach
             <p id="jzMenuVacio" class="hidden text-center text-white/40 text-xs py-4">Nada coincide con esa búsqueda.</p>
         </nav>
@@ -167,7 +181,7 @@
             </div>
             <div class="flex items-center gap-3 text-sm">
                 <span class="px-2 py-0.5 rounded-full bg-oro-500/15 text-oro-700 text-xs font-bold uppercase">{{ $rolBadge ?? '' }}</span>
-                <span class="text-gray-600 hidden sm:inline">{{ $usuarioNombre ?? '' }}</span>
+                <span class="text-gray-600 hidden sm:inline-flex items-center gap-1">{{ $usuarioNombre ?? '' }}@if($yo?->verificado())@include('partials.verificado', ['tam' => 16])@endif</span>
                 <button type="button" onclick="jzAlternarModoOscuro()" title="Modo oscuro" class="text-gray-500 hover:text-azul-800 border border-gray-200 rounded-lg p-2 transition-colors">
                     <i data-lucide="moon" id="jzIconoOscuro" class="size-4"></i>
                     <i data-lucide="sun" id="jzIconoClaro" class="size-4 hidden"></i>
@@ -255,6 +269,12 @@
                 if (coincide) visibles++;
             });
 
+            // Grupos: al buscar se abren y se ocultan los que no tienen coincidencias.
+            document.querySelectorAll('.jz-grupo-menu').forEach(function (g) {
+                const hay = g.querySelector('.jz-item-menu:not(.hidden)');
+                g.classList.toggle('hidden', !hay);
+                g.open = q !== '' ? !!hay : g.dataset.abierto === '1';
+            });
             if (vacio) vacio.classList.toggle('hidden', visibles > 0);
             if (limpiar) limpiar.classList.toggle('hidden', buscador.value === '');
         }
@@ -290,7 +310,8 @@
     }
     jzActualizarIconoModo();
     @if(session('mensaje'))
-        Swal.fire({ icon: 'success', title: 'Listo', text: @json(session('mensaje')), confirmButtonColor: @json($colorPrimario) });
+        // El mensaje ya sale arriba de la página: aquí solo un aviso pequeño que se va solo (no interrumpe).
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('mensaje')), showConfirmButton: false, timer: 3200, timerProgressBar: true });
     @endif
     @if($errors->any() && $errors->has('general'))
         Swal.fire({ icon: 'error', title: 'Error', text: @json($errors->first('general')) });
@@ -374,8 +395,14 @@
             barra.querySelector('[data-sig]').addEventListener('click', () => ir(actual + 1));
             barra.querySelector('[data-modo]').addEventListener('click', cambiarModo);
         }
-        form.addEventListener('input', () => { sucio = true; pintar(); });
-        form.addEventListener('change', () => { sucio = true; pintar(); });
+        // Solo cuentan los cambios hechos por la persona (no los que hace el sistema al cargar).
+        form.addEventListener('input', e => { if (e.isTrusted) sucio = true; pintar(); });
+        form.addEventListener('change', e => { if (e.isTrusted) sucio = true; pintar(); });
+        form.addEventListener('click', e => {
+            const b = e.target.closest('button[type=button]');
+            if (b && !b.closest('[data-indice], [data-barra]')) sucio = true;
+        });
+        document.addEventListener('click', e => { if (e.target.closest('.jz-frase, .jz-sug')) sucio = true; });
 
         // Si un campo obligatorio está en otro paso, se abre ese paso antes de avisar.
         form.querySelectorAll('button[type=submit], button:not([type])').forEach(function (b) {
@@ -389,8 +416,38 @@
             });
         });
         form.addEventListener('submit', () => { enviando = true; });
+        // Cerrar la pestaña o recargar: el navegador obliga a usar su propio aviso.
         window.addEventListener('beforeunload', function (e) {
             if (sucio && !enviando) { e.preventDefault(); e.returnValue = ''; }
+        });
+        // Moverse dentro de la app (menú, enlaces, Salir): aviso con el diseño del sistema.
+        function avisarSalida(seguir) {
+            Swal.fire({
+                icon: 'warning', title: 'Tiene cambios sin guardar',
+                html: 'Si sale ahora, <b>se pierde lo que escribió</b> desde la última vez que guardó.',
+                showDenyButton: true, showCancelButton: true,
+                confirmButtonText: '<span style="display:inline-flex;align-items:center;gap:6px">💾 Guardar ahora</span>',
+                denyButtonText: 'Salir sin guardar', cancelButtonText: 'Seguir editando',
+                confirmButtonColor: '#0B3C74', denyButtonColor: '#dc2626', reverseButtons: false,
+            }).then(function (r) {
+                if (r.isConfirmed) { const b = (barra && barra.querySelector('button[type=submit]')) || form.querySelector('button[type=submit]'); if (b) b.click(); }
+                else if (r.isDenied) { enviando = true; seguir(); }
+            });
+        }
+        document.addEventListener('click', function (e) {
+            const a = e.target.closest('a[href]');
+            if (!a || !sucio || enviando || form.contains(a) && a.getAttribute('href').startsWith('#')) return;
+            if (a.target === '_blank' || e.ctrlKey || e.metaKey || e.shiftKey || a.hasAttribute('download')) return;
+            const href = a.getAttribute('href'); if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+            e.preventDefault(); avisarSalida(() => { window.location = a.href; });
+        }, true);
+        document.querySelectorAll('form').forEach(function (otro) {
+            if (otro === form) return;
+            otro.addEventListener('submit', function (e) {
+                if (!sucio || enviando || otro.dataset.salirOk) return;
+                e.preventDefault(); e.stopImmediatePropagation();
+                avisarSalida(() => { otro.dataset.salirOk = 1; otro.submit(); });
+            }, true);
         });
 
         // Al volver con errores del servidor, abrir el paso del primer campo con error.

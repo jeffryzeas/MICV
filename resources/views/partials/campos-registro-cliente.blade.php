@@ -108,7 +108,7 @@
             <label class="{{ $lb }}">Celular</label>
             <div class="grid grid-cols-[7rem_1fr] sm:grid-cols-[7rem_1fr_7rem] gap-2">
                 <select name="telefono_codigo_pais" id="fCodTel" class="w-full border border-gray-300 rounded-lg px-2 py-2.5 text-sm">
-                    @foreach(\App\Support\Pais::CODIGOS_TELEFONO as $cv => $cl)<option value="{{ $cv }}" @selected($val('telefono_codigo_pais', $P['telefono'] ?: '+505') === $cv)>{{ $cl }}</option>@endforeach
+                    @foreach(\App\Support\Pais::telefonos() as $cv => $cl)<option value="{{ $cv }}" @selected($val('telefono_codigo_pais', $P['telefono'] ?: '+505') === $cv)>{{ $cl }}</option>@endforeach
                 </select>
                 <div class="jz-campo sin-label">
                     <i data-lucide="phone" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
