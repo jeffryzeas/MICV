@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --jz-azul-800: 11 60 116;   /* #0B3C74 */
+  --jz-oro-500: 201 151 31;   /* #C9971F */
+  --jz-oro-700: 169 121 28;   /* #A9791C */
+}

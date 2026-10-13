@@ -1,0 +1,15 @@
+{
+    "name": "mi-cv",
+    "private": true,
+    "type": "module",
+    "description": "Dependencias de Node solo para generar los PDF con Chromium (Browsershot + Puppeteer).",
+    "dependencies": {
+        "puppeteer": "^24.0.0"
+    },
+    "scripts": {
+        "css": "tailwindcss -c tailwind.config.js -i resources/css/tema.css -o public/css/tema.css --minify"
+    },
+    "devDependencies": {
+        "tailwindcss": "^3.4.17"
+    }
+}
