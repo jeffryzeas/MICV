@@ -1,3 +1,5 @@
+NOTA: Para el QR, audios y adjuntos, prevalece ACTUALIZACION-QR-DATOS-AUDIOS.txt.
+
 MI CV · CORREOS DE CLIENTES Y GESTIÓN DE MENSAJES
 Actualización unificada, octubre de 2026
 
@@ -52,7 +54,7 @@ CORREOS DE CLIENTES
 - El PDF tamaño carta incluye marca/logo/color del Cyber, titular, correo,
   celular vinculado, proveedor, país, fecha/hora del registro y número de registro.
   Ajusta el contenido largo para la hoja. Zona horaria explícita: Costa Rica.
-- QR sin contraseña: abre el proveedor; para “Otro”, ayuda a buscar el proveedor.
+- QR con nombre, correo, contraseña, celular y proveedor para escanear y guardar.
   Recomienda cambiar la contraseña, revisar recuperación y habilitar dos pasos.
   Entregue el comprobante únicamente al titular. El PDF contiene información
   sensible; no se debe publicar ni almacenar en una carpeta web pública.

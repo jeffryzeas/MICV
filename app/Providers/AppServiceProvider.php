@@ -26,7 +26,10 @@ class AppServiceProvider extends ServiceProvider
         $correo = fn (Request $r) => mb_strtolower(trim((string) $r->input('email')));
 
         // Tope general para cualquier página (frena a quien bombardea el sitio).
-        RateLimiter::for('global', fn (Request $r) => Limit::perMinute(240)->by($quien($r)));
+        RateLimiter::for('chat-leer',fn(Request $r)=>Limit::perMinute(180)->by('chat-leer:'.$r->route()?->getName().':'.$quien($r)));
+        RateLimiter::for('chat-escribir',fn(Request $r)=>Limit::perMinute(30)->by('chat-escribir:'.$r->route()?->getName().':'.$quien($r)));
+        RateLimiter::for('chat-perfil',fn(Request $r)=>Limit::perMinute(20)->by('chat-perfil:'.$quien($r)));
+        RateLimiter::for('global', fn (Request $r) => Limit::perMinute($r->routeIs('chat.*')?600:240)->by(($r->routeIs('chat.*')?'global-chat:':'global:').$quien($r)));
 
         // Inicio de sesión: por usuario+IP (adivinar contraseñas) y por IP (probar muchos usuarios).
         RateLimiter::for('login', fn (Request $r) => [

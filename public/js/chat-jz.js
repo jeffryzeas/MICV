@@ -14,6 +14,8 @@
         if (text !== undefined) e.textContent = text;
         return e;
     };
+    let retryAt = 0,
+        draftUrl = null;
     let me = boot.me,
         current = 0,
         other = null,
@@ -60,12 +62,26 @@
         try {
             j = await r.json();
         } catch {
-            throw Error(
-                "La sesión terminó o no hay conexión. Recargue la página.",
-            );
+            if (r.status === 429) j = {};
+            else
+                throw Error(
+                    "La sesión terminó o no hay conexión. Recargue la página.",
+                );
         }
         if (r.status === 419 && j.token)
             document.querySelector("meta[name=csrf-token]").content = j.token;
+        if (r.status === 429) {
+            const seconds = Math.max(
+                1,
+                Number(r.headers.get("Retry-After")) || 30,
+            );
+            retryAt = Date.now() + seconds * 1000;
+            throw Error(
+                "Espere " +
+                    seconds +
+                    " segundos y vuelva a intentar. Su mensaje y archivo siguen preparados.",
+            );
+        }
         if (!r.ok)
             throw Error(
                 Object.values(j.errors || {})
@@ -115,7 +131,7 @@
             name = element("span", "item-name");
         name.append(element("span", "", c.nombre));
         if (p.verificado) {
-            const check = icon("circle-check");
+            const check = icon("badge-check");
             check.classList.add("verified");
             name.append(check);
         }
@@ -208,9 +224,9 @@
         $("enviar").disabled = !enable || busy;
     }
     function header() {
-        $("nombre").textContent = other.nombre;
+        $("nombre").replaceChildren(element("span","name-text",other.nombre));
         if (other.verificado) {
-            const v = icon("circle-check");
+            const v = icon("badge-check");
             v.setAttribute("aria-label", "Correo verificado");
             v.classList.add("verified");
             $("nombre").append(v);
@@ -219,6 +235,13 @@
         $("avatar").replaceChildren(avatar(other, "av-sm"));
     }
     async function open(c) {
+        if (recording) {
+            status(
+                "Termine o cancele la grabación antes de cambiar de chat.",
+                true,
+            );
+            return;
+        }
         version++;
         current = c.id;
         other = c.perfil;
@@ -280,6 +303,15 @@
             };
             menu.append(b);
         }
+        if (m.archivo && !m.eliminado)
+            action("Descargar", "download", () => {
+                const a = document.createElement("a");
+                a.href = m.archivo + "?descargar=1";
+                a.download = m.nombre || "archivo";
+                document.body.append(a);
+                a.click();
+                a.remove();
+            });
         if (m.mio && !m.eliminado)
             action("Editar mensaje", "pencil", () => editMessage(m));
         action("Eliminar para mí", "eye-off", () => confirmDelete(m, "mi"));
@@ -374,11 +406,21 @@
             bubble = element("div", "bubble");
         if (m.sistema) {
             const label = element("strong", "system-label");
-            label.append(icon("bell"), document.createTextNode("Sistema JZ"));
+            label.append(
+                icon("badge-check"),
+                document.createTextNode(boot.plataforma || "Mi CV"),
+            );
             bubble.append(label);
         }
         if (m.archivo) {
-            if (m.mime.startsWith("image/")) {
+            if (m.mime?.startsWith("audio/")) {
+                const audio = element("audio", "chat-audio");
+                audio.controls = true;
+                audio.preload = "metadata";
+                audio.src = m.archivo;
+                audio.setAttribute("aria-label", "Nota de voz");
+                bubble.append(audio);
+            } else if (m.mime.startsWith("image/")) {
                 const img = new Image();
                 img.className = "chat-photo";
                 img.width = 250;
@@ -565,12 +607,15 @@
     $("viewer").addEventListener("close", () => {
         $("imagen").removeAttribute("src");
     });
+    let sheetGeneration = 0;
     function closeSheet() {
+        sheetGeneration++;
         app.classList.remove("sheet-open");
         $("sheet").hidden = true;
         $("sheet").replaceChildren();
     }
     function sheet(title) {
+        sheetGeneration++;
         app.classList.add("sheet-open");
         const box = $("sheet");
         box.replaceChildren();
@@ -690,10 +735,13 @@
         b.type = "button";
         b.append(icon(ic), document.createTextNode(text));
         b.onclick = action;
+        if (!text)
+            b.setAttribute("aria-label", ic === "x" ? "Quitar adjunto" : ic);
         return b;
     }
     async function ownProfile() {
         const body = sheet("Perfil");
+        const profileGeneration = sheetGeneration;
         $("menu").hidden = true;
         const art = element("div", "sheet-avatar"),
             wrap = element("div", "pf-avatar"),
@@ -720,7 +768,7 @@
         const name = element("input", "profile-input");
         name.value = me.nombre;
         name.maxLength = 150;
-        name.disabled = me.cliente;
+        name.disabled = me.cliente || me.plataforma;
         name.setAttribute("aria-label", "Nombre");
         const about = element("textarea", "profile-input");
         about.rows = 3;
@@ -782,14 +830,14 @@
                 me = await api("/perfil", "POST", data);
                 meAvatar();
                 await list();
-                ownProfile();
+                if (profileGeneration === sheetGeneration) ownProfile();
             } catch (e) {
                 out.textContent = e.message;
                 out.style.color = "var(--danger)";
             } finally {
                 save.disabled = false;
                 file.disabled = false;
-                name.disabled = me.cliente;
+                name.disabled = me.cliente || me.plataforma;
                 about.disabled = false;
             }
         }
@@ -797,7 +845,7 @@
             e.preventDefault();
             const d = new FormData();
             d.append("info", about.value);
-            if (!me.cliente) d.append("nombre", name.value);
+            if (!me.cliente && !me.plataforma) d.append("nombre", name.value);
             update(d);
         };
         file.onchange = () => {
@@ -870,7 +918,7 @@
             if (p.verificado) {
                 const verified = element("div", "info-row");
                 verified.append(
-                    icon("circle-check"),
+                    icon("badge-check"),
                     document.createTextNode("Cuenta verificada"),
                 );
                 section.append(verified);
@@ -903,7 +951,14 @@
         for (const m of j.archivos) {
             const a = element("button", "asset-button");
             a.type = "button";
-            if (m.mime.startsWith("image/")) {
+            if (m.mime?.startsWith("audio/")) {
+                const audio = element("audio", "chat-audio");
+                audio.controls = true;
+                audio.preload = "metadata";
+                audio.src = m.archivo;
+                audio.setAttribute("aria-label", "Nota de voz");
+                bubble.append(audio);
+            } else if (m.mime.startsWith("image/")) {
                 const img = new Image();
                 img.src = m.miniatura || m.archivo;
                 img.alt = "";
@@ -969,6 +1024,7 @@
     for (const [id, accept] of [
         ["pick-foto", "image/jpeg,image/png,image/webp"],
         ["pick-doc", ".pdf,.docx,.xlsx,.pptx"],
+        ["pick-audio", ".mp3,.m4a,.ogg,.webm,.wav"],
     ])
         $(id).onclick = () => {
             $("file").accept = accept;
@@ -980,24 +1036,49 @@
         $("attach-menu").hidden = true;
     };
     function selected(f) {
-        if (!f) return;
+        if (!f || busy) return;
         if (f.size > 50 * 1024 * 1024) {
             status("El máximo por archivo es 50 MB.", true);
             return;
         }
-        if (!/\.(jpe?g|png|webp|pdf|docx|xlsx|pptx)$/i.test(f.name)) {
+        if (
+            !/\.(jpe?g|png|webp|pdf|docx|xlsx|pptx|webm|ogg|m4a|mp3|wav)$/i.test(
+                f.name,
+            )
+        ) {
             status("Tipo de archivo no permitido.", true);
             return;
         }
+        if (recording) {
+            status("Termine o cancele la grabación antes de adjuntar.", true);
+            return;
+        }
+        if (draftUrl) URL.revokeObjectURL(draftUrl);
+        draftUrl = URL.createObjectURL(f);
         attachment = f;
         sendKey = null;
         $("adjunto").replaceChildren(
-            icon("paperclip"),
-            element("span", "", f.name),
+            icon(
+                f.type.startsWith("audio/")
+                    ? "mic"
+                    : f.type.startsWith("image/")
+                      ? "image"
+                      : "file-text",
+            ),
+            element(
+                "span",
+                "draft-filename",
+                f.name + " · " + (f.size / 1048576).toFixed(2) + " MB",
+            ),
             button(
                 "",
                 "x",
                 () => {
+                    if (busy) return;
+                    if (draftUrl) {
+                        URL.revokeObjectURL(draftUrl);
+                        draftUrl = null;
+                    }
                     attachment = null;
                     sendKey = null;
                     $("file").value = "";
@@ -1006,8 +1087,185 @@
                 "icon-btn",
             ),
         );
+        if (f.type.startsWith("image/")) {
+            const preview = new Image();
+            preview.className = "draft-photo";
+            preview.alt = "Vista previa de " + f.name;
+            preview.src = draftUrl;
+            preview.onclick = () => showImage(draftUrl, f.name, draftUrl);
+            $("adjunto").prepend(preview);
+        } else if (f.type.startsWith("audio/")) {
+            const preview = element("audio", "draft-audio");
+            preview.controls = true;
+            preview.src = draftUrl;
+            $("adjunto").prepend(preview);
+        } else {
+            const badge = element(
+                "strong",
+                "draft-kind",
+                f.name.split(".").pop().toUpperCase(),
+            );
+            $("adjunto").prepend(badge);
+        }
         $("adjunto").hidden = false;
     }
+
+    let recording = false,
+        recorder = null,
+        recordStream = null,
+        voiceChunks = [],
+        recordStarted = 0,
+        recordTimer = null,
+        voiceContext = null,
+        waveFrame = null,
+        recordCancelled = false;
+    function cleanupRecording() {
+        clearInterval(recordTimer);
+        cancelAnimationFrame(waveFrame);
+        recordStream?.getTracks().forEach((t) => t.stop());
+        voiceContext?.close().catch(() => {});
+        $("grabando").hidden = true;
+        recording = false;
+        $("record").disabled = false;
+        editor(!!current);
+    }
+    async function stopRecording(cancel = false) {
+        if (!recording || !recorder) return;
+        recordCancelled = cancel;
+        recorder.stop();
+    }
+    $("record").onclick = async () => {
+        if (!current || busy || recording) return;
+        if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+            status(
+                "Para grabar audio use HTTPS y un navegador compatible.",
+                true,
+            );
+            return;
+        }
+        if (attachment) {
+            status("Quite o envíe el adjunto preparado antes de grabar.", true);
+            return;
+        }
+        $("record").disabled = true;
+        const cid = current;
+        try {
+            recordStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                },
+            });
+            if (cid !== current) {
+                cleanupRecording();
+                return;
+            }
+            const type = [
+                "audio/webm;codecs=opus",
+                "audio/ogg;codecs=opus",
+                "audio/mp4",
+            ].find((t) => MediaRecorder.isTypeSupported(t));
+            recorder = new MediaRecorder(
+                recordStream,
+                type
+                    ? { mimeType: type, audioBitsPerSecond: 48000 }
+                    : undefined,
+            );
+            voiceChunks = [];
+            recordCancelled = false;
+            recorder.ondataavailable = (e) => {
+                if (e.data.size) voiceChunks.push(e.data);
+            };
+            recorder.onstop = () => {
+                const mime = recorder.mimeType || "audio/webm",
+                    elapsed = (Date.now() - recordStarted) / 1000,
+                    cancel = recordCancelled;
+                cleanupRecording();
+                if (cancel || elapsed < 0.6 || cid !== current) {
+                    status("Grabación cancelada.");
+                    return;
+                }
+                const ext = mime.includes("mp4")
+                    ? "m4a"
+                    : mime.includes("ogg")
+                      ? "ogg"
+                      : "webm";
+                selected(
+                    new File(
+                        voiceChunks,
+                        "nota-de-voz-" + Date.now() + "." + ext,
+                        { type: mime },
+                    ),
+                );
+                status("Escuche la nota de voz antes de enviarla.");
+            };
+            recorder.onerror = () => {
+                recordCancelled = true;
+                if (recorder.state !== "inactive") recorder.stop();
+                cleanupRecording();
+                status("No se pudo grabar el audio. Intente de nuevo.", true);
+            };
+            recording = true;
+            recordStarted = Date.now();
+            $("grabando").hidden = false;
+            editor(false);
+            $("record").disabled = true;
+            recorder.start(250);
+            const tick = () => {
+                const n = Math.floor((Date.now() - recordStarted) / 1000);
+                $("record-time").textContent =
+                    Math.floor(n / 60) + ":" + String(n % 60).padStart(2, "0");
+                if (n >= 600) stopRecording();
+            };
+            tick();
+            recordTimer = setInterval(tick, 250);
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) {
+                voiceContext = new AC();
+                const analyser = voiceContext.createAnalyser();
+                analyser.fftSize = 256;
+                voiceContext
+                    .createMediaStreamSource(recordStream)
+                    .connect(analyser);
+                const values = new Uint8Array(analyser.fftSize),
+                    canvas = $("wave"),
+                    g = canvas.getContext("2d");
+                const animate = () => {
+                    if (!recording) return;
+                    analyser.getByteTimeDomainData(values);
+                    g.clearRect(0, 0, canvas.width, canvas.height);
+                    g.strokeStyle = "#c9971f";
+                    g.lineWidth = 2;
+                    g.beginPath();
+                    values.forEach((v, i) => {
+                        const x = (i * canvas.width) / values.length,
+                            y = (v / 255) * canvas.height;
+                        i ? g.lineTo(x, y) : g.moveTo(x, y);
+                    });
+                    g.stroke();
+                    waveFrame = requestAnimationFrame(animate);
+                };
+                animate();
+            }
+            status("Grabando. Máximo 10 minutos.");
+        } catch (e) {
+            cleanupRecording();
+            status(
+                e.name === "NotAllowedError"
+                    ? "Autorice el micrófono para grabar una nota de voz."
+                    : e.message,
+                true,
+            );
+        }
+    };
+    $("record-stop").onclick = () => stopRecording();
+    $("record-cancel").onclick = () => stopRecording(true);
+    window.addEventListener("pagehide", () => {
+        if (recording) stopRecording(true);
+        recordStream?.getTracks().forEach((t) => t.stop());
+        if (draftUrl) URL.revokeObjectURL(draftUrl);
+    });
     $("file").onchange = () => selected($("file").files[0]);
     $("camera").onchange = () => selected($("camera").files[0]);
     $("texto").oninput = () => {
@@ -1015,18 +1273,32 @@
         $("texto").style.height = "auto";
         $("texto").style.height = Math.min(140, $("texto").scrollHeight) + "px";
     };
+    $("retry").onclick = () => $("form").requestSubmit();
     $("form").onsubmit = async (e) => {
         e.preventDefault();
         if (
             busy ||
             choosing ||
             !current ||
+            recording ||
             (!$("texto").value.trim() && !attachment)
         )
             return;
+        if (Date.now() < retryAt) {
+            status(
+                "Espere unos segundos antes de reintentar. El adjunto sigue preparado.",
+                true,
+            );
+            return;
+        }
+        $("retry").hidden = true;
         busy = true;
         editor(false);
-        status(attachment ? "Revisando y enviando archivo…" : "Enviando…");
+        status(
+            attachment
+                ? "Revisando y enviando: " + attachment.name
+                : "Enviando…",
+        );
         const cid = current;
         sendKey ||= crypto.randomUUID();
         const f = new FormData();
@@ -1047,6 +1319,9 @@
             $("historial").scrollTop = $("historial").scrollHeight;
             status("Enviado.");
         } catch (e) {
+            $('retry').hidden=false;
+            $('retry').disabled=Date.now()<retryAt;
+            if($('retry').disabled)setTimeout(()=>{$('retry').disabled=false;},Math.max(0,retryAt-Date.now()));
             status(e.message + " Puede reintentar.", true);
         } finally {
             busy = false;
@@ -1066,7 +1341,7 @@
     };
     let polling = false;
     async function poll() {
-        if (document.hidden || polling) return;
+        if (document.hidden || polling || Date.now() < retryAt) return;
         polling = true;
         try {
             await load();

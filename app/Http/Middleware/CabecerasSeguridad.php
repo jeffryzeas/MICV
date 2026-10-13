@@ -25,7 +25,7 @@ class CabecerasSeguridad
         }
         $h->set(
             "Permissions-Policy",
-            "camera=(self), microphone=(), geolocation=(), payment=(), usb=()",
+            "camera=(self), microphone=(self), geolocation=(), payment=(), usb=()",
         );
         $h->set("Cross-Origin-Opener-Policy", "same-origin");
         if ($request->isSecure()) {
@@ -47,6 +47,7 @@ class CabecerasSeguridad
                     "style-src 'self' 'unsafe-inline'",
                     "img-src 'self' data: blob:",
                     "font-src 'self' data:",
+                    "media-src 'self' blob:",
                     "connect-src 'self' data: blob: https://www.google.com",
                     "frame-src 'self' blob: https://www.google.com https://www.recaptcha.net",
                     "frame-ancestors 'self'",

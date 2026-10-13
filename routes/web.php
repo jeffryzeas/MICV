@@ -215,40 +215,40 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                     "guardar",
                 ])
                     ->name("perfil.guardar")
-                    ->middleware("throttle:20,1");
+                    ->middleware("throttle:chat-perfil");
                 Route::get("lista", [$c, "lista"])
                     ->name("lista")
-                    ->middleware("throttle:120,1");
+                    ->middleware("throttle:chat-leer");
                 Route::get("contactos", [$c, "contactos"])
                     ->name("contactos")
-                    ->middleware("throttle:60,1");
+                    ->middleware("throttle:chat-leer");
                 Route::post("abrir", [$c, "abrir"])
                     ->name("abrir")
-                    ->middleware("throttle:30,1");
+                    ->middleware("throttle:chat-escribir");
                 Route::patch("mensaje/{mensaje}", [$c, "editarMensaje"])
                     ->name("mensaje.editar")
-                    ->middleware("throttle:30,1");
+                    ->middleware("throttle:chat-escribir");
                 Route::delete("mensaje/{mensaje}", [$c, "eliminarMensaje"])
                     ->name("mensaje.eliminar")
-                    ->middleware("throttle:30,1");
+                    ->middleware("throttle:chat-escribir");
                 Route::post("{chat}/sincronizar", [$c, "sincronizar"])
                     ->name("sincronizar")
-                    ->middleware("throttle:120,1");
+                    ->middleware("throttle:chat-leer");
                 Route::get("archivo/{mensaje}", [$c, "archivo"])->name(
                     "archivo",
                 );
                 Route::get("{chat}/archivos", [$c, "archivos"])
                     ->name("archivos")
-                    ->middleware("throttle:60,1");
+                    ->middleware("throttle:chat-leer");
                 Route::get("{chat}/historial", [$c, "mensajes"])
                     ->name("historial")
-                    ->middleware("throttle:120,1");
+                    ->middleware("throttle:chat-leer");
                 Route::post("{chat}/leer", [$c, "leer"])
                     ->name("leer")
-                    ->middleware("throttle:120,1");
+                    ->middleware("throttle:chat-leer");
                 Route::post("{chat}/enviar", [$c, "enviar"])
                     ->name("enviar")
-                    ->middleware("throttle:30,1");
+                    ->middleware("throttle:chat-escribir");
             });
         // ── Panel del cliente que se registró solo
         Route::middleware("rol:cliente")

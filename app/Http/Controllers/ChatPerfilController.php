@@ -11,10 +11,15 @@ class ChatPerfilController extends Controller
     {
         $c = $u->esCliente() ? $u->cliente : null;
         $foto = $c ? $c->foto : $u->chat_foto;
+        $cfg = $u->esAdmin() ? \App\Models\Configuracion::actualSegura() : null;
         return [
             "id" => $u->id,
-            "nombre" => $c?->nombreCompleto() ?: $u->name,
-            "usuario" => $u->usuario,
+            "nombre" => $u->esAdmin()
+                ? ($cfg?->nombre_negocio ?:
+                "Mi CV")
+                : ($c?->nombreCompleto() ?:
+                $u->name),
+            "usuario" => $u->esAdmin() ? "Plataforma" : $u->usuario,
             "rol" => $u->esAdmin()
                 ? "Sistema JZ"
                 : $u->cyber?->nombre ?? "Cliente",
@@ -28,6 +33,7 @@ class ChatPerfilController extends Controller
             "verificado" => $u->verificado(),
             "online" => (bool) Cache::get("jz-online-" . $u->id),
             "cliente" => $u->esCliente(),
+            "plataforma" => $u->esAdmin(),
         ];
     }
     private function autorizar(Request $r, User $usuario): void

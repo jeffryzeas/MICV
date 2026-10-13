@@ -6,6 +6,14 @@
         tipo = f.elements.tipo_documento,
         out = document.getElementById("correo-resultado");
     let seq = 0;
+    document.getElementById("correo-ver-clave").onclick = function () {
+        const input = f.elements.clave_correo,
+            show = input.type === "password";
+        input.type = show ? "text" : "password";
+        const text=show ? "Ocultar contraseña" : "Mostrar contraseña";
+        this.lastChild.textContent=text;
+        this.setAttribute("aria-label",text);
+    };
     function tipos() {
         tipo.replaceChildren(
             ...Object.entries(window.correoPaises[pais.value].documentos).map(

@@ -1,0 +1,22 @@
+Cambios desde la versión anterior:
+
+ACTUALIZACION-CORREOS-CHAT-GESTION.txt
+ACTUALIZACION-QR-DATOS-AUDIOS.txt
+app/Http/Controllers/ChatController.php
+app/Http/Controllers/ChatPerfilController.php
+app/Http/Middleware/CabecerasSeguridad.php
+app/Models/CorreoServicio.php
+app/Providers/AppServiceProvider.php
+app/Services/ChatArchivo.php
+public/css/chat-jz.css
+public/css/tema.css
+public/js/chat-jz.js
+public/js/correos-clientes.js
+resources/css/tema.css
+resources/images/verificar-audio.cjs
+resources/views/chat/index.blade.php
+resources/views/correos/index.blade.php
+resources/views/correos/pdf.blade.php
+resources/views/correos/ver.blade.php
+routes/web.php
+tests/Feature/CorreosGestionTest.php

@@ -1,0 +1,82 @@
+MI CV · QR CON DATOS, ADJUNTOS Y NOTAS DE VOZ
+Esta guía reemplaza las descripciones de QR de las actualizaciones anteriores.
+
+QR DEL COMPROBANTE
+El QR ya NO es un enlace de acceso ni abre el proveedor. Contiene un texto JSON
+con nombre, correo, contraseña exacta, celular vinculado, proveedor, país y fecha
+del registro. El titular puede escanearlo con un lector QR y copiar o guardar los
+datos. No se añade la contraseña de acceso a Mi CV: es la contraseña de ese correo.
+Cualquiera que posea la hoja, una copia o una foto del QR puede recuperar esos
+datos. El comprobante lo indica de forma visible. Entregar solo al titular.
+El QR es vectorial, con margen blanco y contraste alto; la hoja conserva formato
+carta y ajuste para textos largos. No utiliza servicios externos para crearlo.
+
+FORMULARIO DE CORREOS
+Presentación renovada con cabecera, pasos, iconos, bloques de identidad, cuenta y
+recuperación, y entrega. Opción de mostrar/ocultar la contraseña. Conserva el
+formulario corto, la validación del documento, la ficha reutilizable para CV,
+los permisos del Cyber y el almacenamiento cifrado de la contraseña.
+
+CHAT
+- Contadores independientes para consultar, enviar y editar perfil. Las lecturas
+  periódicas ya no consumen el cupo de envío/carga de archivos.
+- Mensaje de espera en español si el servidor devuelve 429. Se respeta Retry-After,
+  se pausa la consulta automática y se conserva texto, archivo y clave de envío.
+  Botón Reintentar envío: no duplica mensajes si el primer intento se completó.
+- Vista previa real de la foto antes de enviar; nombre y peso del archivo. Audios
+  preparados se pueden escuchar o quitar antes de enviarlos. Durante el envío
+  se identifica el archivo que se está revisando y enviando.
+- Descargar disponible en el menú contextual de todos los mensajes con archivo.
+- El personal del Cyber y el administrador pueden subir/quitar foto desde el
+  avatar “Mi perfil · cambiar foto”. Los clientes siguen compartiendo foto con CV.
+- Administradores se presentan a los participantes con el nombre configurado de
+  la plataforma, sin mostrar su nombre personal ni nombre de usuario privado.
+  Los avisos de sistema también llevan nombre de plataforma y distintivo.
+  Los distintivos de contactos corresponden a su verificación de correo real.
+- Marca Mi CV en el fondo de conversación y pie de derechos en chat y lista.
+- Entrada de escanear/recortar documentos hacia el editor existente de cuatro
+  esquinas, disponible al personal con permiso de documentos; no añade llamadas.
+
+AUDIO
+- Botón micrófono, autorización del navegador, indicador de tiempo y onda de voz.
+- Terminar para escuchar y enviar; cancelar para descartar. Límite de grabación
+  de 10 minutos. No se graba ni se envía al abrir el chat.
+- También se pueden adjuntar MP3, WAV, WebM, OGG y M4A desde Audio.
+- Validación del contenedor con ffprobe: debe tener audio y no incluir vídeo.
+  Rechaza duración conocida superior a 10 minutos. Se conserva el escaneo ClamAV.
+- Reproducción y descarga privadas, con los mismos permisos de conversación.
+- En el VPS instalar: sudo apt install ffmpeg
+  Confirmar que ffprobe esté en PATH del usuario PHP y que ClamAV siga operativo.
+  Usar HTTPS y permitir el micrófono en el navegador. Formatos soportados por el
+  grabador dependen del navegador; selecciona WebM/Opus, OGG/Opus o MP4.
+
+PRIVACIDAD REAL
+El aviso es breve: “Los mensajes están cifrados al guardarse. Los participantes y
+el administrador autorizado pueden leerlos.”
+No se afirma “solo las personas en este chat” porque el administrador conserva
+supervisión. No es cifrado de extremo a extremo. Se mantiene auditoría de lectura
+administrativa y no se permite a otros Cybers o clientes acceder a chats ajenos.
+
+INSTALACIÓN
+Respaldar e instalar sobre la versión anterior conservando .env, APP_KEY y storage.
+composer install --no-dev --optimize-autoloader
+npm ci
+php artisan optimize:clear
+php artisan migrate --force
+php artisan optimize
+sudo apt install ffmpeg
+Si usa colas: php artisan queue:restart
+Mantener los ajustes de subidas de la guía anterior: upload_max_filesize=50M,
+post_max_size=120M, memory_limit=512M y límite equivalente en Nginx/Apache.
+Este paquete es completo e incluye todos los cambios anteriores.
+
+VERIFICACIÓN
+45 pruebas PHP (281 aserciones) de QR y contraseñas exactas, privacidad, permisos, lectura/envío con
+contadores separados, identidad de plataforma, fotos, audios privados y funciones
+anteriores. QR del PDF decodificado y comprobado; carta de una hoja.
+Las pruebas automatizadas de adjuntos usan un escáner simulado; comprobar ClamAV
+real al instalar. No se ha instalado este paquete automáticamente en su VPS.
+
+Navegador: dos sesiones, escritorio y 390 px; vista previa real de foto, respuesta
+429 simulada seguida de reintento conservando el archivo, grabación con micrófono
+de prueba, escucha previa, envío, descarga y foto de perfil del personal.

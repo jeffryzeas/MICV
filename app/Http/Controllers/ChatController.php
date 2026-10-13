@@ -434,7 +434,7 @@ class ChatController extends Controller
             "Content-Security-Policy" => "sandbox; default-src 'none'",
         ];
         if (
-            str_starts_with($mensaje->mime, "image/") &&
+            (str_starts_with($mensaje->mime, "image/") || str_starts_with($mensaje->mime,"audio/")) &&
             !$r->boolean("descargar")
         ) {
             return response()->file(

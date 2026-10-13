@@ -20,6 +20,11 @@ class ChatArchivo
             "png" => ["image/png"],
             "webp" => ["image/webp"],
             "pdf" => ["application/pdf"],
+            "webm" => ["audio/webm", "video/webm"],
+            "ogg" => ["audio/ogg", "application/ogg"],
+            "m4a" => ["audio/mp4", "video/mp4", "audio/x-m4a"],
+            "mp3" => ["audio/mpeg"],
+            "wav" => ["audio/wav", "audio/x-wav"],
             "docx" => [
                 "application/zip",
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -41,8 +46,29 @@ class ChatArchivo
             !in_array($mime, $permitidos[$ext], true)
         ) {
             $fallar(
-                "Use JPG, PNG, WebP, PDF, DOCX, XLSX o PPTX. No se aceptan macros, ejecutables ni archivos de código.",
+                "Use fotos, PDF, Office o audio (WebM, OGG, M4A, MP3, WAV). No se aceptan macros, ejecutables ni archivos de código.",
             );
+        }
+        if (in_array($ext, ["webm", "ogg", "m4a", "mp3", "wav"], true)) {
+            // Validate the container as audio, not just an extension (WebM/MP4 MIME may say video).
+            try {
+                Nodo::correr(
+                    resource_path("images/verificar-audio.cjs"),
+                    [$f->getRealPath()],
+                    45,
+                );
+            } catch (\Throwable $e) {
+                $fallar(
+                    "El archivo no contiene una pista de audio válida o excede 10 minutos.",
+                );
+            }
+            $mime = [
+                "webm" => "audio/webm",
+                "ogg" => "audio/ogg",
+                "m4a" => "audio/mp4",
+                "mp3" => "audio/mpeg",
+                "wav" => "audio/wav",
+            ][$ext];
         }
         if (in_array($ext, ["docx", "xlsx", "pptx"], true)) {
             $z = new \ZipArchive();

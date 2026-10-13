@@ -17,6 +17,26 @@ class CorreoServicio extends Model
     {
         return $this->belongsTo(Cyber::class);
     }
+    public function contenidoQr(): string
+    {
+        return json_encode(
+            [
+                "formato" => "MiCV-correo-v1",
+                "nombre" => $this->cliente->nombreCompleto(),
+                "correo" => $this->correo,
+                "contrasena" => $this->clave_correo,
+                "celular" => $this->celular,
+                "proveedor" => $this->proveedor,
+                "pais" => \App\Support\Pais::de($this->pais)["nombre"],
+                "registrado" => $this->created_at
+                    ->timezone("America/Costa_Rica")
+                    ->format("d/m/Y H:i"),
+            ],
+            JSON_UNESCAPED_UNICODE |
+                JSON_UNESCAPED_SLASHES |
+                JSON_THROW_ON_ERROR,
+        );
+    }
     public function loginUrl(): string
     {
         return match ($this->proveedor) {

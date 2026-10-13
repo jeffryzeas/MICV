@@ -254,7 +254,7 @@ class CorreosGestionTest extends TestCase
             ->assertJsonPath("foto", null);
         $this->assertNull($c->fresh()->foto);
     }
-    public function test_pdf_escapa_datos_y_qr_no_contiene_clave()
+    public function test_pdf_escapa_datos_y_qr_incluye_datos_exactos_del_titular()
     {
         [$cy, $a, $b, $u, $c] = $this->context();
         $reg = CorreoServicio::create([
@@ -271,10 +271,15 @@ class CorreosGestionTest extends TestCase
             "logo" => null,
         ])->render();
         $this->assertStringContainsString("&lt;Clave&gt;&amp;123", $html);
-        $this->assertStringContainsString(
-            "https:\/\/accounts.google.com\/",
-            $html,
+        $qr = json_decode(
+            $reg->contenidoQr(),
+            true,
+            flags: JSON_THROW_ON_ERROR,
         );
+        $this->assertSame("<Clave>&123", $qr["contrasena"]);
+        $this->assertSame("Nombre CV Apellido", $qr["nombre"]);
+        $this->assertSame("prueba@gmail.com", $qr["correo"]);
+        $this->assertSame("+506 88888888", $qr["celular"]);
         $this->assertStringNotContainsString('data:"<Clave>', $html);
         $this->assertStringContainsString("size:letter", $html);
         $qa = getenv("MICV_QA_DIR");
@@ -350,6 +355,99 @@ class CorreosGestionTest extends TestCase
             $this->actingAs($a)->get(route("chat.perfil.foto", $u))->assertOk();
             $this->actingAs($b)
                 ->get(route("chat.perfil.foto", $u))
+                ->assertForbidden();
+        } finally {
+            @unlink($tmp);
+        }
+    }
+    public function test_las_lecturas_no_consumen_el_cupo_de_enviar_ni_perfil()
+    {
+        [$cy, $a, $b, $u] = $this->context();
+        $this->actingAs($a);
+        for ($i = 0; $i < 35; $i++) {
+            $this->getJson(route("chat.lista"))->assertOk();
+        }
+        $chat = JzChat::create([
+            "uno_id" => min($a->id, $u->id),
+            "dos_id" => max($a->id, $u->id),
+        ]);
+        $this->postJson(route("chat.enviar", $chat), [
+            "texto" => "Después de consultar",
+            "clave" => \Illuminate\Support\Str::uuid(),
+        ])->assertCreated();
+        $this->postJson(route("chat.perfil.guardar"), [
+            "info" => "Disponible",
+        ])->assertOk();
+    }
+    public function test_admin_se_muestra_como_plataforma_y_el_personal_puede_actualizar_perfil()
+    {
+        [$cy, $a] = $this->context();
+        $admin = $this->user("admin");
+        $cfg = \App\Models\Configuracion::actual();
+        $cfg->nombre_negocio = "Mi CV oficial";
+        $cfg->save();
+        $this->actingAs($a)
+            ->getJson(route("chat.perfil.ver", $admin))
+            ->assertOk()
+            ->assertJsonPath("nombre", "Mi CV oficial")
+            ->assertJsonPath("usuario", "Plataforma");
+        $this->postJson(route("chat.perfil.guardar"), [
+            "nombre" => "Agente del Cyber",
+            "info" => "Disponible",
+        ])
+            ->assertOk()
+            ->assertJsonPath("nombre", "Agente del Cyber");
+    }
+    public function test_audio_privado_validado_con_escaneo_y_reproduccion()
+    {
+        if (!is_executable("/usr/bin/ffmpeg")) {
+            $this->markTestSkipped("Requiere ffmpeg y ffprobe.");
+        }
+        [$cy, $a, $b, $u] = $this->context();
+        Storage::fake("local");
+        config(["chat.antivirus" => "/usr/bin/true"]);
+        $tmp = tempnam(sys_get_temp_dir(), "jz-audio");
+        $process = new \Symfony\Component\Process\Process([
+            "/usr/bin/ffmpeg",
+            "-v",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=440:duration=1",
+            "-f",
+            "wav",
+            "-y",
+            $tmp,
+        ]);
+        $process->mustRun();
+        try {
+            $chat = JzChat::create([
+                "uno_id" => min($a->id, $u->id),
+                "dos_id" => max($a->id, $u->id),
+            ]);
+            $file = new \Illuminate\Http\UploadedFile(
+                $tmp,
+                "nota.wav",
+                "audio/wav",
+                null,
+                true,
+            );
+            $this->actingAs($a)
+                ->post(
+                    route("chat.enviar", $chat),
+                    ["clave" => (string) Str::uuid(), "archivo" => $file],
+                    ["Accept" => "application/json"],
+                )
+                ->assertCreated();
+            $m = $chat->mensajes()->firstOrFail();
+            $this->assertSame("audio/wav", $m->mime);
+            $this->actingAs($u)
+                ->get(route("chat.archivo", $m))
+                ->assertOk()
+                ->assertHeader("Content-Type", "audio/wav");
+            $this->actingAs($b)
+                ->get(route("chat.archivo", $m))
                 ->assertForbidden();
         } finally {
             @unlink($tmp);
