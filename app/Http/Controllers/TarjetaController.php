@@ -275,7 +275,7 @@ class TarjetaController extends Controller
                     "nullable",
                     "image",
                     "mimes:png,jpg,jpeg,webp",
-                    "max:5120",
+                    "max:51200",
                 ],
             ],
             [],

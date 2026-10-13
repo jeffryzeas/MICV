@@ -37,7 +37,7 @@ class FotoController extends Controller
     public function procesar(Request $request)
     {
         $request->validate([
-            'foto'  => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:12288'],
+            'foto'  => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:51200'],
             'color' => ['nullable', 'string', 'max:20'],
         ], ['foto.max' => 'La foto pesa más de 12 MB.']);
         $color = (string) $request->input('color', '#ffffff');

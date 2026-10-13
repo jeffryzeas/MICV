@@ -136,7 +136,7 @@
         $("file-status").textContent = state.photos.length
             ? state.photos.length +
               " foto(s) cargada(s). Puede ajustar las esquinas."
-            : "JPG, PNG o WebP · hasta 12 MB por foto";
+            : "JPG, PNG o WebP · hasta 50 MB por foto";
         const p = actual();
         updateTabs();
         paint();
@@ -226,8 +226,8 @@
     async function cargar(file) {
         if (!/^image\/(jpeg|png|webp)$/.test(file.type))
             throw Error("Use una foto JPG, PNG o WebP.");
-        if (file.size > 12 * 1024 * 1024)
-            throw Error("Cada foto debe pesar como máximo 12 MB.");
+        if (file.size > 50 * 1024 * 1024)
+            throw Error("Cada foto debe pesar como máximo 50 MB.");
         let image;
         if (window.createImageBitmap) image = await createImageBitmap(file);
         else {

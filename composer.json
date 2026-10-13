@@ -15,7 +15,6 @@
         "ext-zip": "*",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "lbuchs/webauthn": "^2.2",
         "mallardduck/blade-lucide-icons": "^2.0",
         "spatie/browsershot": "^5.0"
     },

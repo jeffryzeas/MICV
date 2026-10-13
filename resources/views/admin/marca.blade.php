@@ -23,7 +23,7 @@
                         <input type="file" name="logo" accept="image/*" class="text-sm max-w-full">
                         @if($tieneLogo)<label class="inline-flex items-center gap-2 text-sm"><input type="checkbox" name="quitar_logo" value="1"> Quitar logo</label>@endif
                     </div>
-                    <p class="text-[11px] text-gray-400 mt-1">PNG con fondo transparente, cuadrado o horizontal. Máx. 4 MB.</p>
+                    <p class="text-[11px] text-gray-400 mt-1">PNG con fondo transparente, cuadrado o horizontal. Máx. 50 MB.</p>
                 </div>
                 <div><label class="{{ $lb }}">Color primario</label>
                     <input type="color" name="color_primario" value="{{ old('color_primario', $cfg->color_primario ?: '#1e3a8a') }}" class="w-full h-11 border border-gray-300 rounded-lg"></div>

@@ -1,5 +1,5 @@
 const sharp = require("sharp");
-sharp(process.argv[2], { limitInputPixels: 40000000 })
+sharp(process.argv[2], { limitInputPixels: 80000000 })
     .rotate()
     .resize({
         width: 700,

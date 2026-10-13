@@ -1,0 +1,1 @@
+const sharp=require('sharp');let s=sharp(process.argv[2],{limitInputPixels:80000000}).rotate().resize({width:Number(process.argv[4]),height:Number(process.argv[4]),fit:'inside',withoutEnlargement:true});s=process.argv[5]==='png'?s.png():s.flatten({background:'#fff'}).jpeg({quality:94,mozjpeg:true});s.toFile(process.argv[3]).catch(e=>{console.error(e.message);process.exit(1)});

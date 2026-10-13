@@ -305,18 +305,9 @@ class ChatJzTest extends TestCase
         $this->assertTrue(JzMensaje::first()->sistema);
     }
 
-    public function test_reto_passkey_expirado_no_autentica_y_alta_pide_password(): void
-    {
-        $u = $this->usuario("admin");
-        $this->actingAs($u)
-            ->postJson(route("passkeys.opciones"), ["password" => "equivocada"])
-            ->assertUnprocessable();
-        $this->postJson(route("passkeys.crear"), [
-            "clientDataJSON" => "e30=",
-            "attestationObject" => "e30=",
-            "nombre" => "Falsa",
-        ])->assertUnprocessable();
-        $this->assertDatabaseCount("jz_passkeys", 0);
+    public function test_acceso_solo_con_password_sin_rutas_passkeys():void {
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('passkey.entrar'));
+        $this->assertFalse(\Illuminate\Support\Facades\Route::has('passkeys.index'));
     }
 
     public function test_pantallas_nuevas_renderizan_en_el_sistema_real(): void
@@ -328,7 +319,7 @@ class ChatJzTest extends TestCase
                 "documentos.index",
                 "tarjetas.index",
                 "autoservicio.panel",
-                "passkeys.index",
+                "correos.index",
             ]
             as $ruta
         ) {

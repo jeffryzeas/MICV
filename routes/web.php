@@ -33,7 +33,6 @@ use App\Http\Controllers\FotoController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\MiCvController;
-use App\Http\Controllers\PasskeyController;
 use App\Http\Controllers\PerfilController;
 use App\Http\Controllers\PwaController;
 use App\Http\Controllers\TarjetaController;
@@ -107,12 +106,6 @@ Route::get("a/{codigo}/listo", [AutoservicioController::class, "listo"])->name(
 );
 
 Route::middleware("guest")->group(function () {
-    Route::post("passkey/opciones", [PasskeyController::class, "opcionesLogin"])
-        ->name("passkey.opciones")
-        ->middleware("throttle:20,1");
-    Route::post("passkey/entrar", [PasskeyController::class, "entrar"])
-        ->name("passkey.entrar")
-        ->middleware("throttle:10,1");
     Route::get("recuperar", [RecuperarController::class, "mostrar"])->name(
         "recuperar.mostrar",
     );
@@ -187,15 +180,43 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
             "dashboard",
         );
 
+        Route::prefix("correos-clientes")
+            ->name("correos.")
+            ->middleware("rol:admin,cyber")
+            ->group(function () {
+                $c = \App\Http\Controllers\CorreoServicioController::class;
+                Route::get("/", [$c, "index"])->name("index");
+                Route::post("/", [$c, "guardar"])
+                    ->name("guardar")
+                    ->middleware("throttle:20,1");
+                Route::get("{correo}", [$c, "ver"])->name("ver");
+                Route::put("{correo}", [$c, "actualizar"])
+                    ->name("actualizar")
+                    ->middleware("throttle:20,1");
+                Route::get("{correo}/pdf", [$c, "pdf"])
+                    ->name("pdf")
+                    ->middleware("throttle:10,1");
+            });
         Route::prefix("mensajes")
             ->name("chat.")
             ->group(function () {
                 $c = ChatController::class;
                 Route::get("/", [$c, "index"])->name("index");
-                Route::get('perfil/{usuario}/foto',[\App\Http\Controllers\ChatPerfilController::class,'foto'])->name('perfil.foto');
-            Route::get('perfil/{usuario}',[\App\Http\Controllers\ChatPerfilController::class,'ver'])->name('perfil.ver');
-            Route::post('perfil',[\App\Http\Controllers\ChatPerfilController::class,'guardar'])->name('perfil.guardar')->middleware('throttle:20,1');
-            Route::get("lista", [$c, "lista"])
+                Route::get("perfil/{usuario}/foto", [
+                    \App\Http\Controllers\ChatPerfilController::class,
+                    "foto",
+                ])->name("perfil.foto");
+                Route::get("perfil/{usuario}", [
+                    \App\Http\Controllers\ChatPerfilController::class,
+                    "ver",
+                ])->name("perfil.ver");
+                Route::post("perfil", [
+                    \App\Http\Controllers\ChatPerfilController::class,
+                    "guardar",
+                ])
+                    ->name("perfil.guardar")
+                    ->middleware("throttle:20,1");
+                Route::get("lista", [$c, "lista"])
                     ->name("lista")
                     ->middleware("throttle:120,1");
                 Route::get("contactos", [$c, "contactos"])
@@ -204,11 +225,22 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                 Route::post("abrir", [$c, "abrir"])
                     ->name("abrir")
                     ->middleware("throttle:30,1");
+                Route::patch("mensaje/{mensaje}", [$c, "editarMensaje"])
+                    ->name("mensaje.editar")
+                    ->middleware("throttle:30,1");
+                Route::delete("mensaje/{mensaje}", [$c, "eliminarMensaje"])
+                    ->name("mensaje.eliminar")
+                    ->middleware("throttle:30,1");
+                Route::post("{chat}/sincronizar", [$c, "sincronizar"])
+                    ->name("sincronizar")
+                    ->middleware("throttle:120,1");
                 Route::get("archivo/{mensaje}", [$c, "archivo"])->name(
                     "archivo",
                 );
-                Route::get('{chat}/archivos',[$c,'archivos'])->name('archivos')->middleware('throttle:60,1');
-            Route::get("{chat}/historial", [$c, "mensajes"])
+                Route::get("{chat}/archivos", [$c, "archivos"])
+                    ->name("archivos")
+                    ->middleware("throttle:60,1");
+                Route::get("{chat}/historial", [$c, "mensajes"])
                     ->name("historial")
                     ->middleware("throttle:120,1");
                 Route::post("{chat}/leer", [$c, "leer"])
@@ -218,22 +250,6 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                     ->name("enviar")
                     ->middleware("throttle:30,1");
             });
-        Route::prefix("perfil/llaves")
-            ->name("passkeys.")
-            ->group(function () {
-                $c = PasskeyController::class;
-                Route::get("/", [$c, "index"])->name("index");
-                Route::post("opciones", [$c, "opcionesCrear"])
-                    ->name("opciones")
-                    ->middleware("throttle:6,1");
-                Route::post("/", [$c, "crear"])
-                    ->name("crear")
-                    ->middleware("throttle:6,1");
-                Route::delete("{llave}", [$c, "eliminar"])
-                    ->name("eliminar")
-                    ->middleware("throttle:6,1");
-            });
-
         // ── Panel del cliente que se registró solo
         Route::middleware("rol:cliente")
             ->prefix("mi-cv")
@@ -654,6 +670,18 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
             ->prefix("admin")
             ->name("admin.")
             ->group(function () {
+                Route::get("supervision/mensajes", [
+                    \App\Http\Controllers\ChatSupervisionController::class,
+                    "index",
+                ])->name("chat.supervision");
+                Route::get("supervision/mensajes/{chat}", [
+                    \App\Http\Controllers\ChatSupervisionController::class,
+                    "ver",
+                ])->name("chat.supervision.ver");
+                Route::get("supervision/archivo/{mensaje}", [
+                    \App\Http\Controllers\ChatSupervisionController::class,
+                    "archivo",
+                ])->name("chat.supervision.archivo");
                 Route::get("mensajes/avisos", [
                     ChatAvisoController::class,
                     "index",

@@ -137,8 +137,8 @@ class ChatArchivo
         }
         if (str_starts_with($mime, "image/")) {
             $info = @getimagesize($f->getRealPath());
-            if (!$info || $info[0] * $info[1] > 40000000) {
-                $fallar("La foto no se puede abrir o supera 40 megapíxeles.");
+            if (!$info || $info[0] * $info[1] > 80000000) {
+                $fallar("La foto no se puede abrir o supera 80 megapíxeles.");
             }
         }
         $path = "chat/" . Str::uuid() . "." . $ext;

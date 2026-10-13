@@ -69,7 +69,7 @@ class ChatPerfilesTest extends TestCase
     public function test_editar_perfil_no_permite_cambiar_rol_cyber_ni_nombre_del_cv(): void
     {
         [$a, $b, $sa, $sb, $u] = $this->context();
-        $original = $u->name;
+        $original = $u->cliente->nombreCompleto();
         $this->actingAs($u)
             ->postJson(route("chat.perfil.guardar"), [
                 "nombre" => "Nombre falso",

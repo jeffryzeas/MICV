@@ -5,6 +5,7 @@ namespace App\Support;
 class Permisos
 {
     public const LISTA = [
+        "correos" => "Registrar correos de clientes",
         "chat" => "Mensajes y trabajos (SMS JZ)",
         "clientes.acceso" => "Generar acceso del cliente",
         "clientes.ver" => "Ver clientes",
@@ -122,7 +123,7 @@ class Permisos
                 "cv",
                 "tarjetas",
             ],
-            "api.consultar-documento" => "clientes.editar",
+            "api.consultar-documento" => ["clientes.editar", "correos"],
             "autoservicio.alternar" => "autoservicio",
             "clientes.foto" => ["clientes.ver", "cv", "tarjetas", "fotos"],
         ];
@@ -131,6 +132,7 @@ class Permisos
         }
         foreach (
             [
+                "correos." => "correos",
                 "chat." => "chat",
                 "equipo." => "personal",
                 "documentos." => "documentos",

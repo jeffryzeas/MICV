@@ -25,8 +25,6 @@
         </button>
         @include('partials.recaptcha', ['accion' => 'login'])
     </form>
-    <button type="button" id="jz-passkey-login" data-options="{{ route('passkey.opciones') }}" data-login="{{ route('passkey.entrar') }}" class="w-full border rounded-lg p-3 mt-4 text-[#0B3C74] font-semibold">Entrar con huella, rostro o PIN</button><p id="jz-passkey-status" role="status" class="text-sm mt-2"></p>
-    <script src="{{ asset('js/passkeys.js') }}" defer></script>
     @if(\App\Models\Configuracion::actualSegura()?->registro_abierto)
         <div class="mt-6 pt-5 border-t border-gray-100 text-center">
             <p class="text-sm text-gray-500">¿Quiere hacer su propio currículum?</p>

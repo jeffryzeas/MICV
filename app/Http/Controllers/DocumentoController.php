@@ -58,7 +58,7 @@ class DocumentoController extends Controller
             // Privacidad: un usuario registrado solo sabe que el número ya está en uso;
             // un Cyber solo ve el nombre de quien no es su cliente (para confirmar que es la misma persona)
             // y los datos de contacto únicamente de sus propios clientes.
-            if (!$u->esCliente()) {
+            if (!$u->esCliente() && ($r['en_mi_cyber'] || $u->esAdmin())) {
                 $r['cliente'] = [
                     'id' => $r['en_mi_cyber'] ? $c->id : null,
                     'nombre_completo' => $c->nombreCompleto(),

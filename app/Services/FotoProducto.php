@@ -21,7 +21,7 @@ class FotoProducto
             return $ruta;
         } catch (\Throwable $e) {
             report($e);
-            throw ValidationException::withMessages(['foto'=>'No se pudo procesar la foto. Use JPG, PNG o WebP de hasta 8 MB.']);
+            throw ValidationException::withMessages(['foto'=>'No se pudo procesar la foto. Use JPG, PNG o WebP de hasta 50 MB.']);
         } finally { @unlink($salida); }
     }
 }

@@ -35,5 +35,5 @@
             </form>
         </div>
     </div>
-<a href="{{ route('passkeys.index') }}" class="inline-flex mt-5 bg-white border rounded-lg p-4 text-azul-800 font-semibold">Configurar acceso con huella, rostro o PIN →</a>
+
 </x-layout>

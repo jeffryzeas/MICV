@@ -209,6 +209,12 @@
     }
     function header() {
         $("nombre").textContent = other.nombre;
+        if (other.verificado) {
+            const v = icon("circle-check");
+            v.setAttribute("aria-label", "Correo verificado");
+            v.classList.add("verified");
+            $("nombre").append(v);
+        }
         $("rol").textContent = other.online ? "En línea" : other.rol;
         $("avatar").replaceChildren(avatar(other, "av-sm"));
     }
@@ -242,8 +248,128 @@
         $("descargar").download = name || "Foto.jpg";
         $("viewer").showModal();
     }
+    let contextMenu = null;
+    function closeContext() {
+        contextMenu?.remove();
+        contextMenu = null;
+    }
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".message-context")) closeContext();
+    });
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeContext();
+    });
+    window.addEventListener("resize", closeContext);
+    function messageMenu(m, x, y) {
+        closeContext();
+        const menu = element("div", "message-context");
+        menu.setAttribute("role", "menu");
+        function action(label, ic, fn) {
+            const b = element("button", "");
+            b.type = "button";
+            b.setAttribute("role", "menuitem");
+            b.append(icon(ic), document.createTextNode(label));
+            b.onclick = async (e) => {
+                e.stopPropagation();
+                closeContext();
+                try {
+                    await fn();
+                } catch (err) {
+                    status(err.message, true);
+                }
+            };
+            menu.append(b);
+        }
+        if (m.mio && !m.eliminado)
+            action("Editar mensaje", "pencil", () => editMessage(m));
+        action("Eliminar para mí", "eye-off", () => confirmDelete(m, "mi"));
+        if (m.mio && !m.eliminado)
+            action("Eliminar para todos", "trash-2", () =>
+                confirmDelete(m, "todos"),
+            );
+        document.body.append(menu);
+        contextMenu = menu;
+        const r = menu.getBoundingClientRect();
+        menu.style.left =
+            Math.max(8, Math.min(x, innerWidth - r.width - 8)) + "px";
+        menu.style.top =
+            Math.max(8, Math.min(y, innerHeight - r.height - 8)) + "px";
+        menu.querySelector("button").focus();
+    }
+    function editMessage(m) {
+        const body = sheet("Editar mensaje");
+        const form = element("form", "sheet-section");
+        const input = element("textarea", "profile-input");
+        input.value = m.texto || "";
+        input.maxLength = 6000;
+        input.rows = 5;
+        input.required = true;
+        input.setAttribute("aria-label", "Texto del mensaje");
+        const help = element(
+            "p",
+            "profile-help",
+            "El mensaje mostrará la indicación Editado.",
+        );
+        const save = element("button", "btn btn-primary", "Guardar cambios");
+        save.type = "submit";
+        const out = element("p", "profile-help");
+        out.setAttribute("role", "status");
+        form.append(input, help, save, out);
+        body.append(form);
+        const cid = current;
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            save.disabled = true;
+            try {
+                await api("/mensaje/" + m.id, "PATCH", { texto: input.value });
+                closeSheet();
+                if (cid === current) await load();
+            } catch (err) {
+                out.textContent = err.message;
+            } finally {
+                save.disabled = false;
+            }
+        };
+        input.focus();
+    }
+    function confirmDelete(m, para) {
+        const body = sheet(
+            para === "todos" ? "Eliminar para todos" : "Eliminar para mí",
+        );
+        const p = element(
+            "p",
+            "sheet-section",
+            para === "todos"
+                ? "Se eliminarán el texto y el archivo para ambos participantes. Esta acción no se puede deshacer."
+                : "Este mensaje dejará de estar disponible para usted. El otro participante conservará su copia.",
+        );
+        const b = element("button", "btn btn-primary", "Confirmar eliminación");
+        const out = element("p", "profile-help");
+        const section = element("div", "sheet-section");
+        section.append(b, out);
+        body.append(p, section);
+        const cid = current;
+        b.onclick = async () => {
+            b.disabled = true;
+            try {
+                await api("/mensaje/" + m.id, "DELETE", { para });
+                closeSheet();
+                if (cid === current) await load();
+            } catch (err) {
+                out.textContent = err.message;
+                b.disabled = false;
+            }
+        };
+    }
     function draw(m, prepend = false) {
-        if (nodes.has(m.id)) return;
+        const previous = nodes.get(m.id);
+        if (m.oculto) {
+            previous?.el.remove();
+            nodes.delete(m.id);
+            return;
+        }
+        if (previous && JSON.stringify(previous.m) === JSON.stringify(m))
+            return;
         const row = element("article", "msg first " + (m.mio ? "out" : "in")),
             bubble = element("div", "bubble");
         if (m.sistema) {
@@ -283,7 +409,17 @@
                 bubble.append(a);
             }
         }
-        if (m.texto) bubble.append(element("p", "text", m.texto));
+        if (m.eliminado)
+            bubble.append(
+                element(
+                    "p",
+                    "text deleted-message",
+                    "Este mensaje fue eliminado.",
+                ),
+            );
+        else if (m.texto) bubble.append(element("p", "text", m.texto));
+        if (m.editado && !m.eliminado)
+            bubble.append(element("small", "edited-label", "Editado"));
         const time = element(
             "time",
             "",
@@ -300,9 +436,38 @@
             time.append(check);
         }
         bubble.append(time);
+        const actions = element("button", "message-actions");
+        actions.type = "button";
+        actions.setAttribute("aria-label", "Opciones del mensaje");
+        actions.append(icon("ellipsis"));
+        actions.onclick = (e) => {
+            e.stopPropagation();
+            messageMenu(
+                m,
+                actions.getBoundingClientRect().left,
+                actions.getBoundingClientRect().bottom,
+            );
+        };
+        bubble.append(actions);
+        row.oncontextmenu = (e) => {
+            if (e.target.closest("a")) return;
+            e.preventDefault();
+            messageMenu(m, e.clientX, e.clientY);
+        };
+        let hold;
+        row.addEventListener("pointerdown", (e) => {
+            if (e.pointerType === "touch" && !e.target.closest("button,a"))
+                hold = setTimeout(
+                    () => messageMenu(m, e.clientX, e.clientY),
+                    550,
+                );
+        });
+        for (const ev of ["pointerup", "pointercancel", "pointermove"])
+            row.addEventListener(ev, () => clearTimeout(hold));
         row.append(bubble);
         nodes.set(m.id, { el: row, m });
-        prepend ? $("items").prepend(row) : $("items").append(row);
+        if (previous) previous.el.replaceWith(row);
+        else prepend ? $("items").prepend(row) : $("items").append(row);
     }
     async function load(initial = false, older = false) {
         if (!current || loading === current) return;
@@ -326,6 +491,18 @@
             if (v !== version) return;
             const rows = older ? [...j.mensajes].reverse() : j.mensajes;
             rows.forEach((m) => draw(m, older));
+            if (!initial && !older) {
+                const ids = [...nodes.keys()];
+                for (let i = 0; i < ids.length; i += 200) {
+                    const changes = await api(
+                        "/" + cid + "/sincronizar",
+                        "POST",
+                        { ids: ids.slice(i, i + 200) },
+                    );
+                    if (v !== version) return;
+                    changes.mensajes.forEach((m) => draw(m));
+                }
+            }
             if (j.mensajes.length) {
                 first = first
                     ? Math.min(first, ...j.mensajes.map((m) => m.id))
@@ -389,10 +566,12 @@
         $("imagen").removeAttribute("src");
     });
     function closeSheet() {
+        app.classList.remove("sheet-open");
         $("sheet").hidden = true;
         $("sheet").replaceChildren();
     }
     function sheet(title) {
+        app.classList.add("sheet-open");
         const box = $("sheet");
         box.replaceChildren();
         const head = element("header", "sheet-head"),
@@ -479,10 +658,25 @@
         renderList();
     }
     $("menu-btn").onclick = () => ($("menu").hidden = !$("menu").hidden);
+    function themeIcon() {
+        const dark = document.documentElement.dataset.theme === "dark";
+        $("tema").replaceChildren(
+            icon(dark ? "sun" : "moon"),
+            document.createTextNode(
+                dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro",
+            ),
+        );
+        $("tema").setAttribute(
+            "aria-label",
+            dark ? "Activar tema claro" : "Activar tema oscuro",
+        );
+    }
+    themeIcon();
     $("tema").onclick = () => {
         const dark = document.documentElement.dataset.theme !== "dark";
         document.documentElement.dataset.theme = dark ? "dark" : "light";
         localStorage.setItem("jz-tema", dark ? "oscuro" : "claro");
+        themeIcon();
         $("menu").hidden = true;
     };
     document.addEventListener("click", (e) => {
@@ -570,7 +764,6 @@
         const links = element("div", "sheet-section profile-links");
         for (const [title, url, ic] of [
             ["Seguridad y contraseña", boot.perfil, "shield-check"],
-            ["Llaves de acceso", boot.llaves, "fingerprint"],
         ]) {
             const a = element("a", "", title);
             a.href = url;
@@ -610,8 +803,8 @@
         file.onchange = () => {
             const f = file.files[0];
             if (!f) return;
-            if (f.size > 8 * 1024 * 1024) {
-                out.textContent = "La foto debe pesar como máximo 8 MB.";
+            if (f.size > 50 * 1024 * 1024) {
+                out.textContent = "La foto debe pesar como máximo 50 MB.";
                 return;
             }
             const d = new FormData();
@@ -788,8 +981,8 @@
     };
     function selected(f) {
         if (!f) return;
-        if (f.size > 20 * 1024 * 1024) {
-            status("El máximo por archivo es 20 MB.", true);
+        if (f.size > 50 * 1024 * 1024) {
+            status("El máximo por archivo es 50 MB.", true);
             return;
         }
         if (!/\.(jpe?g|png|webp|pdf|docx|xlsx|pptx)$/i.test(f.name)) {

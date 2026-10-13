@@ -81,7 +81,7 @@ class CyberController extends Controller
             'correo'           => ['nullable', 'email', 'max:150'],
             'color_primario'   => $hex,
             'color_secundario' => $hex,
-            'logo'             => ['nullable', 'image', 'max:4096'],
+            'logo'             => ['nullable', 'image', 'max:51200'],
         ], ['codigo.regex' => 'El código solo puede tener letras, números, guion y guion bajo.'], ['codigo' => 'código']);
         unset($d['logo']);
         $d['activo'] = $request->boolean('activo', true);

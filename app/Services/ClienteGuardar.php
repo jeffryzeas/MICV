@@ -328,7 +328,7 @@ class ClienteGuardar
             'nombre_padre'     => ['nullable', 'string', 'max:150'],
             'nombre_madre'     => ['nullable', 'string', 'max:150'],
             'notas'            => ['nullable', 'string', 'max:2000'],
-            'foto'             => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:8192'],
+            'foto'             => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:51200'],
 
             'estudios'                 => ['nullable', 'array', 'max:30'],
             'estudios.*.nivel'         => ['nullable', Rule::in(array_keys(ClienteEstudio::NIVELES))],
@@ -361,7 +361,7 @@ class ClienteGuardar
     {
         return [
             'foto.image' => 'La foto debe ser una imagen (JPG, PNG o WEBP).',
-            'foto.max'   => 'La foto no puede pesar más de 8 MB.',
+            'foto.max'   => 'La foto no puede pesar más de 50 MB.',
         ];
     }
 

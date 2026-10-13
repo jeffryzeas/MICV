@@ -191,7 +191,7 @@ class ProductoController extends PosBase
     protected function validar(Request $request, int $cyberId, ?int $id = null): array
     {
         $d = $request->validate([
-            'foto'=>['nullable','image','mimes:jpg,jpeg,png,webp','max:8192'],
+            'foto'=>['nullable','image','mimes:jpg,jpeg,png,webp','max:51200'],
             'quitar_foto'=>['nullable','boolean'],
             'tipo' => ['required', 'in:producto,servicio'],
             'nombre' => ['required', 'string', 'max:150'],

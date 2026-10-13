@@ -27,7 +27,7 @@ class ConfiguracionController extends Controller
         $hex = ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'];
 
         $request->validate([
-            'escudo'           => ['nullable', 'image', 'max:4096'],
+            'escudo'           => ['nullable', 'image', 'max:51200'],
 
             'cv.diseno_defecto'       => ['required', Rule::in(array_keys(\App\Services\CvDatos::DISENOS))],
             'cv.pro_paleta'           => ['required', Rule::in(array_keys(Configuracion::PALETAS_PRO))],

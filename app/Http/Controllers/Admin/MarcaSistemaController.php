@@ -25,7 +25,7 @@ class MarcaSistemaController extends Controller
             'eslogan'          => ['nullable', 'string', 'max:160'],
             'color_primario'   => $hex,
             'color_secundario' => $hex,
-            'logo'             => ['nullable', 'image', 'max:4096'],
+            'logo'             => ['nullable', 'image', 'max:51200'],
             'marca_telefono'   => ['nullable', 'string', 'max:40'],
             'marca_whatsapp'   => ['nullable', 'string', 'max:40'],
             'marca_correo'     => ['nullable', 'email', 'max:150'],

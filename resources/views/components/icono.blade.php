@@ -1,1 +1,1 @@
-@props(['name','class'=>'']){!! preg_replace('/\s+/', ' ', svg('lucide-'.$name, 'jz-icon '.$class, ['aria-hidden'=>'true','focusable'=>'false'])->toHtml()) !!}
+@props(['name','class'=>'']){!! preg_replace('/\s+/', ' ', svg('lucide-'.$name, 'jz-icon '.$class, $attributes->getAttributes()+['aria-hidden'=>'true','focusable'=>'false'])->toHtml()) !!}

@@ -53,19 +53,38 @@ class ChatController extends Controller
             ->map(function ($c) use ($u) {
                 $o = $c->otro($u);
 
-                $ultimo = $c->mensajes()->latest("id")->first();
+                $ultimo = $c
+                    ->mensajes()
+                    ->whereNotIn(
+                        "id",
+                        DB::table("jz_mensajes_ocultos")
+                            ->where("user_id", $u->id)
+                            ->select("mensaje_id"),
+                    )
+                    ->latest("id")
+                    ->first();
                 return [
                     "perfil" => ChatPerfilController::datos($o),
-                    "ultimo" => $ultimo?->texto ?: $ultimo?->nombre ?? "",
+                    "ultimo" => $ultimo?->eliminado_en
+                        ? "Mensaje eliminado"
+                        : ($ultimo?->texto ?:
+                        $ultimo?->nombre ?? ""),
                     "fecha" => $ultimo?->created_at?->toIso8601String(),
                     "id" => $c->id,
-                    "nombre" => $o->name,
+                    "nombre" => ChatPerfilController::datos($o)["nombre"],
                     "rol" => $o->esAdmin()
                         ? "Sistema JZ"
                         : $o->cyber?->nombre ?? "Cliente",
                     "nuevos" => $c
                         ->mensajes()
                         ->where("id", ">", $c->{$c->lectura($u)})
+                        ->whereNull("eliminado_en")
+                        ->whereNotIn(
+                            "id",
+                            DB::table("jz_mensajes_ocultos")
+                                ->where("user_id", $u->id)
+                                ->select("mensaje_id"),
+                        )
                         ->where("user_id", "!=", $u->id)
                         ->count(),
                 ];
@@ -86,7 +105,29 @@ class ChatController extends Controller
         return response()->json(
             ChatAcceso::contactos($u)
                 ->with("cyber")
-                ->when($q, fn($w) => $w->where("name", "like", "%" . $q . "%"))
+                ->when(
+                    $q,
+                    fn($w) => $w->where(
+                        fn($n) => $n
+                            ->where("name", "like", "%" . $q . "%")
+                            ->orWhereHas(
+                                "cliente",
+                                fn($c) => $c->where(
+                                    fn($n) => $n
+                                        ->where(
+                                            "primer_nombre",
+                                            "like",
+                                            "%" . $q . "%",
+                                        )
+                                        ->orWhere(
+                                            "primer_apellido",
+                                            "like",
+                                            "%" . $q . "%",
+                                        ),
+                                ),
+                            ),
+                    ),
+                )
                 ->orderBy("name")
                 ->limit(80)
                 ->get()
@@ -135,28 +176,111 @@ class ChatController extends Controller
         return response()
             ->json([
                 "mensajes" => $filas->map(
-                    fn($m) => [
-                        "id" => $m->id,
-                        "mio" => (int) $m->user_id === (int) $u->id,
-                        "texto" => $m->texto,
-                        "nombre" => $m->nombre,
-                        "mime" => $m->mime,
-                        "miniatura" => $m->miniatura
-                            ? route("chat.archivo", [$m, "mini" => 1])
-                            : null,
-                        "bytes" => $m->bytes,
-                        "archivo" => $m->archivo
-                            ? route("chat.archivo", $m)
-                            : null,
-                        "sistema" => $m->sistema,
-                        "hora" => $m->created_at->toIso8601String(),
-                        "leido" => $m->id <= $otroLeido,
-                    ],
+                    fn($m) => $this->dato($m, $r->user(), (int) $otroLeido),
                 ),
                 "ultimo" => (int) $chat->mensajes()->max("id"),
                 "otro_leido" => (int) $otroLeido,
             ])
             ->header("Cache-Control", "no-store");
+    }
+
+    private function dato(JzMensaje $m, User $u, int $leido = 0): array
+    {
+        $oculto = DB::table("jz_mensajes_ocultos")
+            ->where("mensaje_id", $m->id)
+            ->where("user_id", $u->id)
+            ->exists();
+        $eliminado = (bool) $m->eliminado_en;
+        return [
+            "id" => $m->id,
+            "mio" => (int) $m->user_id === (int) $u->id,
+            "oculto" => $oculto,
+            "eliminado" => $eliminado,
+            "editado" => (bool) $m->editado_en,
+            "texto" => $oculto || $eliminado ? "" : $m->texto,
+            "nombre" => $oculto || $eliminado ? null : $m->nombre,
+            "mime" => $oculto || $eliminado ? null : $m->mime,
+            "bytes" => $oculto || $eliminado ? null : $m->bytes,
+            "miniatura" =>
+                !$oculto && !$eliminado && $m->miniatura
+                    ? route("chat.archivo", [$m, "mini" => 1])
+                    : null,
+            "archivo" =>
+                !$oculto && !$eliminado && $m->archivo
+                    ? route("chat.archivo", $m)
+                    : null,
+            "sistema" => $m->sistema,
+            "hora" => $m->created_at->toIso8601String(),
+            "leido" => $m->id <= $leido,
+        ];
+    }
+    public function sincronizar(Request $r, JzChat $chat)
+    {
+        $this->autorizar($r, $chat);
+        $d = $r->validate([
+            "ids" => "required|array|max:200",
+            "ids.*" => "integer|min:1",
+        ]);
+        $col =
+            (int) $chat->uno_id === (int) $r->user()->id
+                ? "dos_leido"
+                : "uno_leido";
+        return response()
+            ->json([
+                "mensajes" => $chat
+                    ->mensajes()
+                    ->whereIn("id", $d["ids"])
+                    ->get()
+                    ->map(
+                        fn($m) => $this->dato(
+                            $m,
+                            $r->user(),
+                            (int) $chat->$col,
+                        ),
+                    ),
+            ])
+            ->header("Cache-Control", "no-store");
+    }
+    public function editarMensaje(Request $r, JzMensaje $mensaje)
+    {
+        $this->autorizar($r, $mensaje->chat);
+        abort_unless((int) $mensaje->user_id === (int) $r->user()->id, 403);
+        $d = $r->validate(["texto" => "required|string|max:6000"]);
+        abort_unless(trim($d["texto"]) !== "", 422);
+        DB::transaction(function () use ($mensaje, $d) {
+            $m = JzMensaje::lockForUpdate()->findOrFail($mensaje->id);
+            abort_if($m->eliminado_en, 409);
+            $m->update(["texto" => trim($d["texto"]), "editado_en" => now()]);
+        });
+        return response()->json(["ok" => true]);
+    }
+    public function eliminarMensaje(Request $r, JzMensaje $mensaje)
+    {
+        $this->autorizar($r, $mensaje->chat);
+        $d = $r->validate(["para" => "required|in:mi,todos"]);
+        if ($d["para"] === "mi") {
+            DB::table("jz_mensajes_ocultos")->insertOrIgnore([
+                "mensaje_id" => $mensaje->id,
+                "user_id" => $r->user()->id,
+            ]);
+        } else {
+            abort_unless((int) $mensaje->user_id === (int) $r->user()->id, 403);
+            DB::transaction(function () use ($mensaje) {
+                $m = JzMensaje::lockForUpdate()->findOrFail($mensaje->id);
+                $files = array_filter([$m->archivo, $m->miniatura]);
+                $m->update([
+                    "texto" => null,
+                    "archivo" => null,
+                    "miniatura" => null,
+                    "nombre" => null,
+                    "mime" => null,
+                    "bytes" => 0,
+                    "eliminado_en" => now(),
+                ]);
+                DB::afterCommit(fn() => Storage::disk("local")->delete($files));
+            });
+        }
+        return response()->json(["ok" => true]);
     }
 
     public function archivos(Request $r, JzChat $chat)
@@ -165,6 +289,13 @@ class ChatController extends Controller
         $d = $r->validate(["antes" => "nullable|integer|min:1"]);
         $rows = $chat
             ->mensajes()
+            ->whereNull("eliminado_en")
+            ->whereNotIn(
+                "id",
+                DB::table("jz_mensajes_ocultos")
+                    ->where("user_id", $r->user()->id)
+                    ->select("mensaje_id"),
+            )
             ->whereNotNull("archivo")
             ->when(
                 $d["antes"] ?? null,
@@ -216,7 +347,7 @@ class ChatController extends Controller
         $d = $r->validate([
             "texto" => "nullable|string|max:6000",
             "clave" => "required|uuid",
-            "archivo" => "nullable|file|max:20480",
+            "archivo" => "nullable|file|max:51200",
             "sistema" => "nullable|boolean",
         ]);
         abort_unless(
@@ -276,6 +407,14 @@ class ChatController extends Controller
     public function archivo(Request $r, JzMensaje $mensaje)
     {
         $this->autorizar($r, $mensaje->chat);
+        abort_if(
+            $mensaje->eliminado_en ||
+                DB::table("jz_mensajes_ocultos")
+                    ->where("mensaje_id", $mensaje->id)
+                    ->where("user_id", $r->user()->id)
+                    ->exists(),
+            404,
+        );
         abort_unless(
             $mensaje->archivo &&
                 Storage::disk("local")->exists($mensaje->archivo),

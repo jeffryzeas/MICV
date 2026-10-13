@@ -9,17 +9,19 @@ class ChatPerfilController extends Controller
 {
     public static function datos(User $u): array
     {
+        $c = $u->esCliente() ? $u->cliente : null;
+        $foto = $c ? $c->foto : $u->chat_foto;
         return [
             "id" => $u->id,
-            "nombre" => $u->name,
+            "nombre" => $c?->nombreCompleto() ?: $u->name,
             "usuario" => $u->usuario,
             "rol" => $u->esAdmin()
                 ? "Sistema JZ"
                 : $u->cyber?->nombre ?? "Cliente",
-            "foto" => $u->chat_foto
+            "foto" => $foto
                 ? route("chat.perfil.foto", [
                     $u,
-                    "v" => $u->updated_at?->timestamp,
+                    "v" => ($c?->updated_at ?? $u->updated_at)?->timestamp,
                 ])
                 : null,
             "info" => $u->chat_info ?? "",
@@ -50,17 +52,23 @@ class ChatPerfilController extends Controller
         $d = $r->validate([
             "nombre" => "nullable|string|max:150",
             "info" => "nullable|string|max:200",
-            "foto" => "nullable|image|mimes:jpg,jpeg,png,webp|max:8192",
+            "foto" => "nullable|image|mimes:jpg,jpeg,png,webp|max:51200",
             "quitar_foto" => "nullable|boolean",
         ]);
         $u = $r->user();
-        $old = $u->chat_foto;
+        $c = $u->esCliente() ? $u->cliente : null;
+        abort_if(
+            $u->esCliente() && !$c,
+            422,
+            "Complete primero su ficha de cliente.",
+        );
+        $old = $c ? $c->foto : $u->chat_foto;
         $new = null;
         if ($r->hasFile("foto")) {
             $new = FotoProducto::guardar($r->file("foto"));
         }
         try {
-            DB::transaction(function () use ($r, $u, $d, $new, $old) {
+            DB::transaction(function () use ($r, $u, $d, $new, $old, $c) {
                 $u->forceFill([
                     "chat_info" => array_key_exists("info", $d)
                         ? $d["info"]
@@ -74,10 +82,15 @@ class ChatPerfilController extends Controller
                     $u->name = trim($d["nombre"]);
                 }
                 if ($new || $r->boolean("quitar_foto")) {
-                    $u->chat_foto = $new;
+                    if ($c) {
+                        $c->foto = $new;
+                        $c->save();
+                    } else {
+                        $u->chat_foto = $new;
+                    }
                 }
                 $u->save();
-                if ($old && $u->chat_foto !== $old) {
+                if ($old && ($c ? $c->foto : $u->chat_foto) !== $old) {
                     DB::afterCommit(
                         fn() => Storage::disk(Archivos::DISCO)->delete($old),
                     );
@@ -94,18 +107,18 @@ class ChatPerfilController extends Controller
     public function foto(Request $r, User $usuario)
     {
         $this->autorizar($r, $usuario);
+        $foto = $usuario->esCliente()
+            ? $usuario->cliente?->foto
+            : $usuario->chat_foto;
         abort_unless(
-            $usuario->chat_foto &&
-                Storage::disk(Archivos::DISCO)->exists($usuario->chat_foto),
+            $foto && Storage::disk(Archivos::DISCO)->exists($foto),
             404,
         );
-        return response()->file(
-            Storage::disk(Archivos::DISCO)->path($usuario->chat_foto),
-            [
-                "Content-Type" => "image/jpeg",
-                "Cache-Control" => "private, no-store",
-                "X-Content-Type-Options" => "nosniff",
-            ],
-        );
+        return response()->file(Storage::disk(Archivos::DISCO)->path($foto), [
+            "Content-Type" =>
+                Storage::disk(Archivos::DISCO)->mimeType($foto) ?: "image/jpeg",
+            "Cache-Control" => "private, no-store",
+            "X-Content-Type-Options" => "nosniff",
+        ]);
     }
 }

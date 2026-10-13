@@ -27,7 +27,7 @@ class MarcaController extends Controller
             'telefono'         => ['nullable', 'string', 'max:40'],
             'direccion'        => ['nullable', 'string', 'max:255'],
             'correo'           => ['nullable', 'email', 'max:150'],
-            'logo'             => ['nullable', 'image', 'max:4096'],
+            'logo'             => ['nullable', 'image', 'max:51200'],
         ]);
         unset($d['logo']);
         $cyber->update($d);

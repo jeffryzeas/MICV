@@ -15,6 +15,11 @@ class JzMensaje extends Model
         return ["texto" => "encrypted", "sistema" => "boolean"];
     }
 
+    public function usuario()
+    {
+        return $this->belongsTo(User::class, "user_id");
+    }
+
     public function chat()
     {
         return $this->belongsTo(JzChat::class, "chat_id");

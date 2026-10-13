@@ -1,0 +1,118 @@
+MI CV · CORREOS DE CLIENTES Y GESTIÓN DE MENSAJES
+Actualización unificada, octubre de 2026
+
+Este paquete incluye los cambios anteriores de CV, Word sin GD, POS, Excel,
+permisos, fotos, editor en centímetros, QR y chat con la interfaz de SMS JZ.
+Esta guía reemplaza las indicaciones de acceso con huella de las guías previas.
+
+NOVEDADES
+- Chat: botón Panel visible, tanto en computadora como en celular.
+- Autenticación de la plataforma: solo usuario y contraseña. Se retiraron rutas,
+  botones, scripts y dependencia WebAuthn. La migración revoca las llaves antiguas.
+- Tema: iconos sol/luna que cambian según el modo; corregidos los identificadores
+  SVG y su visibilidad también en el panel general.
+- Cliente: nombre y foto del chat salen de la misma ficha del CV. Cambiar o quitar
+  su foto en el perfil del chat actualiza esa ficha. Si antes tenía foto separada
+  en el chat y su CV estaba sin foto, la migración la conserva en la ficha del CV.
+- Mensajes: menú de clic derecho, botón de opciones por mensaje y pulsación larga
+  en dispositivos táctiles. Edición con marca Editado, eliminar para mí y eliminar
+  para todos. Solo el remitente puede editar o eliminar para todos su mensaje.
+  Eliminar para todos destruye el texto y retira el adjunto del almacenamiento;
+  no puede borrar copias que otra persona ya haya descargado o respaldado.
+- La sincronización incluye los cambios en mensajes ya cargados. En móvil las
+  confirmaciones se muestran por encima de la conversación.
+- Conversación privada, sin anunciar cifrado de extremo a extremo: el sistema
+  guarda los textos cifrados en el servidor y el administrador puede supervisar.
+  El aviso informa esta condición. Las verificaciones indican correo verificado,
+  no una certificación de identidad ni una garantía de seguridad absoluta.
+- Administrador: módulo Supervisión de mensajes, solo lectura, con auditoría de
+  cada conversación abierta y cada archivo descargado. No permite suplantar a
+  participantes. Los endpoints normales siguen exigiendo ser participante y
+  conservar autorización sobre el contacto/Cyber.
+
+CORREOS DE CLIENTES
+- Menú nuevo, disponible para administrador y personal de Cyber con permiso
+  “Registrar correos de clientes”. El cliente no puede abrir este módulo.
+- El operador crea el correo CON el titular en el proveedor (Gmail, Outlook,
+  Yahoo, Proton, iCloud u otro). Mi CV registra y entrega los datos; no crea
+  automáticamente cuentas de terceros ni elude sus verificaciones.
+- Formulario corto: país, tipo/número de documento, nombres, celular vinculado,
+  proveedor, correo y contraseña de ESE correo. Confirmación del titular.
+- Consultar documento revisa las reglas existentes y muestra los datos que el
+  formato permite obtener. No consulta un padrón oficial ni inventa nombres:
+  los nombres se ingresan o se recuperan de una ficha autorizada del sistema.
+- Reutiliza la ficha existente del mismo cliente. No cambia automáticamente sus
+  datos anteriores, no duplica personas ni vincula a otro Cyber sin autorización.
+  Para corregir nombres/datos personales se utiliza la edición de su ficha.
+- Desde el comprobante el personal autorizado puede completar el CV y generar
+  el acceso del cliente a la plataforma con los permisos correspondientes.
+- La contraseña externa se cifra con Laravel y APP_KEY. No aparece en listas,
+  JSON ni datos recuperados después de errores de validación. El PDF sí la
+  descifra, tras comprobar autorización, y registra la entrega en auditoría.
+- El PDF tamaño carta incluye marca/logo/color del Cyber, titular, correo,
+  celular vinculado, proveedor, país, fecha/hora del registro y número de registro.
+  Ajusta el contenido largo para la hoja. Zona horaria explícita: Costa Rica.
+- QR sin contraseña: abre el proveedor; para “Otro”, ayuda a buscar el proveedor.
+  Recomienda cambiar la contraseña, revisar recuperación y habilitar dos pasos.
+  Entregue el comprobante únicamente al titular. El PDF contiene información
+  sensible; no se debe publicar ni almacenar en una carpeta web pública.
+- Puede actualizar el celular vinculado y la contraseña externa desde el registro.
+  La contraseña de Mi CV es independiente y sigue guardada como hash irreversible.
+
+FOTOS Y ARCHIVOS
+- Fotos y adjuntos del chat: hasta 50 MiB por archivo; imágenes de hasta 80 MP.
+  Editor de documentos: hasta 50 MiB por foto (dos caras). Se conserva el límite
+  de trabajo del lienzo para que la perspectiva/filtros sean manejables en móvil.
+- Fotos de perfil/producto se normalizan a JPEG de alta calidad, hasta 2400 px.
+  Las fotos/logos de los demás formularios se normalizan con Sharp conforme al
+  tamaño de destino, sin depender de GD. Logos transparentes se guardan como PNG.
+- Chat conserva el archivo original y usa miniaturas para que no crezca la burbuja.
+  Abrir/descargar conserva acceso privado. JPG/PNG/WebP, PDF y Office modernos
+  (.docx/.xlsx/.pptx) siguen sujetos al escáner y a las reglas de archivos seguros.
+- ClamAV sigue siendo necesario para adjuntos. No desactive el análisis para
+  solucionar un error: si el escáner falla, la carga se rechaza.
+
+INSTALACIÓN EN EL VPS
+1. Respaldar la base de datos, archivos privados y .env. Conservar APP_KEY.
+   NO ejecutar key:generate sobre una instalación existente: se perdería el
+   acceso a contraseñas y mensajes cifrados con la clave anterior.
+2. Copiar el contenido de mi-cv/ sobre /var/www/micv sin sustituir su .env,
+   sus archivos de storage ni sus datos. No incluye vendor ni node_modules.
+3. Dentro de /var/www/micv:
+   composer install --no-dev --optimize-autoloader
+   npm ci
+   php artisan optimize:clear
+   php artisan migrate --force
+   php artisan optimize
+   Si utiliza colas persistentes: php artisan queue:restart
+4. Mantener permisos de escritura para el usuario PHP en storage y bootstrap/cache.
+   Servir únicamente public/ mediante HTTPS. Las dependencias Node incluyen
+   Sharp, Puppeteer y las anteriores de PDF, Word y Excel.
+5. En el php.ini DEL PHP-FPM que atiende la web (no solamente PHP CLI):
+   upload_max_filesize = 50M
+   post_max_size = 120M
+   memory_limit = 512M
+   max_execution_time = 180
+   Reiniciar el servicio PHP-FPM de la versión que realmente utiliza el sitio.
+6. En el bloque server de Nginx, si usa Nginx:
+   client_max_body_size 120m;
+   Revisar nginx -t y recargar Nginx. En Apache o panel de hosting ajustar
+   su límite equivalente. El tamaño de la petición puede incluir dos imágenes.
+7. Verificar clamscan y permisos del usuario web sobre las bases de ClamAV.
+   clamav-freshclam actualiza las firmas. El aviso NotifyClamd no implica que
+   clamscan esté desactivado: esta aplicación utiliza el ejecutable clamscan.
+8. Encargado: asignar “Registrar correos de clientes” a los agentes que deban
+   utilizarlo. Los cajeros sin este permiso no ven ni pueden abrir el módulo.
+9. Comprobar en su servidor: crear registro de correo de prueba, descargar PDF,
+   editar el cliente para CV, enviar/editar/ocultar/eliminar mensaje con dos
+   cuentas, foto compartida entre CV/chat y supervisión exclusiva del admin.
+
+VALIDACIÓN EN EL ENTORNO DE DESARROLLO
+42 pruebas PHP / 230 aserciones: cifrado exacto (incluidos espacios), privacidad,
+permisos por Cyber, cliente reutilizado, validaciones, no recuperación de claves
+tras errores, sincronización, propiedad de mensajes, archivos privados,
+supervisión auditada, identidad del CV, fotos grandes y funciones previas.
+Navegador real en escritorio y 390 px, dos sesiones y generación de PDF con QR.
+PDF normal y contenido largo revisados en carta de una hoja. El análisis de
+adjuntos en las pruebas usa un escáner simulado; verificar el ClamAV real del VPS.
+Estos controles no sustituyen la instalación y revisión en su servidor.

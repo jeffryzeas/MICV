@@ -85,6 +85,7 @@ class Menu
         }
 
         $items = [
+            ['id'=>'correos','url'=>route('correos.index'),'icon'=>'mail-plus','label'=>'Correos de clientes'],
             [
                 "id" => "chat",
                 "url" => route("chat.index"),
@@ -195,6 +196,7 @@ class Menu
 
         if ($u->esAdmin()) {
             $items = array_merge($items, [
+                ['id'=>'supervision','url'=>route('admin.chat.supervision'),'icon'=>'shield-check','label'=>'Supervisión de mensajes'],
                 [
                     "id" => "cybers",
                     "url" => route("admin.cybers.index"),
@@ -320,6 +322,7 @@ class Menu
             "label" => "Editor y copias de documentos",
         ];
         $mapa = [
+            "correos" => "correos",
             "chat" => "chat",
             "tarjetas" => "tarjetas",
             "clientes-nuevo" => "clientes.editar",

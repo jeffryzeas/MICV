@@ -10,3 +10,7 @@
 
 /* Iconos SVG renderizados por Blade Lucide. */
 .jz-icon{display:inline-block;vertical-align:middle;flex-shrink:0}.jz-icon:not([class*="size-"]):not([class*="w-"]):not(.ic){width:20px;height:20px}
+
+.jz-service .campo{display:block;border:1px solid #cbd5e1;border-radius:8px;padding:11px 12px;font-size:14px;margin-top:6px;background:#fff;min-height:44px}.jz-service label{font-size:13px;font-weight:600}.jz-service small{font-size:11px;font-weight:400;color:#64748b}.jz-service .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 15px;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;text-decoration:none;flex-shrink:0}.jz-service .btn-pri{background:rgb(var(--jz-azul-800));color:white}.jz-service .btn-sec{border:1px solid #cbd5e1;background:#f1f5f9;color:#0b3c74}.jz-service .btn:focus-visible,.jz-service .campo:focus-visible{outline:3px solid #c9971f;outline-offset:2px}.dark .jz-service .btn-sec{background:#263243;color:#e5ebf3}.dark .jz-service .bg-amber-50{background:#3c321d;color:#f9e6b2}
+
+.jz-icon.hidden{display:none}

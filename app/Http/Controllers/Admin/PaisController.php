@@ -98,7 +98,7 @@ class PaisController extends Controller
     {
         $reglas = [
             'activo'               => ['nullable', 'boolean'],
-            'escudo'               => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:4096'],
+            'escudo'               => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:51200'],
             'docs'                 => ['nullable', 'array', 'max:10'],
             'docs.*.nombre'        => ['nullable', 'string', 'max:80'],
             'docs.*.clave'         => ['nullable', 'string', 'max:40'],
