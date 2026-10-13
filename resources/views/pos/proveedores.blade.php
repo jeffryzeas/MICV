@@ -3,7 +3,7 @@
     @include('pos._barra')
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="lg:col-span-2 space-y-3">
-            <form class="flex gap-2"><input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar proveedor" class="{{ $in }} max-w-xs"><button class="bg-gray-100 hover:bg-gray-200 rounded-lg px-3"><i data-lucide="search" class="size-4"></i></button></form>
+            <form class="flex gap-2"><input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar proveedor" class="{{ $in }} max-w-xs"><button class="bg-gray-100 hover:bg-gray-200 rounded-lg px-3"><x-icono name="search" class="size-4" /></button></form>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 @forelse($proveedores as $pr)
                     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5 p-4 {{ $pr->activo ? '' : 'opacity-50' }}">
@@ -12,10 +12,10 @@
                             <button type="button" class="jz-editar text-xs font-semibold text-azul-800 hover:underline shrink-0" data-p="{{ json_encode($pr->only(['id', 'nombre', 'identificacion', 'contacto', 'telefono', 'correo', 'direccion', 'notas', 'activo'])) }}">Editar</button>
                         </div>
                         <ul class="mt-2 text-sm text-gray-600 space-y-0.5">
-                            @if($pr->contacto)<li class="flex items-center gap-1.5"><i data-lucide="user-round" class="size-3.5 text-gray-400"></i>{{ $pr->contacto }}</li>@endif
-                            @if($pr->telefono)<li class="flex items-center gap-1.5"><i data-lucide="phone" class="size-3.5 text-gray-400"></i><a href="tel:{{ $pr->telefono }}" class="hover:underline">{{ $pr->telefono }}</a>
-                                <a href="https://wa.me/{{ preg_replace('/\D/', '', $pr->telefono) }}" target="_blank" class="text-[#25D366]" title="WhatsApp"><i data-lucide="message-circle" class="size-3.5"></i></a></li>@endif
-                            @if($pr->correo)<li class="flex items-center gap-1.5"><i data-lucide="mail" class="size-3.5 text-gray-400"></i><a href="mailto:{{ $pr->correo }}" class="hover:underline truncate">{{ $pr->correo }}</a></li>@endif
+                            @if($pr->contacto)<li class="flex items-center gap-1.5"><x-icono name="user-round" class="size-3.5 text-gray-400" />{{ $pr->contacto }}</li>@endif
+                            @if($pr->telefono)<li class="flex items-center gap-1.5"><x-icono name="phone" class="size-3.5 text-gray-400" /><a href="tel:{{ $pr->telefono }}" class="hover:underline">{{ $pr->telefono }}</a>
+                                <a href="https://wa.me/{{ preg_replace('/\D/', '', $pr->telefono) }}" target="_blank" class="text-[#25D366]" title="WhatsApp"><x-icono name="message-circle" class="size-3.5" /></a></li>@endif
+                            @if($pr->correo)<li class="flex items-center gap-1.5"><x-icono name="mail" class="size-3.5 text-gray-400" /><a href="mailto:{{ $pr->correo }}" class="hover:underline truncate">{{ $pr->correo }}</a></li>@endif
                         </ul>
                         <p class="mt-2 text-xs text-gray-400">{{ $pr->productos_count }} productos · compras por {{ $cfg->dinero($pr->compras_sum_total ?? 0) }}</p>
                     </div>

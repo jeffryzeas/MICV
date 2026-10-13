@@ -2,7 +2,7 @@
 <x-layout titulo="Google reCAPTCHA v3" activo="recaptcha">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="lg:col-span-2 bg-white rounded-xl shadow p-6">
-            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><i data-lucide="shield-check" class="size-[18px] text-oro-500"></i> Protección contra robots</h2>
+            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><x-icono name="shield-check" class="size-[18px] text-oro-500" /> Protección contra robots</h2>
             <p class="text-sm text-gray-500 mb-5">
                 Estado:
                 @if($cfg->recaptchaListo())<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Activo en login y registro</span>
@@ -15,7 +15,7 @@
                 <div class="max-w-xs"><label class="{{ $lb }}">Umbral (0.1 a 0.9)</label><input type="number" step="0.05" min="0.1" max="0.9" name="recaptcha_umbral" value="{{ old('recaptcha_umbral', $cfg->recaptcha_umbral ?: 0.5) }}" class="{{ $in }}">
                     <p class="text-[11px] text-gray-400 mt-1">0.5 es lo normal. Más alto = más estricto.</p></div>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="recaptcha_activo" value="1" @checked(old('recaptcha_activo', $cfg->recaptcha_activo))> Activar reCAPTCHA v3</label>
-                <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"><i data-lucide="check" class="size-4"></i> Guardar</button>
+                <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"><x-icono name="check" class="size-4" /> Guardar</button>
             </form>
         </div>
         <div class="bg-white rounded-xl shadow p-6 text-sm text-gray-700">

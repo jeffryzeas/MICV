@@ -42,18 +42,18 @@
 {{-- ========== PERFIL PROFESIONAL ========== --}}
 <div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Perfil" id="sec-perfil">
     <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-2">
-        <i data-lucide="user-round-pen" class="size-4 text-oro-500"></i> Perfil profesional
+        <x-icono name="user-round-pen" class="size-4 text-oro-500" /> Perfil profesional
     </h3>
     <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
         <p class="text-xs text-gray-500">Un párrafo corto sobre la persona. Sale destacado en el CV Pro (opcional).</p>
         <button type="button" onclick="jzIdeasPerfil()" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1.5 rounded-lg">
-            <i data-lucide="lightbulb" class="size-3.5"></i> Ideas para el perfil
+            <x-icono name="lightbulb" class="size-3.5" /> Ideas para el perfil
         </button>
     </div>
     <textarea name="perfil_profesional" rows="3" maxlength="1500" placeholder="Ej: Persona responsable y puntual, con experiencia en atención al cliente…"
               class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm">{{ old('perfil_profesional', $cliente->perfil_profesional) }}</textarea>
     <details class="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2" @if(old('perfil_en', $cliente->perfil_en) || old('profesion_en', $cliente->profesion_en)) open @endif>
-        <summary class="cursor-pointer text-sm font-semibold text-azul-800 flex items-center gap-2"><span>🇺🇸</span> Para el CV en inglés (opcional)</summary>
+        <summary class="cursor-pointer text-sm font-semibold text-azul-800 flex items-center gap-2"><span><x-icono name="languages" class="size-4"/></span> Para el CV en inglés (opcional)</summary>
         <p class="text-xs text-gray-500 mt-2 mb-2">Los títulos del CV se traducen solos. Lo que usted escribe (perfil y oficio) se traduce aquí; si lo deja vacío, sale en español.</p>
         <label class="block text-[11px] font-semibold uppercase text-gray-500 mb-1">Profesión u oficio en inglés</label>
         <input type="text" name="profesion_en" maxlength="120" value="{{ old('profesion_en', $cliente->profesion_en) }}" placeholder="Ej: Cashier, Accounting assistant" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-2">
@@ -66,11 +66,11 @@
 <div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Estudios" id="bloque-estudios">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2">
-            <i data-lucide="graduation-cap" class="size-4 text-oro-500"></i> Información académica
+            <x-icono name="graduation-cap" class="size-4 text-oro-500" /> Información académica
         </h3>
         <button type="button" onclick="agregarFila('estudios')"
                 class="inline-flex items-center gap-1.5 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-azul-800 px-3 py-1.5 rounded-lg">
-            <i data-lucide="plus" class="size-3.5"></i> Agregar estudio / curso
+            <x-icono name="plus" class="size-3.5" /> Agregar estudio / curso
         </button>
     </div>
     <p class="text-xs text-gray-500 mb-3">Los más recientes primero. Deja en blanco las filas que no uses.</p>
@@ -110,7 +110,7 @@
             </div>
         </div>
         <button type="button" onclick="jzEliminarFila(this)" title="Quitar esta fila" class="mt-6 text-gray-400 hover:text-red-600 shrink-0">
-            <i data-lucide="trash-2" class="size-4"></i>
+            <x-icono name="trash-2" class="size-4" />
         </button>
         </div>
         @endforeach
@@ -121,11 +121,11 @@
 <div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Experiencia" id="bloque-experiencias">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2">
-            <i data-lucide="briefcase" class="size-4 text-oro-500"></i> Experiencia laboral
+            <x-icono name="briefcase" class="size-4 text-oro-500" /> Experiencia laboral
         </h3>
         <button type="button" onclick="agregarFila('experiencias')"
                 class="inline-flex items-center gap-1.5 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-azul-800 px-3 py-1.5 rounded-lg">
-            <i data-lucide="plus" class="size-3.5"></i> Agregar experiencia
+            <x-icono name="plus" class="size-3.5" /> Agregar experiencia
         </button>
     </div>
     <div id="lista-experiencias" class="space-y-3">
@@ -162,7 +162,7 @@
             </div>
         </div>
         <button type="button" onclick="jzEliminarFila(this)" title="Quitar esta fila" class="mt-6 text-gray-400 hover:text-red-600 shrink-0">
-            <i data-lucide="trash-2" class="size-4"></i>
+            <x-icono name="trash-2" class="size-4" />
         </button>
         </div>
         @endforeach
@@ -173,11 +173,11 @@
 <div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Idiomas" id="bloque-idiomas">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2">
-            <i data-lucide="languages" class="size-4 text-oro-500"></i> Idiomas
+            <x-icono name="languages" class="size-4 text-oro-500" /> Idiomas
         </h3>
         <button type="button" onclick="agregarFila('idiomas')"
                 class="inline-flex items-center gap-1.5 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-azul-800 px-3 py-1.5 rounded-lg">
-            <i data-lucide="plus" class="size-3.5"></i> Agregar idioma
+            <x-icono name="plus" class="size-3.5" /> Agregar idioma
         </button>
     </div>
     <p class="text-xs text-gray-500 mb-3">Los idiomas que habla y qué tan bien. Salen en el CV con su nivel.</p>
@@ -185,14 +185,14 @@
     <div id="lista-idiomas" class="space-y-2">
         @foreach($idiomas as $i => $idi)
         <div class="flex gap-2 items-center fila-repetible">
-            <i data-lucide="languages" class="size-4 text-gray-300 shrink-0"></i>
+            <x-icono name="languages" class="size-4 text-gray-300 shrink-0" />
             <input type="text" name="idiomas[{{ $i }}][idioma]" value="{{ $idi['idioma'] ?? '' }}" list="jzListaIdiomas" placeholder="Ej: Inglés"
                    class="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm">
             <select name="idiomas[{{ $i }}][nivel]" class="w-36 sm:w-44 border border-gray-300 rounded-lg px-2 py-2 text-sm">
                 @foreach($nivelesIdioma as $nk => $nv)<option value="{{ $nk }}" @selected(($idi['nivel'] ?? 'intermedio') === $nk)>{{ $nv[0] }}</option>@endforeach
             </select>
             <button type="button" onclick="jzEliminarFila(this)" title="Quitar" class="text-gray-400 hover:text-red-600 shrink-0">
-                <i data-lucide="trash-2" class="size-4"></i>
+                <x-icono name="trash-2" class="size-4" />
             </button>
         </div>
         @endforeach
@@ -203,25 +203,25 @@
 <div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Habilidades" id="bloque-habilidades">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2">
-            <i data-lucide="sparkles" class="size-4 text-oro-500"></i> Habilidades
+            <x-icono name="sparkles" class="size-4 text-oro-500" /> Habilidades
         </h3>
         <button type="button" onclick="agregarFila('habilidades')"
                 class="inline-flex items-center gap-1.5 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-azul-800 px-3 py-1.5 rounded-lg">
-            <i data-lucide="plus" class="size-3.5"></i> Agregar habilidad
+            <x-icono name="plus" class="size-3.5" /> Agregar habilidad
         </button>
     </div>
     <div class="mb-3 p-3 rounded-lg bg-amber-50/60 border border-amber-100">
-        <p class="text-xs text-amber-900 mb-2 flex items-center gap-1.5"><i data-lucide="lightbulb" class="size-3.5"></i> <span>Toque para agregar. <span id="jzSugOficio" class="font-semibold"></span></span></p>
+        <p class="text-xs text-amber-900 mb-2 flex items-center gap-1.5"><x-icono name="lightbulb" class="size-3.5" /> <span>Toque para agregar. <span id="jzSugOficio" class="font-semibold"></span></span></p>
         <div id="jzSugHabs" class="flex flex-wrap gap-1.5"></div>
     </div>
     <div id="lista-habilidades" class="space-y-2">
         @foreach($habilidades as $i => $hab)
         <div class="flex gap-2 items-center fila-repetible">
-            <i data-lucide="star" class="size-4 text-gray-300 shrink-0"></i>
+            <x-icono name="star" class="size-4 text-gray-300 shrink-0" />
             <input type="text" name="habilidades[]" value="{{ $hab }}" placeholder="Ej: Atención al cliente"
                    class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm">
             <button type="button" onclick="jzEliminarFila(this)" title="Quitar" class="text-gray-400 hover:text-red-600 shrink-0">
-                <i data-lucide="trash-2" class="size-4"></i>
+                <x-icono name="trash-2" class="size-4" />
             </button>
         </div>
         @endforeach
@@ -232,11 +232,11 @@
 <div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Referencias" id="bloque-referencias">
     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2">
-            <i data-lucide="contact" class="size-4 text-oro-500"></i> Referencias
+            <x-icono name="contact" class="size-4 text-oro-500" /> Referencias
         </h3>
         <button type="button" onclick="agregarFila('referencias')"
                 class="inline-flex items-center gap-1.5 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-azul-800 px-3 py-1.5 rounded-lg">
-            <i data-lucide="plus" class="size-3.5"></i> Agregar referencia
+            <x-icono name="plus" class="size-3.5" /> Agregar referencia
         </button>
     </div>
     <div id="lista-referencias" class="space-y-3">
@@ -266,7 +266,7 @@
             </div>
         </div>
         <button type="button" onclick="jzEliminarFila(this)" title="Quitar esta fila" class="mt-6 text-gray-400 hover:text-red-600 shrink-0">
-            <i data-lucide="trash-2" class="size-4"></i>
+            <x-icono name="trash-2" class="size-4" />
         </button>
         </div>
         @endforeach
@@ -298,7 +298,7 @@
                 <input type="text" name="estudios[${i}][detalle]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
             </div>
             <button type="button" onclick="jzEliminarFila(this)" title="Quitar esta fila" class="mt-6 text-gray-400 hover:text-red-600 shrink-0">
-                <i data-lucide="trash-2" class="size-4"></i>
+                <x-icono name="trash-2" class="size-4" />
             </button>
             </div>`;
         },
@@ -321,7 +321,7 @@
                 <input type="text" name="experiencias[${i}][descripcion]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
             </div>
             <button type="button" onclick="jzEliminarFila(this)" title="Quitar esta fila" class="mt-6 text-gray-400 hover:text-red-600 shrink-0">
-                <i data-lucide="trash-2" class="size-4"></i>
+                <x-icono name="trash-2" class="size-4" />
             </button>
             </div>`;
         },
@@ -340,27 +340,27 @@
                 <input type="email" name="referencias[${i}][correo]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
             </div>
             <button type="button" onclick="jzEliminarFila(this)" title="Quitar esta fila" class="mt-6 text-gray-400 hover:text-red-600 shrink-0">
-                <i data-lucide="trash-2" class="size-4"></i>
+                <x-icono name="trash-2" class="size-4" />
             </button>
             </div>`;
         },
         idiomas: () => {
             const i = Date.now() % 100000;
             return `<div class="flex gap-2 items-center fila-repetible">
-                <i data-lucide="languages" class="size-4 text-gray-300 shrink-0"></i>
+                <x-icono name="languages" class="size-4 text-gray-300 shrink-0" />
                 <input type="text" name="idiomas[${i}][idioma]" list="jzListaIdiomas" placeholder="Ej: Inglés" class="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 <select name="idiomas[${i}][nivel]" class="w-36 sm:w-44 border border-gray-300 rounded-lg px-2 py-2 text-sm">
                     @foreach(\App\Models\ClienteIdioma::NIVELES as $nk => $nv)<option value="{{ $nk }}" @selected($nk === 'intermedio')>{{ $nv[0] }}</option>@endforeach
                 </select>
-                <button type="button" onclick="jzEliminarFila(this)" title="Quitar" class="text-gray-400 hover:text-red-600 shrink-0"><i data-lucide="trash-2" class="size-4"></i></button>
+                <button type="button" onclick="jzEliminarFila(this)" title="Quitar" class="text-gray-400 hover:text-red-600 shrink-0"><x-icono name="trash-2" class="size-4" /></button>
             </div>`;
         },
         habilidades: () => {
             return `<div class="flex gap-2 items-center fila-repetible">
-                <i data-lucide="star" class="size-4 text-gray-300 shrink-0"></i>
+                <x-icono name="star" class="size-4 text-gray-300 shrink-0" />
                 <input type="text" name="habilidades[]" placeholder="Ej: Atención al cliente" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 <button type="button" onclick="jzEliminarFila(this)" title="Quitar" class="text-gray-400 hover:text-red-600 shrink-0">
-                    <i data-lucide="trash-2" class="size-4"></i>
+                    <x-icono name="trash-2" class="size-4" />
                 </button>
             </div>`;
         }

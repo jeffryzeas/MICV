@@ -15,7 +15,7 @@
 <style>
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:{{ $pri }};font-family:'Segoe UI',Roboto,Arial,sans-serif;color:#1f2937}
 .c{background:#fff;border-radius:18px;max-width:440px;width:100%;padding:34px 28px;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.28)}
-.ico{font-size:46px;line-height:1;margin-bottom:10px}.cod{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.12em;color:{{ $sec }};background:#fbf6ea;border-radius:20px;padding:4px 12px;margin-bottom:12px}
+.ico .jz-icon{width:46px;height:46px}.ico{font-size:46px;line-height:1;margin-bottom:10px}.cod{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.12em;color:{{ $sec }};background:#fbf6ea;border-radius:20px;padding:4px 12px;margin-bottom:12px}
 h1{font-size:22px;margin:0 0 8px;color:#0f172a}p{margin:0 0 18px;color:#4b5563;line-height:1.55;font-size:15px}
 a.b,button.b{display:inline-block;background:{{ $pri }};color:#fff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 22px;border-radius:10px;border:0;cursor:pointer}
 a.b:hover,button.b:hover{background:{{ $sec }}}.l{display:block;margin-top:14px;color:#6b7280;font-size:13px}
@@ -25,7 +25,7 @@ a.b:hover,button.b:hover{background:{{ $sec }}}.l{display:block;margin-top:14px;
 <body>
 <div>
 <div class="c">
-    <div class="ico">{{ $icono }}</div>
+    <div class="ico"><x-icono :name="$icono" /></div>
     <div class="cod">ERROR {{ $codigo }}</div>
     <h1>{{ $titulo }}</h1>
     <p>{!! $mensaje !!}</p>

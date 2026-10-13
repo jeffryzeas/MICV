@@ -14,7 +14,7 @@
         </div>
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5 p-5">
             <div class="relative max-w-md">
-                <i data-lucide="search" class="size-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <x-icono name="search" class="size-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input type="search" id="buscaProd" autocomplete="off" placeholder="Buscar producto o escanear código" class="{{ $in }} pl-9">
                 <div id="resProd" class="hidden absolute z-20 left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 max-h-64 overflow-y-auto"></div>
             </div>
@@ -25,7 +25,7 @@
             </table>
             <input name="notas" maxlength="300" placeholder="Notas (opcional)" value="{{ old('notas') }}" class="{{ $in }} mt-2">
         </div>
-        <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-6 py-3 rounded-lg"><i data-lucide="check" class="size-4"></i> Guardar compra y sumar al inventario</button>
+        <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-6 py-3 rounded-lg"><x-icono name="check" class="size-4" /> Guardar compra y sumar al inventario</button>
     </form>
     @push('scripts')
     <script>

@@ -2,7 +2,7 @@
 <x-layout titulo="Correo Gmail" activo="correo">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="lg:col-span-2 bg-white rounded-xl shadow p-6">
-            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><i data-lucide="mail-check" class="size-[18px] text-oro-500"></i> Cuenta que envía los códigos</h2>
+            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><x-icono name="mail-check" class="size-[18px] text-oro-500" /> Cuenta que envía los códigos</h2>
             <p class="text-sm text-gray-500 mb-5">
                 Estado:
                 @if($cfg->correoListo())<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Activo · {{ $cfg->smtp_desde_correo }}</span>
@@ -30,19 +30,19 @@
                 </div>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="smtp_activo" value="1" @checked(old('smtp_activo', $cfg->smtp_activo))> Usar este correo para enviar los códigos de verificación</label>
                 <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="registro_abierto" value="1" @checked(old('registro_abierto', $cfg->registro_abierto))> Permitir que cualquier persona se registre en <code class="bg-gray-100 px-1 rounded">/registro</code> para crear su CV</label>
-                <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"><i data-lucide="check" class="size-4"></i> Guardar</button>
+                <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"><x-icono name="check" class="size-4" /> Guardar</button>
             </form>
 
             <hr class="my-6">
             <form method="POST" action="{{ route('admin.correo.probar') }}" class="flex flex-wrap gap-3 items-end">
                 @csrf
                 <div class="flex-1 min-w-[220px]"><label class="{{ $lb }}">Enviar correo de prueba a</label><input type="email" name="para" value="{{ auth()->user()->email }}" required class="{{ $in }}"></div>
-                <button class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="send" class="size-4"></i> Enviar prueba</button>
+                <button class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="send" class="size-4" /> Enviar prueba</button>
             </form>
         </div>
 
         <div class="bg-white rounded-xl shadow p-6 text-sm text-gray-700">
-            <h3 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><i data-lucide="key-round" class="size-4 text-oro-500"></i> Cómo sacar la contraseña de aplicación</h3>
+            <h3 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><x-icono name="key-round" class="size-4 text-oro-500" /> Cómo sacar la contraseña de aplicación</h3>
             <ol class="list-decimal pl-5 space-y-2">
                 <li>Entre a <b>myaccount.google.com</b> con el Gmail que va a enviar.</li>
                 <li>Vaya a <b>Seguridad</b> y active la <b>Verificación en 2 pasos</b> (es obligatoria).</li>

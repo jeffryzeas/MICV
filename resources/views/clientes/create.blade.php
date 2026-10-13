@@ -11,13 +11,13 @@
 
     <div class="bg-white rounded-xl shadow p-6" id="boxConsulta">
         <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-4">
-            <i data-lucide="search" class="size-[18px] text-oro-500"></i> Consultar documento
+            <x-icono name="search" class="size-[18px] text-oro-500" /> Consultar documento
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
             <div>
                 <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">1. Nacionalidad / país del documento</label>
                 <select id="paisDoc" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                    @foreach(\App\Support\Pais::porRegion() as $region => $lista)<optgroup label="{{ $region }}">@foreach($lista as $cod => $p)<option value="{{ $cod }}">{{ $p['bandera'] }} {{ $p['nombre'] }}</option>@endforeach</optgroup>@endforeach
+                    @foreach(\App\Support\Pais::porRegion() as $region => $lista)<optgroup label="{{ $region }}">@foreach($lista as $cod => $p)<option value="{{ $cod }}">{{ $p['nombre'] }}</option>@endforeach</optgroup>@endforeach
                 </select>
             </div>
             <div>
@@ -43,15 +43,15 @@
         <div id="liveStatus" class="live-status"></div>
         <div class="mt-5 flex gap-3 flex-wrap">
             <button type="button" onclick="continuarRegistro()" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
-                <i data-lucide="arrow-right" class="size-4"></i> Continuar
+                <x-icono name="arrow-right" class="size-4" /> Continuar
             </button>
-            <a href="{{ route('clientes.index') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"><i data-lucide="list" class="size-4"></i> Ver lista</a>
+            <a href="{{ route('clientes.index') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"><x-icono name="list" class="size-4" /> Ver lista</a>
         </div>
     </div>
 
     <div class="bg-white rounded-xl shadow p-4 sm:p-6 mt-5" id="formRegistro" style="display:none;">
         <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-4">
-            <i data-lucide="user-plus" class="size-[18px] text-oro-500"></i> Completar datos
+            <x-icono name="user-plus" class="size-[18px] text-oro-500" /> Completar datos
         </h2>
         <form method="POST" action="{{ route('clientes.store') }}" enctype="multipart/form-data" onsubmit="return confirmarGuardar(event)" data-pasos="no">
             @csrf

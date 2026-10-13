@@ -1,6 +1,6 @@
 <x-publico titulo="Eliminar mi cuenta" ancho="max-w-lg">
     <div class="text-center mb-4">
-        <div class="size-14 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-3"><i data-lucide="user-x" class="size-7"></i></div>
+        <div class="size-14 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-3"><x-icono name="user-x" class="size-7" /></div>
         <h2 class="font-bold text-lg text-[#061a33]">Cómo eliminar su cuenta y sus datos</h2>
     </div>
     <p class="text-sm text-gray-600 mb-4">Por su seguridad, la eliminación se pide <b>desde dentro de la app</b>, con su contraseña. Así nadie más puede pedir que borren su cuenta.</p>

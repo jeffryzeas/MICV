@@ -21,11 +21,11 @@
 @include('partials.recaptcha', ['accion'=>'autoservicio'])
 
         <fieldset class="space-y-3">
-            <legend class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><i data-lucide="id-card" class="size-5 text-oro-500"></i> Documento</legend>
+            <legend class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><x-icono name="id-card" class="size-5 text-oro-500" /> Documento</legend>
             <div class="grid grid-cols-2 gap-3">
                 <div><label class="{{ $lb }}" for="aPais">País</label>
                     <select name="pais" id="aPais" class="{{ $in }}">
-                        @foreach(\App\Support\Pais::porRegion() as $region => $lista)<optgroup label="{{ $region }}">@foreach($lista as $cod => $p)<option value="{{ $cod }}" @selected($paisSel === $cod)>{{ $p['bandera'] }} {{ $p['nombre'] }}</option>@endforeach</optgroup>@endforeach
+                        @foreach(\App\Support\Pais::porRegion() as $region => $lista)<optgroup label="{{ $region }}">@foreach($lista as $cod => $p)<option value="{{ $cod }}" @selected($paisSel === $cod)>{{ $p['nombre'] }}</option>@endforeach</optgroup>@endforeach
                     </select></div>
                 <div><label class="{{ $lb }}" for="aTipo">Tipo</label>
                     <select name="tipo_documento" id="aTipo" class="{{ $in }}" data-actual="{{ old('tipo_documento') }}"></select></div>
@@ -36,7 +36,7 @@
         </fieldset>
 
         <fieldset class="space-y-3">
-            <legend class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><i data-lucide="user-round" class="size-5 text-oro-500"></i> Sus datos</legend>
+            <legend class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><x-icono name="user-round" class="size-5 text-oro-500" /> Sus datos</legend>
             <div class="grid grid-cols-2 gap-3">
                 @foreach(['primer_nombre' => 'Primer nombre *', 'segundo_nombre' => 'Segundo nombre', 'primer_apellido' => 'Primer apellido *', 'segundo_apellido' => 'Segundo apellido'] as $k => $t)
                     <div><label class="{{ $lb }}">{{ $t }}</label><input type="text" name="{{ $k }}" value="{{ old($k) }}" @if(str_contains($t, '*')) required @endif autocomplete="off" class="{{ $in }}"></div>
@@ -50,7 +50,7 @@
         </fieldset>
 
         <fieldset class="space-y-3">
-            <legend class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><i data-lucide="phone" class="size-5 text-oro-500"></i> Contacto</legend>
+            <legend class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><x-icono name="phone" class="size-5 text-oro-500" /> Contacto</legend>
             <div class="grid grid-cols-[110px_1fr] gap-3">
                 <div><label class="{{ $lb }}">Código</label><select name="telefono_codigo_pais" id="aCod" class="{{ $in }} px-2">@foreach(\App\Support\Pais::telefonos() as $cod => $t)<option value="{{ $cod }}" @selected(old('telefono_codigo_pais') === $cod)>{{ $t }}</option>@endforeach</select></div>
                 <div><label class="{{ $lb }}">Celular *</label><input type="tel" name="telefono" required inputmode="tel" value="{{ old('telefono') }}" class="{{ $in }}"></div>
@@ -61,14 +61,14 @@
         </fieldset>
 
         <fieldset class="space-y-3">
-            <legend class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><i data-lucide="briefcase" class="size-5 text-oro-500"></i> Trabajo que busca</legend>
+            <legend class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><x-icono name="briefcase" class="size-5 text-oro-500" /> Trabajo que busca</legend>
             <div><label class="{{ $lb }}">Profesión u oficio</label><input type="text" name="profesion" value="{{ old('profesion') }}" placeholder="Ej: Cajera, bodeguero, contador" class="{{ $in }}"></div>
             <div><label class="{{ $lb }}">Hable un poco de usted (opcional)</label><textarea name="perfil_profesional" rows="3" maxlength="1500" placeholder="Ej: Soy una persona responsable y puntual, con experiencia en atención al cliente." class="{{ $in }}">{{ old('perfil_profesional') }}</textarea></div>
             <div><label class="{{ $lb }}">Habilidades (separadas por coma)</label><input type="text" name="habilidades_texto" value="{{ old('habilidades_texto') }}" placeholder="Ej: Excel, manejo de caja, trabajo en equipo" class="{{ $in }}"></div>
         </fieldset>
 
         @include('partials.situacion-laboral')<label class="{{ $lb }}">Disponibilidad<input name="disponibilidad" maxlength="255" value="{{ old('disponibilidad') }}" class="{{ $in }}"></label><label class="{{ $lb }}">Cualidades separadas por coma<input name="cualidades" maxlength="255" value="{{ old('cualidades') }}" class="{{ $in }}"></label><details class="group rounded-xl border border-gray-200 p-3" @if(old('estudios')) open @endif>
-            <summary class="font-semibold text-azul-950 flex items-center gap-2 cursor-pointer list-none"><i data-lucide="graduation-cap" class="size-5 text-oro-500"></i> Estudios <span class="text-xs text-gray-400 font-normal ml-auto">tocar para llenar</span></summary>
+            <summary class="font-semibold text-azul-950 flex items-center gap-2 cursor-pointer list-none"><x-icono name="graduation-cap" class="size-5 text-oro-500" /> Estudios <span class="text-xs text-gray-400 font-normal ml-auto">tocar para llenar</span></summary>
             <div class="space-y-3 mt-3" data-lista="estudios" data-max="30">
                 @foreach($estudios as $i => $e)
                     <div class="jz-fila grid grid-cols-2 gap-2 border-t border-gray-100 pt-3 first:border-0 first:pt-0">
@@ -83,7 +83,7 @@
         </details>
 
         <details class="group rounded-xl border border-gray-200 p-3" @if(old('experiencias')) open @endif>
-            <summary class="font-semibold text-azul-950 flex items-center gap-2 cursor-pointer list-none"><i data-lucide="building-2" class="size-5 text-oro-500"></i> Experiencia de trabajo <span class="text-xs text-gray-400 font-normal ml-auto">tocar para llenar</span></summary>
+            <summary class="font-semibold text-azul-950 flex items-center gap-2 cursor-pointer list-none"><x-icono name="building-2" class="size-5 text-oro-500" /> Experiencia de trabajo <span class="text-xs text-gray-400 font-normal ml-auto">tocar para llenar</span></summary>
             <div class="space-y-3 mt-3" data-lista="experiencias" data-max="5">
                 @foreach($experiencias as $i => $e)
                     <div class="jz-fila grid grid-cols-2 gap-2 border-t border-gray-100 pt-3 first:border-0 first:pt-0">
@@ -99,7 +99,7 @@
         </details>
 
         <details class="group rounded-xl border border-gray-200 p-3" @if(old('idiomas')) open @endif>
-            <summary class="font-semibold text-azul-950 flex items-center gap-2 cursor-pointer list-none"><i data-lucide="languages" class="size-5 text-oro-500"></i> Idiomas <span class="text-xs text-gray-400 font-normal ml-auto">opcional</span></summary>
+            <summary class="font-semibold text-azul-950 flex items-center gap-2 cursor-pointer list-none"><x-icono name="languages" class="size-5 text-oro-500" /> Idiomas <span class="text-xs text-gray-400 font-normal ml-auto">opcional</span></summary>
             <div class="space-y-2 mt-3" data-lista="idiomas" data-max="4">
                 @foreach($idiomas as $i => $x)
                     <div class="jz-fila grid grid-cols-2 gap-2">
@@ -113,7 +113,7 @@
         </details>
 
         <details class="group rounded-xl border border-gray-200 p-3" @if(old('referencias')) open @endif>
-            <summary class="font-semibold text-azul-950 flex items-center gap-2 cursor-pointer list-none"><i data-lucide="users" class="size-5 text-oro-500"></i> Referencias <span class="text-xs text-gray-400 font-normal ml-auto">personas que lo recomiendan</span></summary>
+            <summary class="font-semibold text-azul-950 flex items-center gap-2 cursor-pointer list-none"><x-icono name="users" class="size-5 text-oro-500" /> Referencias <span class="text-xs text-gray-400 font-normal ml-auto">personas que lo recomiendan</span></summary>
             <div class="space-y-2 mt-3">
                 @foreach($referencias as $i => $r)
                     <div class="grid grid-cols-2 gap-2">
@@ -130,7 +130,7 @@
         </label>
 
         <button class="w-full inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white font-semibold uppercase tracking-wide text-sm py-4 rounded-xl transition-colors">
-            <i data-lucide="send" class="size-5"></i> Enviar mis datos
+            <x-icono name="send" class="size-5" /> Enviar mis datos
         </button>
     </form>
 

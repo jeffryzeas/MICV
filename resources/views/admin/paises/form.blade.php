@@ -6,15 +6,15 @@
     $docs = old('docs', (array) ($fila->documentos ?? []));
     if (!$docs && !$deFabrica) { $docs = [['nombre' => 'Cédula de identidad', 'formato' => 'numeros', 'min' => 6, 'max' => 12]]; }
     $tieneEscudo = $pais && (!empty($pais['escudo']) || !empty($pais['escudo_subido']));
-    $titulo = $codigo ? (($pais['bandera'] ?? '') . ' ' . ($pais['nombre'] ?? $codigo)) : 'Nuevo país';
+    $titulo = $codigo ? ($pais['nombre'] ?? $codigo) : 'Nuevo país';
 @endphp
 <x-layout :titulo="$titulo" activo="paises">
-    <a href="{{ route('admin.paises.index') }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-azul-800 mb-4"><i data-lucide="arrow-left" class="size-4"></i> Países</a>
+    <a href="{{ route('admin.paises.index') }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-azul-800 mb-4"><x-icono name="arrow-left" class="size-4" /> Países</a>
     <form method="POST" action="{{ $codigo ? route('admin.paises.update', $codigo) : route('admin.paises.store') }}" enctype="multipart/form-data" class="space-y-5 max-w-4xl">
         @csrf @if($codigo) @method('PUT') @endif
 
         <div class="bg-white rounded-xl shadow p-5 sm:p-6">
-            <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><i data-lucide="globe" class="size-[18px] text-oro-500"></i> Datos del país</h2>
+            <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><x-icono name="globe" class="size-[18px] text-oro-500" /> Datos del país</h2>
             @if($deFabrica)
                 <p class="text-sm text-gray-600 mb-3">Este país viene con el sistema: sus datos y la verificación de sus documentos ya están programados. Aquí puede cambiar el escudo, agregar documentos o desactivarlo.</p>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
@@ -28,7 +28,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div><label class="{{ $lb }}">Código ISO (2 letras) *</label>
                         <input type="text" name="codigo" value="{{ old('codigo', $codigo) }}" @disabled($codigo) required maxlength="2" placeholder="BR" class="{{ $in }} uppercase font-mono" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z]/g,'')">
-                        <p class="text-[11px] text-gray-400 mt-1">La bandera sale sola del código.</p></div>
+                        <p class="text-[11px] text-gray-400 mt-1">Código ISO del país.</p></div>
                     <div class="sm:col-span-2"><label class="{{ $lb }}">Nombre *</label><input type="text" name="nombre" value="{{ $v('nombre') }}" required maxlength="60" placeholder="Brasil" class="{{ $in }}"></div>
                     <div><label class="{{ $lb }}">Nacionalidad (hombre) *</label><input type="text" name="gentilicio" value="{{ $v('gentilicio') }}" required maxlength="40" placeholder="Brasileño" class="{{ $in }}"></div>
                     <div><label class="{{ $lb }}">Nacionalidad (mujer)</label><input type="text" name="gentilicio_f" value="{{ $v('gentilicio_f') }}" maxlength="40" placeholder="Brasileña" class="{{ $in }}"></div>
@@ -46,7 +46,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow p-5 sm:p-6">
-            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><i data-lucide="shield" class="size-[18px] text-oro-500"></i> Escudo del CV Clásico</h2>
+            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><x-icono name="shield" class="size-[18px] text-oro-500" /> Escudo del CV Clásico</h2>
             <p class="text-xs text-gray-500 mb-4">PNG con fondo transparente. Sale arriba y como marca de agua del CV Clásico. Si no hay escudo, el CV sale limpio.</p>
             <div class="flex flex-wrap items-center gap-4">
                 <div class="size-24 rounded-xl bg-gray-50 border border-dashed border-gray-300 flex items-center justify-center overflow-hidden" id="vistaEscudo">
@@ -54,7 +54,7 @@
                 </div>
                 <div class="space-y-2">
                     <label class="inline-flex items-center gap-2 cursor-pointer bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2 rounded-lg">
-                        <i data-lucide="upload" class="size-4"></i> {{ $tieneEscudo ? 'Cambiar escudo' : 'Subir escudo' }}
+                        <x-icono name="upload" class="size-4" /> {{ $tieneEscudo ? 'Cambiar escudo' : 'Subir escudo' }}
                         <input type="file" name="escudo" accept="image/png,image/webp,image/jpeg" class="sr-only" onchange="const f=this.files[0]; if(f){ document.getElementById('vistaEscudo').innerHTML='<img src=&quot;'+window.URL.createObjectURL(f)+'&quot; class=&quot;max-h-20 max-w-20 object-contain&quot;>'; }">
                     </label>
                     @if(!empty($pais['escudo_subido']))<label class="flex items-center gap-2 text-sm text-gray-600"><input type="checkbox" name="quitar_escudo" value="1"> Quitar el escudo subido{{ !empty($pais['escudo']) ? ' (vuelve el de fábrica)' : '' }}</label>@endif
@@ -64,8 +64,8 @@
 
         <div class="bg-white rounded-xl shadow p-5 sm:p-6">
             <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-                <h2 class="font-semibold text-azul-950 flex items-center gap-2"><i data-lucide="id-card" class="size-[18px] text-oro-500"></i> {{ $deFabrica ? 'Documentos adicionales' : 'Tipos de documento' }}</h2>
-                <button type="button" onclick="jzDocNuevo()" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-azul-800 px-3 py-1.5 rounded-lg"><i data-lucide="plus" class="size-3.5"></i> Agregar documento</button>
+                <h2 class="font-semibold text-azul-950 flex items-center gap-2"><x-icono name="id-card" class="size-[18px] text-oro-500" /> {{ $deFabrica ? 'Documentos adicionales' : 'Tipos de documento' }}</h2>
+                <button type="button" onclick="jzDocNuevo()" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-azul-800 px-3 py-1.5 rounded-lg"><x-icono name="plus" class="size-3.5" /> Agregar documento</button>
             </div>
             <p class="text-xs text-gray-500 mb-4">El sistema revisa que el número tenga el formato y el largo que indique. {{ $deFabrica ? '' : 'El pasaporte se agrega solo.' }}</p>
             <div id="listaDocs" class="space-y-3">
@@ -77,14 +77,14 @@
                         <div class="sm:col-span-1"><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Mín.</label><input type="number" name="docs[{{ $i }}][min]" value="{{ $doc['min'] ?? 4 }}" min="1" max="30" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
                         <div class="sm:col-span-1"><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Máx.</label><input type="number" name="docs[{{ $i }}][max]" value="{{ $doc['max'] ?? 20 }}" min="1" max="30" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
                         <div class="col-span-2 sm:col-span-3"><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Ayuda (ejemplo)</label><input type="text" name="docs[{{ $i }}][ayuda]" value="{{ $doc['ayuda'] ?? '' }}" maxlength="120" placeholder="11 dígitos, ej. 123.456.789-09" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
-                        <div class="sm:col-span-1 text-right"><button type="button" onclick="this.closest('.jz-doc').remove()" class="text-gray-400 hover:text-red-600 p-2" title="Quitar"><i data-lucide="trash-2" class="size-4"></i></button></div>
+                        <div class="sm:col-span-1 text-right"><button type="button" onclick="this.closest('.jz-doc').remove()" class="text-gray-400 hover:text-red-600 p-2" title="Quitar"><x-icono name="trash-2" class="size-4" /></button></div>
                     </div>
                 @endforeach
             </div>
         </div>
 
         <div class="flex flex-wrap gap-3">
-            <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-6 py-3 rounded-lg"><i data-lucide="check" class="size-4"></i> Guardar</button>
+            <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-6 py-3 rounded-lg"><x-icono name="check" class="size-4" /> Guardar</button>
         </div>
     </form>
     @if($codigo && $fila->exists)
@@ -103,7 +103,7 @@
             <div class="sm:col-span-1"><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Mín.</label><input type="number" name="docs[${i}][min]" value="6" min="1" max="30" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
             <div class="sm:col-span-1"><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Máx.</label><input type="number" name="docs[${i}][max]" value="12" min="1" max="30" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
             <div class="col-span-2 sm:col-span-3"><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Ayuda (ejemplo)</label><input type="text" name="docs[${i}][ayuda]" maxlength="120" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
-            <div class="sm:col-span-1 text-right"><button type="button" onclick="this.closest('.jz-doc').remove()" class="text-gray-400 hover:text-red-600 p-2"><i data-lucide="trash-2" class="size-4"></i></button></div></div>`);
+            <div class="sm:col-span-1 text-right"><button type="button" onclick="this.closest('.jz-doc').remove()" class="text-gray-400 hover:text-red-600 p-2"><x-icono name="trash-2" class="size-4" /></button></div></div>`);
         lucide.createIcons();
     }
     </script>

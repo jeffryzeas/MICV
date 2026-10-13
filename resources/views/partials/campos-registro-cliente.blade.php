@@ -28,12 +28,12 @@
 
 {{-- ── Nombre completo ── --}}
 <section class="jz-seccion" data-titulo="Nombre" id="sec-nombre">
-    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><i data-lucide="user" class="size-4 text-oro-500"></i> Nombre completo</h3>
+    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><x-icono name="user" class="size-4 text-oro-500" /> Nombre completo</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         @foreach(['primer_nombre' => ['Primer nombre *', 'María', true], 'segundo_nombre' => ['Segundo nombre', 'José', false], 'primer_apellido' => ['Primer apellido *', 'Pérez', true], 'segundo_apellido' => ['Segundo apellido', 'Gómez', false]] as $campo => [$t, $ej, $req])
             <div class="jz-campo">
                 <label class="{{ $lb }}">{{ $t }}</label>
-                <i data-lucide="user" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+                <x-icono name="user" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
                 <input type="text" name="{{ $campo }}" @if($req) required @endif placeholder="Ej: {{ $ej }}" value="{{ $val($campo) }}" autocomplete="off" class="{{ $in }}">
             </div>
         @endforeach
@@ -41,7 +41,7 @@
     @if(isset($cybers) && $cybers->isNotEmpty() && !$cliente)
         <div class="jz-campo mt-4 max-w-md">
             <label class="{{ $lb }}">Cyber al que pertenece</label>
-            <i data-lucide="building-2" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="building-2" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <select name="cyber_id" class="{{ $in }}">
                 <option value="">— Ninguno (solo el admin lo ve) —</option>
                 @foreach($cybers as $cy)<option value="{{ $cy->id }}" @selected((string) old('cyber_id') === (string) $cy->id)>{{ $cy->nombre }}</option>@endforeach
@@ -52,22 +52,22 @@
 
 {{-- ── Nacimiento y nacionalidad ── --}}
 <section class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Nacimiento" id="sec-nacimiento">
-    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><i data-lucide="cake" class="size-4 text-oro-500"></i> Nacimiento y nacionalidad</h3>
+    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><x-icono name="cake" class="size-4 text-oro-500" /> Nacimiento y nacionalidad</h3>
     <div id="camposExtra" class="{{ $cliente ? '' : 'hidden' }} mb-4">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="jz-campo">
                 <label class="{{ $lb }}">Fecha de nacimiento *</label>
-                <i data-lucide="calendar" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+                <x-icono name="calendar" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
                 <input type="date" name="fecha_nacimiento" id="fFN" value="{{ old('fecha_nacimiento', optional($cliente?->fecha_nacimiento)->format('Y-m-d')) }}" class="{{ $in }}">
             </div>
             <div class="jz-campo">
                 <label class="{{ $lb }}"><span data-etq="municipio">{{ $P['municipio'] }}</span> de nacimiento *</label>
-                <i data-lucide="map-pin" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+                <x-icono name="map-pin" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
                 <input type="text" name="municipio_nacimiento" id="fMuni" value="{{ $val('municipio_nacimiento') }}" class="{{ $in }}">
             </div>
             <div class="jz-campo">
                 <label class="{{ $lb }}"><span data-etq="departamento">{{ $P['departamento'] }}</span> de nacimiento *</label>
-                <i data-lucide="map" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+                <x-icono name="map" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
                 <input type="text" name="departamento_nacimiento" id="fDepto" value="{{ $val('departamento_nacimiento') }}" class="{{ $in }}">
             </div>
         </div>
@@ -75,7 +75,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="jz-campo">
             <label class="{{ $lb }}">Sexo</label>
-            <i data-lucide="users" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="users" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <select name="sexo" id="fSexo" class="{{ $in }}">
                 <option value="">—</option>
                 @foreach(['M' => 'Masculino', 'F' => 'Femenino', 'O' => 'Otro'] as $sv => $sl)<option value="{{ $sv }}" @selected($val('sexo') === $sv)>{{ $sl }}</option>@endforeach
@@ -83,18 +83,18 @@
         </div>
         <div class="jz-campo">
             <label class="{{ $lb }}">Nacionalidad</label>
-            <i data-lucide="flag" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="flag" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <select id="fNacSel" class="{{ $in }}" data-actual="{{ $nacActual }}"></select>
             <input type="text" name="nacionalidad" id="fNacionalidad" value="{{ $nacActual }}" maxlength="60" placeholder="Escriba la nacionalidad" class="{{ $in }} mt-2 hidden">
         </div>
         <div class="jz-campo">
             <label class="{{ $lb }}">Estado civil</label>
-            <i data-lucide="heart" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="heart" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <select name="estado_civil" id="jzEstadoCivil" data-guardado="{{ $val('estado_civil') }}" class="{{ $in }}"><option value="">—</option></select>
         </div>
         <div class="jz-campo">
             <label class="{{ $lb }}">Número de hijos</label>
-            <i data-lucide="baby" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="baby" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <input type="number" name="numero_hijos" min="0" max="30" inputmode="numeric" value="{{ $val('numero_hijos') }}" class="{{ $in }}">
         </div>
     </div>
@@ -102,7 +102,7 @@
 
 {{-- ── Contacto ── --}}
 <section class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Contacto" id="sec-contacto">
-    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><i data-lucide="phone" class="size-4 text-oro-500"></i> Contacto</h3>
+    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><x-icono name="phone" class="size-4 text-oro-500" /> Contacto</h3>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div>
             <label class="{{ $lb }}">Celular</label>
@@ -111,7 +111,7 @@
                     @foreach(\App\Support\Pais::telefonos() as $cv => $cl)<option value="{{ $cv }}" @selected($val('telefono_codigo_pais', $P['telefono'] ?: '+505') === $cv)>{{ $cl }}</option>@endforeach
                 </select>
                 <div class="jz-campo sin-label">
-                    <i data-lucide="phone" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+                    <x-icono name="phone" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
                     <input type="tel" name="telefono" inputmode="tel" placeholder="8888 8888" value="{{ $val('telefono') }}" class="{{ $in }}">
                 </div>
                 <select name="telefono_red" class="jz-redes col-span-2 sm:col-span-1 w-full border border-gray-300 rounded-lg px-2 py-2.5 text-sm" data-actual="{{ $val('telefono_red') }}">
@@ -119,13 +119,13 @@
                 </select>
             </div>
             <input type="hidden" name="telefono_whatsapp" value="0">
-            <label class="inline-flex items-center gap-2 text-sm text-gray-600 mt-2"><input type="checkbox" name="telefono_whatsapp" value="1" @checked($val('telefono_whatsapp'))> <i data-lucide="message-circle" class="size-4 text-emerald-600"></i> Este número tiene WhatsApp</label>
+            <label class="inline-flex items-center gap-2 text-sm text-gray-600 mt-2"><input type="checkbox" name="telefono_whatsapp" value="1" @checked($val('telefono_whatsapp'))> <x-icono name="message-circle" class="size-4 text-emerald-600" /> Este número tiene WhatsApp</label>
         </div>
         <div>
             <label class="{{ $lb }}">Celular secundario (opcional)</label>
             <div class="grid grid-cols-1 sm:grid-cols-[1fr_7rem] gap-2">
                 <div class="jz-campo sin-label">
-                    <i data-lucide="phone" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+                    <x-icono name="phone" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
                     <input type="tel" name="telefono_secundario" inputmode="tel" placeholder="Opcional" value="{{ $val('telefono_secundario') }}" class="{{ $in }}">
                 </div>
                 <select name="telefono_secundario_red" class="jz-redes w-full border border-gray-300 rounded-lg px-2 py-2.5 text-sm" data-vacio="1" data-actual="{{ $val('telefono_secundario_red') }}">
@@ -136,30 +136,30 @@
         </div>
         <div class="jz-campo">
             <label class="{{ $lb }}">Correo electrónico</label>
-            <i data-lucide="mail" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="mail" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <input type="email" name="correo" inputmode="email" placeholder="Ej: maria.perez@gmail.com" value="{{ $val('correo') }}" class="{{ $in }}">
         </div>
         <div class="jz-campo">
             <label class="{{ $lb }}">Dirección donde vive</label>
-            <i data-lucide="map-pin" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="map-pin" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <input type="text" name="direccion" placeholder="Ej: Del parque central, 200 m norte" value="{{ $val('direccion') }}" class="{{ $in }}">
         </div>
     </div>
-    <h4 class="text-xs font-bold uppercase text-gray-500 mt-5 mb-2 flex items-center gap-2"><i data-lucide="link" class="size-3.5"></i> Perfiles en internet <span class="font-normal normal-case">(opcional, salen con su ícono en el CV)</span></h4>
+    <h4 class="text-xs font-bold uppercase text-gray-500 mt-5 mb-2 flex items-center gap-2"><x-icono name="link" class="size-3.5" /> Perfiles en internet <span class="font-normal normal-case">(opcional, salen con su ícono en el CV)</span></h4>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="jz-campo">
             <label class="{{ $lb }}">LinkedIn</label>
-            <i data-lucide="linkedin" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="linkedin" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <input type="text" name="linkedin" autocapitalize="off" placeholder="Su usuario o el enlace" value="{{ $val('linkedin') }}" class="{{ $in }}">
         </div>
         <div class="jz-campo">
             <label class="{{ $lb }}">Sitio web o portafolio</label>
-            <i data-lucide="globe" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="globe" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <input type="text" name="sitio_web" autocapitalize="off" inputmode="url" placeholder="Ej: miportafolio.com" value="{{ $val('sitio_web') }}" class="{{ $in }}">
         </div>
         <div class="jz-campo">
             <label class="{{ $lb }}">GitHub (programadores)</label>
-            <i data-lucide="github" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="github" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <input type="text" name="github" autocapitalize="off" placeholder="Su usuario" value="{{ $val('github') }}" class="{{ $in }}">
         </div>
     </div>
@@ -167,16 +167,16 @@
 
 {{-- ── Trabajo y seguro social ── --}}
 <section class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Trabajo" id="sec-trabajo">
-    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><i data-lucide="briefcase" class="size-4 text-oro-500"></i> Trabajo y seguro social</h3>
+    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><x-icono name="briefcase" class="size-4 text-oro-500" /> Trabajo y seguro social</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="jz-campo">
             <label class="{{ $lb }}">Profesión u oficio</label>
-            <i data-lucide="briefcase" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="briefcase" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <input type="text" name="profesion" placeholder="Ej: Técnico en contabilidad" value="{{ $val('profesion') }}" class="{{ $in }}">
         </div>
         <div class="jz-campo {{ $P['seguro_largo'] ? '' : 'hidden' }}" id="campoSeguro">
             <label class="{{ $lb }}" data-etq="seguro_largo">{{ $P['seguro_largo'] }}</label>
-            <i data-lucide="badge-check" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <x-icono name="badge-check" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <input type="text" name="inss_nss" placeholder="Opcional" value="{{ $val('inss_nss') }}" class="{{ $in }}">
         </div>
     </div>
@@ -184,12 +184,12 @@
 
 {{-- ── Familia ── --}}
 <section class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Familia" id="sec-familia">
-    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><i data-lucide="users" class="size-4 text-oro-500"></i> Familia</h3>
+    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><x-icono name="users" class="size-4 text-oro-500" /> Familia</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach(['nombre_padre' => 'Nombre del padre', 'nombre_madre' => 'Nombre de la madre'] as $campo => $t)
             <div class="jz-campo">
                 <label class="{{ $lb }}">{{ $t }}</label>
-                <i data-lucide="user" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+                <x-icono name="user" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
                 <input type="text" name="{{ $campo }}" placeholder="Opcional" value="{{ $val($campo) }}" class="{{ $in }}">
             </div>
         @endforeach
@@ -200,7 +200,7 @@
 <section class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Notas" id="sec-notas">
     <div class="jz-campo">
         <label class="{{ $lb }}">Notas internas (no salen en el CV)</label>
-        <i data-lucide="sticky-note" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+        <x-icono name="sticky-note" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
         <input type="text" name="notas" placeholder="Cualquier detalle adicional" value="{{ $val('notas') }}" class="{{ $in }}">
     </div>
 </section>

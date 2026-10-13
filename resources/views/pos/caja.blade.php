@@ -4,8 +4,8 @@
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <p class="text-sm text-gray-500">Abierta por <b class="text-azul-950">{{ $caja->usuario?->name }}</b> {{ $caja->abierta_en->locale('es')->isoFormat('dddd D [a las] h:mm a') }} con {{ $cfg->dinero($caja->monto_inicial) }}.</p>
         <div class="flex gap-2">
-            <a href="{{ route('pos.vender') }}" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="scan-barcode" class="size-4"></i> Seguir vendiendo</a>
-            <a href="{{ route('pos.cajas') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="history" class="size-4"></i> Cierres anteriores</a>
+            <a href="{{ route('pos.vender') }}" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="scan-barcode" class="size-4" /> Seguir vendiendo</a>
+            <a href="{{ route('pos.cajas') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="history" class="size-4" /> Cierres anteriores</a>
         </div>
     </div>
 
@@ -42,7 +42,7 @@
         </section>
 
         <section class="{{ $card }} p-4 sm:p-5">
-            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><i data-lucide="lock" class="size-[18px] text-oro-500"></i> Cerrar caja</h2>
+            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><x-icono name="lock" class="size-[18px] text-oro-500" /> Cerrar caja</h2>
             <p class="text-xs text-gray-500 mb-3">Cuente los billetes y monedas. El sistema compara con lo que debería haber.</p>
             <form method="POST" action="{{ route('pos.caja.cerrar') }}" id="fCierre" onsubmit="return jzCerrar(event)" @if(!auth()->user()->tienePermiso('pos.caja.cerrar')) hidden style="display:none" @endif>
                 @csrf
@@ -56,7 +56,7 @@
                     <input type="number" name="efectivo_contado" id="contado" min="0" step="any" required class="{{ $in }} text-xl font-bold text-right tabular-nums"></div>
                 <div id="dif" class="mt-2 rounded-xl p-3 text-sm font-semibold hidden"></div>
                 <input type="text" name="notas_cierre" maxlength="300" placeholder="Nota (opcional)" class="{{ $in }} mt-2">
-                <button class="mt-3 w-full inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white font-semibold py-3 rounded-xl"><i data-lucide="lock" class="size-4"></i> Cerrar caja</button>
+                <button class="mt-3 w-full inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white font-semibold py-3 rounded-xl"><x-icono name="lock" class="size-4" /> Cerrar caja</button>
             </form>
         </section>
 
@@ -86,7 +86,7 @@
             if (contado.value === '') { dif.classList.add('hidden'); return; }
             const d = Math.round(((+contado.value) - esperado) * 100) / 100; dif.classList.remove('hidden');
             dif.className = 'mt-2 rounded-xl p-3 text-sm font-semibold ' + (Math.abs(d) < 0.005 ? 'bg-emerald-50 text-emerald-700' : (d > 0 ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-700'));
-            dif.textContent = Math.abs(d) < 0.005 ? '✓ Cuadra exacto con lo esperado.' : (d > 0 ? 'Sobran ' + din(d) : 'Faltan ' + din(-d)) + ' (esperado ' + din(esperado) + ')';
+            dif.textContent = Math.abs(d) < 0.005 ? 'Cuadra exacto con lo esperado.' : (d > 0 ? 'Sobran ' + din(d) : 'Faltan ' + din(-d)) + ' (esperado ' + din(esperado) + ')';
         }
         document.querySelectorAll('.jz-conteo').forEach(i => i.addEventListener('input', sumar)); contado.addEventListener('input', ver);
         window.jzCerrar = function (e) { e.preventDefault(); Swal.fire({ title: '¿Cerrar la caja?', text: 'Después de cerrar ya no se puede vender hasta abrir otro turno.', icon: 'question', showCancelButton: true, confirmButtonText: 'Sí, cerrar', cancelButtonText: 'No', confirmButtonColor: '#0B3C74' }).then(r => { if (r.isConfirmed) e.target.submit(); }); return false; };

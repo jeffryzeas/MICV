@@ -10,11 +10,11 @@
     @csrf @method('PUT')
 
     <div class="mb-5 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm flex items-center gap-2">
-        <i data-lucide="palette" class="size-4"></i> El nombre, el logo, los colores y el contacto del sistema ahora están en <a href="{{ route('admin.marca.edit') }}" class="font-semibold underline">Marca del sistema</a>.
+        <x-icono name="palette" class="size-4" /> El nombre, el logo, los colores y el contacto del sistema ahora están en <a href="{{ route('admin.marca.edit') }}" class="font-semibold underline">Marca del sistema</a>.
     </div>
 
     <div class="bg-white rounded-xl shadow p-6 mb-5">
-        <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><i data-lucide="file-text" class="size-[18px] text-oro-500"></i> CV — opciones generales</h2>
+        <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><x-icono name="file-text" class="size-[18px] text-oro-500" /> CV — opciones generales</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div><label class="{{ $lb }}">Diseño por defecto</label>
                 <select name="cv[diseno_defecto]" class="{{ $in }}">
@@ -34,7 +34,7 @@
     </div>
 
     <div class="bg-white rounded-xl shadow p-6 mb-5">
-        <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><i data-lucide="ruler" class="size-[18px] text-oro-500"></i> Medidas del CV Clásico</h2>
+        <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><x-icono name="ruler" class="size-[18px] text-oro-500" /> Medidas del CV Clásico</h2>
         <p class="text-xs text-gray-500 mb-4">Todas las medidas en puntos (pt). 72 pt = 1 pulgada.</p>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div><label class="{{ $lb }}">Título "Currículum Vítae"</label>{!! $num('fuente_titulo_tam', 20, 80, .5) !!}</div>
@@ -77,12 +77,12 @@
     </div>
 
     <button type="submit" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
-        <i data-lucide="check" class="size-4"></i> Guardar configuración
+        <x-icono name="check" class="size-4" /> Guardar configuración
     </button>
 </form>
 <form method="POST" action="{{ route('admin.configuracion.restablecer') }}" class="mt-4" onsubmit="return confRest(event)">
     @csrf
-    <button class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="rotate-ccw" class="size-4"></i> Restablecer medidas del CV</button>
+    <button class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="rotate-ccw" class="size-4" /> Restablecer medidas del CV</button>
 </form>
 @push('scripts')
 <script>function confRest(e){e.preventDefault();Swal.fire({title:'¿Restablecer medidas?',text:'Vuelven los valores de fábrica.',icon:'warning',showCancelButton:true,confirmButtonColor:'#0B3C74',confirmButtonText:'Sí',cancelButtonText:'Cancelar'}).then(r=>{if(r.isConfirmed)e.target.submit();});return false;}</script>

@@ -6,17 +6,17 @@
         <div>
             <label for="regPais" class="block text-xs font-semibold uppercase text-gray-500 mb-1">¿De qué país es su documento?</label>
             <div class="relative">
-                <span id="regBandera" class="absolute left-3 top-1/2 -translate-y-1/2 text-xl leading-none pointer-events-none">{{ \App\Support\Pais::de(old('pais', 'NI'))['bandera'] }}</span>
+                <span id="regBandera" class="absolute left-3 top-1/2 -translate-y-1/2 text-xl leading-none pointer-events-none"><x-icono name="globe" class="size-5"/></span>
                 <select name="pais" id="regPais" required class="w-full appearance-none border border-gray-300 rounded-lg pl-11 pr-9 py-2.5 bg-white font-semibold text-gray-800 focus:outline-none focus:border-[#0B3C74]">
                     @foreach(\App\Support\Pais::porRegion() as $region => $lista)
                         <optgroup label="{{ $region }}">
-                            @foreach($lista as $cod => $p)<option value="{{ $cod }}" data-bandera="{{ $p['bandera'] }}" @selected(old('pais', 'NI') === $cod)>{{ $p['nombre'] }}</option>@endforeach
+                            @foreach($lista as $cod => $p)<option value="{{ $cod }}" @selected(old('pais', 'NI') === $cod)>{{ $p['nombre'] }}</option>@endforeach
                         </optgroup>
                     @endforeach
                 </select>
-                <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none"></i>
+                <x-icono name="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
             </div>
-            <script>document.getElementById('regPais').addEventListener('change', function () { document.getElementById('regBandera').textContent = this.selectedOptions[0].dataset.bandera; });</script>
+            
             <p class="text-[11px] text-gray-400 mt-1">Con esto adaptamos sus documentos, el seguro social, el código de teléfono y el CV. Si su país no está, elija "Otro país".</p>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -27,7 +27,7 @@
         </div>
         <div class="relative">
             <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Correo electrónico</label>
-            <i data-lucide="mail" class="absolute left-3 top-[30px] size-4 text-gray-400"></i>
+            <x-icono name="mail" class="absolute left-3 top-[30px] size-4 text-gray-400" />
             <input type="email" name="email" value="{{ old('email') }}" required autocomplete="email" inputmode="email" placeholder="Ej: maria.lopez@gmail.com" class="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2.5">
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -63,7 +63,7 @@
     function comparar() {
         if (!p2.value) { igual.textContent = ''; p2.setCustomValidity(''); return; }
         const ok = p1.value === p2.value;
-        igual.textContent = ok ? '✓ Coinciden' : 'No coinciden'; igual.style.color = ok ? '#16a34a' : '#dc2626';
+        igual.textContent = ok ? 'Coinciden' : 'No coinciden'; igual.style.color = ok ? '#16a34a' : '#dc2626';
         p2.setCustomValidity(ok ? '' : 'Las contraseñas no coinciden.');
     }
     p1.addEventListener('input', fuerza); p2.addEventListener('input', comparar);

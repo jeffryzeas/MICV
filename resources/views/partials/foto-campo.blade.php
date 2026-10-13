@@ -13,7 +13,7 @@
                 <img src="{{ route('clientes.foto', $cliente) }}" class="w-full h-full object-cover" alt="Foto actual" data-foto-lista>
             @else
                 <div class="text-center text-gray-400" data-foto-vacia>
-                    <i data-lucide="user-round" class="size-10 mx-auto"></i>
+                    <x-icono name="user-round" class="size-10 mx-auto" />
                     <span class="block text-[10px] font-semibold uppercase mt-0.5">Sin foto</span>
                 </div>
             @endif
@@ -23,7 +23,7 @@
         <p class="text-xs font-semibold uppercase text-azul-800 mb-1.5">Foto tipo carné (opcional)</p>
         <div class="flex flex-wrap items-center gap-2">
             <label class="inline-flex items-center gap-2 cursor-pointer bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-                <i data-lucide="image-plus" class="size-4"></i> <span>{{ $tiene ? 'Cambiar foto' : 'Elegir foto' }}</span>
+                <x-icono name="image-plus" class="size-4" /> <span>{{ $tiene ? 'Cambiar foto' : 'Elegir foto' }}</span>
                 <input type="file" name="foto" accept="image/*" class="sr-only" data-recortar>
             </label>
             @if($tiene)

@@ -1,7 +1,7 @@
 @php $editando = $usuario->exists; $rolSel = old('rol', $usuario->rol); @endphp
 <x-layout :titulo="$editando ? 'Editar usuario ' . $usuario->usuario : 'Crear usuario'" activo="usuarios">
     <a href="{{ route('admin.usuarios.index') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors mb-5">
-        <i data-lucide="arrow-left" class="size-4"></i> Volver
+        <x-icono name="arrow-left" class="size-4" /> Volver
     </a>
     <div class="bg-white rounded-xl shadow p-6 max-w-3xl">
         <form method="POST" action="{{ $editando ? route('admin.usuarios.update', $usuario) : route('admin.usuarios.store') }}">
@@ -75,7 +75,7 @@
                 </div>
             </div>
             <button type="submit" class="mt-6 inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
-                <i data-lucide="check" class="size-4"></i> {{ $editando ? 'Guardar cambios' : 'Crear usuario' }}
+                <x-icono name="check" class="size-4" /> {{ $editando ? 'Guardar cambios' : 'Crear usuario' }}
             </button>
         </form>
     </div>

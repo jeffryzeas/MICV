@@ -15,7 +15,7 @@
         <div class="relative flex flex-col lg:flex-row lg:items-end gap-5 justify-between">
             <div>
                 <p class="text-white/70 text-sm">{{ ucfirst(now()->locale('es')->isoFormat('dddd D [de] MMMM')) }}</p>
-                <h2 class="text-2xl sm:text-3xl font-bold mt-1">{{ $saludo }}, {{ \Illuminate\Support\Str::title(mb_strtolower($nombreCorto)) }} 👋</h2>
+                <h2 class="text-2xl sm:text-3xl font-bold mt-1">{{ $saludo }}, {{ \Illuminate\Support\Str::title(mb_strtolower($nombreCorto)) }}</h2>
                 <p class="text-white/80 mt-1 text-sm sm:text-base">
                     @if($yo->esAdmin()) Así va toda la plataforma este mes.
                     @elseif($yo->cyber) <b class="text-amber-200">{{ $yo->cyber->nombre }}</b> · ¿A quién atendemos hoy?
@@ -25,7 +25,7 @@
             <form action="{{ route('clientes.index') }}" method="GET" class="w-full lg:w-[420px]">
                 <label for="buscaRapida" class="sr-only">Buscar cliente</label>
                 <div class="flex items-center bg-white rounded-xl p-1.5 shadow-md">
-                    <i data-lucide="search" class="size-5 text-gray-400 ml-2.5 shrink-0"></i>
+                    <x-icono name="search" class="size-5 text-gray-400 ml-2.5 shrink-0" />
                     <input id="buscaRapida" name="q" type="search" placeholder="Buscar por nombre o documento…" class="flex-1 min-w-0 bg-transparent border-0 focus:ring-0 text-gray-800 text-sm px-2.5 py-2">
                     <button class="bg-oro-500 hover:bg-oro-700 text-white text-sm font-semibold px-4 py-2 rounded-lg">Buscar</button>
                 </div>
@@ -45,7 +45,7 @@
             <a href="{{ $url }}" class="group {{ $card }} p-4 flex items-center gap-3 hover:-translate-y-0.5 hover:shadow-md transition">
                 <span class="size-11 shrink-0 rounded-xl bg-gradient-to-br {{ $grad }} text-white flex items-center justify-center shadow-sm"><i data-lucide="{{ $ic }}" class="size-5"></i></span>
                 <span class="min-w-0"><span class="block font-semibold text-azul-950 text-sm leading-tight">{{ $tx }}</span><span class="block text-xs text-gray-500 truncate">{{ $sub }}</span></span>
-                <i data-lucide="chevron-right" class="size-4 text-gray-300 ml-auto group-hover:text-azul-800 hidden sm:block"></i>
+                <x-icono name="chevron-right" class="size-4 text-gray-300 ml-auto group-hover:text-azul-800 hidden sm:block" />
             </a>
         @endforeach
     </section>
@@ -73,7 +73,7 @@
         {{-- Últimos clientes --}}
         <section class="{{ $card }} p-4 sm:p-5 xl:col-span-2">
             <div class="flex items-center justify-between mb-3">
-                <h2 class="font-semibold text-azul-950 flex items-center gap-2"><i data-lucide="users" class="size-[18px] text-oro-500"></i> Últimos clientes</h2>
+                <h2 class="font-semibold text-azul-950 flex items-center gap-2"><x-icono name="users" class="size-[18px] text-oro-500" /> Últimos clientes</h2>
                 <a href="{{ route('clientes.index') }}" class="text-xs font-semibold text-azul-800 hover:text-oro-700">Ver todos →</a>
             </div>
             <ul class="divide-y divide-gray-100">
@@ -93,14 +93,14 @@
                         <div class="mt-1.5 flex items-center gap-2 max-w-[220px]"><span class="h-1.5 flex-1 rounded-full bg-gray-100 overflow-hidden"><span class="block h-full rounded-full {{ $pc >= 80 ? 'bg-emerald-500' : ($pc >= 50 ? 'bg-oro-500' : 'bg-red-400') }}" style="width: {{ $pc }}%"></span></span><span class="text-[11px] text-gray-500 tabular-nums">{{ $pc }}%</span></div>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
-                        <a href="{{ route('cv.pdf', $c) }}" title="Descargar CV" class="size-9 rounded-lg hover:bg-gray-100 text-azul-800 flex items-center justify-center"><i data-lucide="file-down" class="size-[18px]"></i></a>
-                        <a href="{{ route('tarjetas.editar', $c) }}" title="Tarjeta de presentación" class="size-9 rounded-lg hover:bg-gray-100 flex items-center justify-center {{ in_array($c->id, $conTarjeta) ? 'text-oro-700' : 'text-azul-800' }}"><i data-lucide="contact" class="size-[18px]"></i></a>
-                        <a href="{{ route('clientes.edit', $c) }}" title="Editar ficha" class="hidden sm:flex size-9 rounded-lg hover:bg-gray-100 text-azul-800 items-center justify-center"><i data-lucide="pencil" class="size-[18px]"></i></a>
+                        <a href="{{ route('cv.pdf', $c) }}" title="Descargar CV" class="size-9 rounded-lg hover:bg-gray-100 text-azul-800 flex items-center justify-center"><x-icono name="file-down" class="size-[18px]" /></a>
+                        <a href="{{ route('tarjetas.editar', $c) }}" title="Tarjeta de presentación" class="size-9 rounded-lg hover:bg-gray-100 flex items-center justify-center {{ in_array($c->id, $conTarjeta) ? 'text-oro-700' : 'text-azul-800' }}"><x-icono name="contact" class="size-[18px]" /></a>
+                        <a href="{{ route('clientes.edit', $c) }}" title="Editar ficha" class="hidden sm:flex size-9 rounded-lg hover:bg-gray-100 text-azul-800 items-center justify-center"><x-icono name="pencil" class="size-[18px]" /></a>
                     </div>
                 </li>
             @empty
                 <li class="py-10 text-center">
-                    <i data-lucide="user-plus" class="size-10 text-gray-300 mx-auto"></i>
+                    <x-icono name="user-plus" class="size-10 text-gray-300 mx-auto" />
                     <p class="text-gray-500 mt-2">Todavía no hay clientes.</p>
                     <a href="{{ route('clientes.create') }}" class="inline-block mt-3 bg-azul-800 text-white text-sm font-semibold px-4 py-2 rounded-lg">Registrar el primero</a>
                 </li>
@@ -111,7 +111,7 @@
         <div class="space-y-5">
             {{-- Gráfica de 6 meses --}}
             <section class="{{ $card }} p-4 sm:p-5">
-                <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><i data-lucide="chart-column" class="size-[18px] text-oro-500"></i> Últimos 6 meses</h2>
+                <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><x-icono name="chart-column" class="size-[18px] text-oro-500" /> Últimos 6 meses</h2>
                 <div class="flex gap-4 text-[11px] text-gray-500 mb-3"><span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-azul-800"></span>Clientes nuevos</span><span class="flex items-center gap-1.5"><span class="size-2.5 rounded-sm bg-oro-500"></span>CV descargados</span></div>
                 <div class="flex items-end gap-2 h-36" role="img" aria-label="Clientes nuevos y CV descargados por mes">
                     @foreach($meses as $i => $m)
@@ -128,9 +128,9 @@
 
             {{-- Cumpleaños --}}
             <section class="{{ $card }} p-4 sm:p-5">
-                <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-2"><i data-lucide="cake" class="size-[18px] text-pink-500"></i> Cumplen años hoy</h2>
+                <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-2"><x-icono name="cake" class="size-[18px] text-pink-500" /> Cumplen años hoy</h2>
                 @forelse($cumpleaneros as $c)
-                    <a href="{{ route('clientes.show', $c) }}" class="flex items-center justify-between py-1.5 text-sm hover:text-azul-800"><span class="truncate">{{ $c->nombreCompleto() }}</span><span class="text-xs text-pink-600 font-semibold shrink-0 ml-2">🎂 {{ $c->edad() }}</span></a>
+                    <a href="{{ route('clientes.show', $c) }}" class="flex items-center justify-between py-1.5 text-sm hover:text-azul-800"><span class="truncate">{{ $c->nombreCompleto() }}</span><span class="text-xs text-pink-600 font-semibold shrink-0 ml-2"><x-icono name="cake" class="size-4"/> {{ $c->edad() }}</span></a>
                 @empty
                     <p class="text-sm text-gray-400">Nadie hoy.</p>
                 @endforelse
@@ -138,14 +138,14 @@
 
             {{-- Fichas por completar --}}
             <section class="{{ $card }} p-4 sm:p-5">
-                <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-2"><i data-lucide="list-todo" class="size-[18px] text-red-400"></i> Fichas por completar</h2>
+                <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-2"><x-icono name="list-todo" class="size-[18px] text-red-400" /> Fichas por completar</h2>
                 @forelse($porCompletar as $c)
                     <a href="{{ route('clientes.edit', $c) }}" class="flex items-center gap-2 py-1.5 text-sm hover:text-azul-800">
                         <span class="truncate flex-1">{{ $c->nombreCompleto() }}</span>
                         <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600 tabular-nums">{{ $c->porcentajeCompleto() }}%</span>
                     </a>
                 @empty
-                    <p class="text-sm text-gray-400 flex items-center gap-1.5"><i data-lucide="party-popper" class="size-4 text-emerald-500"></i> Todas las fichas recientes están completas.</p>
+                    <p class="text-sm text-gray-400 flex items-center gap-1.5"><x-icono name="party-popper" class="size-4 text-emerald-500" /> Todas las fichas recientes están completas.</p>
                 @endforelse
             </section>
         </div>
@@ -153,7 +153,7 @@
 
     @if($yo->esAdmin())
     <section class="{{ $card }} p-4 sm:p-5 mt-5">
-        <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-4"><i data-lucide="building-2" class="size-[18px] text-oro-500"></i> Cybers</h2>
+        <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-4"><x-icono name="building-2" class="size-[18px] text-oro-500" /> Cybers</h2>
         @if($cybers->isEmpty())
             <p class="text-sm text-gray-500">Aún no hay Cybers. <a href="{{ route('admin.cybers.create') }}" class="font-semibold text-azul-800 underline">Registre el primero</a> y luego créele sus usuarios.</p>
         @else

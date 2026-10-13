@@ -2,7 +2,7 @@
 <x-layout titulo="Lista privada" activo="bloqueos">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="bg-white rounded-xl shadow p-5 sm:p-6">
-            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><i data-lucide="shield-ban" class="size-[18px] text-red-500"></i> Bloquear un documento</h2>
+            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><x-icono name="shield-ban" class="size-[18px] text-red-500" /> Bloquear un documento</h2>
             <p class="text-xs text-gray-500 mb-4">Ningún Cyber podrá registrar, consultar ni ver a la persona con ese número. Un usuario registrado tampoco podrá poner ese documento en su ficha. Solo usted (admin) la sigue viendo.</p>
             <form method="POST" action="{{ route('admin.bloqueos.store') }}" class="space-y-4">
                 @csrf
@@ -11,13 +11,13 @@
                 <div><label class="{{ $lb }}">Motivo (solo lo ve el admin)</label>
                     <input type="text" name="motivo" value="{{ old('motivo') }}" maxlength="255" placeholder="Ej: lo pidió la persona / orden judicial" class="{{ $in }}"></div>
                 <label class="flex items-start gap-2 text-sm text-gray-600"><input type="checkbox" name="desactivar_cuenta" value="1" class="mt-1"> También desactivar la cuenta de usuario que tenga ese documento (no podrá entrar).</label>
-                <button class="w-full inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"><i data-lucide="lock" class="size-4"></i> Agregar a la lista privada</button>
+                <button class="w-full inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"><x-icono name="lock" class="size-4" /> Agregar a la lista privada</button>
             </form>
         </div>
         <div class="lg:col-span-2 bg-white rounded-xl shadow p-5 sm:p-6">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <h2 class="font-semibold text-azul-950">Documentos bloqueados <span class="text-gray-400 font-normal">({{ $lista->total() }})</span></h2>
-                <form class="flex gap-2"><input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar número" class="border border-gray-300 rounded-lg px-3 py-2 text-sm"><button class="bg-gray-100 hover:bg-gray-200 rounded-lg px-3 text-sm"><i data-lucide="search" class="size-4"></i></button></form>
+                <form class="flex gap-2"><input type="search" name="q" value="{{ request('q') }}" placeholder="Buscar número" class="border border-gray-300 rounded-lg px-3 py-2 text-sm"><button class="bg-gray-100 hover:bg-gray-200 rounded-lg px-3 text-sm"><x-icono name="search" class="size-4" /></button></form>
             </div>
             <div class="divide-y">
                 @forelse($lista as $b)
@@ -28,7 +28,7 @@
                         </div>
                         <form method="POST" action="{{ route('admin.bloqueos.destroy', $b) }}" class="jz-confirmar" data-msg="El documento {{ $b->numero }} volverá a estar disponible para los Cybers.">
                             @csrf @method('DELETE')
-                            <button class="inline-flex items-center gap-1.5 text-sm border border-gray-300 hover:border-red-400 hover:text-red-600 rounded-lg px-3 py-1.5"><i data-lucide="unlock" class="size-4"></i> Quitar</button>
+                            <button class="inline-flex items-center gap-1.5 text-sm border border-gray-300 hover:border-red-400 hover:text-red-600 rounded-lg px-3 py-1.5"><x-icono name="unlock" class="size-4" /> Quitar</button>
                         </form>
                     </div>
                 @empty

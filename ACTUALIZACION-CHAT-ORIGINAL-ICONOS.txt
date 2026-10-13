@@ -1,0 +1,78 @@
+MI CV · Corrección de editor, iconos y diseño SMSJZ
+
+INSTALACIÓN
+Respalde la base de datos y el proyecto. Copie el contenido de mi-cv/ sobre
+/var/www/micv, conservando .env, APP_KEY, storage y sus archivos de clientes.
+No vuelva a generar APP_KEY. Ejecute:
+
+cd /var/www/micv
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan optimize:clear
+
+Es importante instalar Composer: esta versión incorpora Blade Lucide Icons
+(mallardduck/blade-lucide-icons y blade-ui-kit/blade-icons). Incluye composer.lock.
+La migración nueva añade foto e información de perfil a los usuarios existentes;
+no reemplaza sus cuentas ni sus conversaciones. Conserve Node/Sharp instalado
+con la versión anterior. No cambia la configuración del antivirus ni reCAPTCHA.
+Recargue la página con Ctrl+F5 después de copiar los archivos.
+
+EDITOR DE DOCUMENTOS
+- Botón real y destacado «Subir fotos del documento», con icono SVG.
+- Segundo botón «Elegir fotos» en la zona de carga; ambos abren el selector nativo.
+- Zona para arrastrar una o dos fotos y contador visible de fotos cargadas.
+- Botones accesibles desde teclado, bloqueo visual durante procesamiento.
+- Conserva cm, vista en vivo, perspectiva con cuatro puntos, filtros, giro,
+  deshacer/rehacer, dos caras y exportación JPG/PNG/PDF.
+
+ICONOS DEL SISTEMA
+- Componentes Blade Lucide, renderizados por Laravel como SVG.
+- Se reemplazaron las decoraciones con emojis, banderas Unicode y símbolos
+  decorativos de la interfaz, incluidos dashboard, avisos, POS y errores.
+- Los selectores de país muestran el nombre del país; los controles usan SVG.
+- No se impide que una persona escriba caracteres Unicode en su propio texto.
+- Los correos usan textos descriptivos en lugar de emojis.
+
+CHAT SMSJZ
+- Se reutilizó la hoja de estilos del proyecto SMSJZ proporcionado, recuperando
+  su estructura: lista lateral, cabecera, buscador, conversaciones, burbujas,
+  compositor inferior, panel de perfil y panel derecho de información.
+- Pantalla propia de chat: no queda comprimida dentro del dashboard de Mi CV.
+- El color de marca sale del Cyber o de la configuración general del sistema.
+  Soporta tema claro/oscuro y respeta la preferencia de Mi CV.
+- Toque su avatar para abrir Perfil. Puede subir/quitar foto y editar Info.; el
+  personal puede actualizar su nombre. El nombre de un cliente se sigue cambiando
+  desde Mis datos para conservar la coherencia con su CV.
+- Toque la cabecera de la conversación o Información para ver el perfil del
+  contacto y todos sus archivos compartidos, con paginación.
+- Fotos privadas, reducidas y convertidas a JPEG con Sharp, sin depender de GD.
+- Contactos con avatar, verificación, último mensaje, hora y contador sin leer.
+- Nuevo chat, filtro No leídos, búsqueda de texto en los mensajes cargados,
+  adjuntar foto/documento, cámara del celular, visor y descarga.
+- Las miniaturas tienen tamaño fijo; abrir la imagen no altera las burbujas.
+- Menú con perfil, seguridad, llaves de acceso, tema, avisos del administrador,
+  volver a Mi CV y cerrar sesión.
+- Las cuentas, permisos, invitaciones, notificaciones y archivos del chat anterior
+  se conservan. Se mantienen las comprobaciones de pertenencia a cada conversación
+  y la separación por Cyber también para perfiles, fotos y archivos compartidos.
+
+ALCANCE
+Esta corrección recupera el diseño y los perfiles de SMSJZ sobre el backend privado
+que ya se integró a Mi CV. No incorpora llamadas, grupos, notas de voz o cifrado
+extremo a extremo del proyecto independiente. No se muestran botones falsos para
+esas funciones. Los textos siguen cifrados en la base de datos con APP_KEY; los
+adjuntos siguen requiriendo el antivirus configurado. Es mensajería interna.
+
+VERIFICACIÓN
+- Pruebas de Laravel con SQLite: permisos, aislamiento entre Cybers, perfiles,
+  fotos privadas, edición sin cambiar rol/Cyber, archivos paginados y módulos previos.
+- Navegador sobre Laravel real: abrir el selector desde el botón del editor,
+  cargar dos caras, vista móvil 390 px, subir foto de perfil, editar Info., abrir
+  perfil de contacto, enviar mensajes y alternar tema.
+- Pantallas principales recorridas en navegador sin errores de JavaScript:
+  inicio, clientes, alta de cliente, cartas, fotos, QR, POS, productos, reportes,
+  tarjetas y perfil.
+- Exportación del editor y medidas físicas del PDF verificadas nuevamente.
+
+La actualización está preparada en este ZIP. No se ha instalado automáticamente
+en su VPS: copie los archivos y ejecute los comandos anteriores.

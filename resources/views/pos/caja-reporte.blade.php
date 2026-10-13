@@ -2,9 +2,9 @@
 <x-layout titulo="Reporte de caja" activo="pos-caja">
     @include('pos._barra')
     <div class="flex flex-wrap gap-2 mb-4 print:hidden">
-        <button onclick="window.print()" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="printer" class="size-4"></i> Imprimir</button>
-        <a href="{{ route('pos.cajas') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="history" class="size-4"></i> Todos los cierres</a>
-        @if($caja->estado === 'cerrada')<a href="{{ route('pos.vender') }}" class="inline-flex items-center gap-2 bg-emerald-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="lock-open" class="size-4"></i> Abrir otro turno</a>@endif
+        <button onclick="window.print()" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="printer" class="size-4" /> Imprimir</button>
+        <a href="{{ route('pos.cajas') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="history" class="size-4" /> Todos los cierres</a>
+        @if($caja->estado === 'cerrada')<a href="{{ route('pos.vender') }}" class="inline-flex items-center gap-2 bg-emerald-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="lock-open" class="size-4" /> Abrir otro turno</a>@endif
     </div>
     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5 p-5 sm:p-6 max-w-xl mx-auto print:shadow-none print:ring-0 print:max-w-none">
         <div class="text-center">

@@ -71,6 +71,7 @@ class User extends Authenticatable
                 ->flatMap(fn($m) => [$m->archivo, $m->miniatura])
                 ->filter()
                 ->all();
+            if($u->chat_foto)$files[]=$u->chat_foto;
             $u->setRelation("chatArchivosAlEliminar", $files);
         });
         static::deleted(function (self $u) {

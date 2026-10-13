@@ -15,8 +15,8 @@
             <div class="mx-auto w-52 rounded-2xl ring-4 p-3 {{ $cyber->qrAbierto() ? 'ring-oro-500' : 'ring-gray-200 opacity-40' }}" id="qrPanel"></div>
             <p class="text-xs text-gray-500 mt-3 break-all" id="enlace">{{ $enlace }}</p>
             <div class="mt-3 flex flex-wrap gap-2 justify-center">
-                <button type="button" id="copiar" class="inline-flex items-center gap-1.5 text-sm font-semibold border border-gray-300 hover:border-azul-800 text-azul-800 px-3 py-2 rounded-lg"><i data-lucide="copy" class="size-4"></i> Copiar enlace</button>
-                <a href="{{ route('autoservicio.afiche', $yo->esAdmin() ? ['cyber' => $cyber->id] : []) }}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-semibold bg-azul-800 hover:bg-oro-500 text-white px-3 py-2 rounded-lg"><i data-lucide="printer" class="size-4"></i> Afiche para imprimir</a>
+                <button type="button" id="copiar" class="inline-flex items-center gap-1.5 text-sm font-semibold border border-gray-300 hover:border-azul-800 text-azul-800 px-3 py-2 rounded-lg"><x-icono name="copy" class="size-4" /> Copiar enlace</button>
+                <a href="{{ route('autoservicio.afiche', $yo->esAdmin() ? ['cyber' => $cyber->id] : []) }}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-semibold bg-azul-800 hover:bg-oro-500 text-white px-3 py-2 rounded-lg"><x-icono name="printer" class="size-4" /> Afiche para imprimir</a>
             </div>
             <div style="padding:16px;margin-top:18px;border:2px solid {{ $cyber->qrAbierto() ? '#1d9664' : '#b54a38' }};border-radius:14px;background:#f6faf8">
             <h3 id="qr-estado" style="font-weight:800;font-size:18px;color:#173e62">{{ $cyber->qrAbierto() ? '● QR ABIERTO' : '● QR CERRADO' }}</h3>
@@ -32,7 +32,7 @@
 
         <section class="{{ $card }} p-4 sm:p-5 lg:col-span-2">
             <div class="flex items-center justify-between mb-3">
-                <h2 class="font-semibold text-azul-950 flex items-center gap-2"><i data-lucide="list-ordered" class="size-[18px] text-oro-500"></i> Turnos de hoy y ayer</h2>
+                <h2 class="font-semibold text-azul-950 flex items-center gap-2"><x-icono name="list-ordered" class="size-[18px] text-oro-500" /> Turnos de hoy y ayer</h2>
                 <span class="text-[11px] text-gray-400 flex items-center gap-1.5"><span class="size-2 rounded-full bg-emerald-500 animate-pulse"></span> Se actualiza sola</span>
             </div>
             <ul id="turnos" class="divide-y divide-gray-100"><li class="py-8 text-center text-gray-400 text-sm">Cargando…</li></ul>
@@ -65,16 +65,16 @@
                 if (conocidos && [...ids].some(id => !conocidos.has(id))) sonar();
                 conocidos = ids;
                 document.title = (j.pendientes ? '(' + j.pendientes + ') ' : '') + 'Autoservicio por QR';
-                if (!j.filas.length) { ul.innerHTML = '<li class="py-10 text-center text-gray-400"><div class="text-4xl mb-2">📱</div>Todavía nadie ha enviado datos.<br><span class="text-xs">Cuando alguien escanee el QR y envíe, aparece aquí.</span></li>'; return; }
+                if (!j.filas.length) { ul.innerHTML = '<li class="py-10 text-center text-gray-400"><div class="text-4xl mb-2"><x-icono name="smartphone" class="size-10"/></div>Todavía nadie ha enviado datos.<br><span class="text-xs">Cuando alguien escanee el QR y envíe, aparece aquí.</span></li>'; return; }
                 ul.innerHTML = j.filas.map(f => `
                     <li class="py-3 flex items-center gap-3 ${f.estado !== 'pendiente' ? 'opacity-50' : ''}">
                         <span class="size-12 shrink-0 rounded-xl ${f.estado === 'pendiente' ? 'bg-azul-800 text-white' : 'bg-gray-100 text-gray-500'} font-black text-xl flex items-center justify-center tabular-nums">${f.turno}</span>
                         <div class="min-w-0 flex-1"><div class="font-semibold text-azul-950 truncate">${esc(f.nombre)}</div>
                             <div class="text-xs text-gray-500"><span class="font-mono">${esc(f.documento)}</span> · ${esc(f.hace)}${f.cyber && ES_ADMIN ? ' · ' + esc(f.cyber) : ''}</div></div>
                         ${f.estado === 'pendiente'
-                            ? `<a href="${f.atender}" class="inline-flex items-center gap-1.5 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-3.5 py-2 rounded-lg"><i data-lucide="user-check" class="size-4"></i> Atender</a>
-                               <button type="button" data-descartar="${f.id}" title="Descartar" class="size-9 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center"><i data-lucide="x" class="size-4"></i></button>`
-                            : (f.ficha ? `<a href="${f.ficha}" class="text-xs font-semibold text-emerald-700">✓ Atendido · ver ficha</a>` : `<span class="text-xs text-gray-400">Descartado</span>`)}
+                            ? `<a href="${f.atender}" class="inline-flex items-center gap-1.5 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-3.5 py-2 rounded-lg"><x-icono name="user-check" class="size-4" /> Atender</a>
+                               <button type="button" data-descartar="${f.id}" title="Descartar" class="size-9 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center"><x-icono name="x" class="size-4" /></button>`
+                            : (f.ficha ? `<a href="${f.ficha}" class="text-xs font-semibold text-emerald-700">Atendido · ver ficha</a>` : `<span class="text-xs text-gray-400">Descartado</span>`)}
                     </li>`).join('');
                 lucide.createIcons();
             } catch (e) {}

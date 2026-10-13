@@ -19,21 +19,21 @@
                     <option value="DEBUG" @selected($nivel === 'DEBUG')>DEBUG</option>
                 </select>
                 <button type="submit" class="bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg">
-                    <i data-lucide="search" class="size-4"></i>
+                    <x-icono name="search" class="size-4" />
                 </button>
             </form>
 
             <form method="POST" action="{{ route('admin.errores.limpiar') }}" onsubmit="return confirmarLimpiar(event)">
                 @csrf
                 <button type="submit" class="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 text-sm font-semibold px-4 py-2.5 rounded-lg border border-red-200">
-                    <i data-lucide="trash-2" class="size-4"></i> Limpiar log
+                    <x-icono name="trash-2" class="size-4" /> Limpiar log
                 </button>
             </form>
         </div>
 
         @if(empty($entradas))
             <div class="text-center py-10 text-gray-400">
-                <i data-lucide="shield-check" class="size-10 mx-auto mb-2"></i>
+                <x-icono name="shield-check" class="size-10 mx-auto mb-2" />
                 <p>Sin errores registrados{{ $q || $nivel ? ' con ese filtro' : '' }}. Buena señal.</p>
             </div>
         @else
@@ -56,12 +56,12 @@
                         <div class="flex-1 min-w-0">
                             <div class="text-xs text-gray-500">{{ $e['fecha'] }}</div>
                             @if($e['pista'])
-                                <div class="text-sm font-semibold text-azul-800 mt-0.5">💡 {{ $e['pista'] }}</div>
+                                <div class="text-sm font-semibold text-azul-800 mt-0.5"><x-icono name="lightbulb" class="size-4"/> {{ $e['pista'] }}</div>
                             @endif
                             <div class="text-sm font-mono break-words {{ $e['pista'] ? 'text-gray-500 mt-1' : '' }}">{{ \Illuminate\Support\Str::limit($primeraLinea, 160) }}</div>
                         </div>
                         @if($resto)
-                            <i data-lucide="chevron-down" class="size-4 shrink-0 mt-1"></i>
+                            <x-icono name="chevron-down" class="size-4 shrink-0 mt-1" />
                         @endif
                     </button>
                     @if($resto)

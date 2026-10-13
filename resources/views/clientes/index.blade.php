@@ -15,7 +15,7 @@
             <div class="text-2xl font-bold text-azul-950 mt-1">{{ $totalMujeres }}</div>
         </div>
         <a href="{{ route('clientes.create') }}" class="bg-azul-800 hover:bg-oro-500 transition-colors rounded-xl shadow p-4 text-white flex items-center gap-3">
-            <i data-lucide="user-plus" class="size-6"></i><span class="font-semibold text-sm">Registrar cliente</span>
+            <x-icono name="user-plus" class="size-6" /><span class="font-semibold text-sm">Registrar cliente</span>
         </a>
     </div>
 
@@ -23,7 +23,7 @@
         <form method="GET" class="flex flex-wrap gap-3 items-end mb-5">
             <div class="flex-1 min-w-[200px] relative">
                 <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Buscar</label>
-                <i data-lucide="search" class="absolute left-3 top-[34px] size-4 text-gray-400"></i>
+                <x-icono name="search" class="absolute left-3 top-[34px] size-4 text-gray-400" />
                 <input type="search" name="q" value="{{ $q }}" placeholder="Documento, nombre, correo o teléfono" class="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2.5">
             </div>
             <div class="min-w-[150px]">
@@ -40,7 +40,7 @@
                 <select name="tipo_documento" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
                     <option value="">Todos</option>
                     @foreach(\App\Support\Pais::todos() as $pc => $pd)
-                        <optgroup label="{{ $pd['bandera'] }} {{ $pd['nombre'] }}">
+                        <optgroup label="{{ $pd['nombre'] }}">
                         @foreach($pd['documentos'] as $k => $t)
                             @if($k !== 'pasaporte' || $pc === 'OT')<option value="{{ $k }}" @selected($tipoDoc === $k)>{{ $t }}</option>@endif
                         @endforeach
@@ -60,7 +60,7 @@
             </div>
             @endif
             <button type="submit" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors">
-                <i data-lucide="search" class="size-4"></i> Buscar
+                <x-icono name="search" class="size-4" /> Buscar
             </button>
             @if($q !== '' || $sexo !== '' || $tipoDoc !== '' || $cyberId !== '')
                 <a href="{{ route('clientes.index') }}" class="text-sm text-gray-500 hover:text-azul-800 px-3 py-2.5">Limpiar</a>
@@ -85,11 +85,11 @@
                             @if($c->tieneFoto())
                                 <img src="{{ route('clientes.foto', $c) }}" class="size-8 rounded-full object-cover" alt="">
                             @else
-                                <span class="size-8 rounded-full bg-white border border-dashed border-gray-300 text-gray-400 flex items-center justify-center shrink-0" title="Sin foto"><i data-lucide="user-round" class="size-4"></i></span>
+                                <span class="size-8 rounded-full bg-white border border-dashed border-gray-300 text-gray-400 flex items-center justify-center shrink-0" title="Sin foto"><x-icono name="user-round" class="size-4" /></span>
                             @endif
                             <span>{{ $c->nombreCompleto() }}</span>
                             @if($c->user_id)<span class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700" title="Se registró en /registro para hacer su propio CV">Usuario registrado</span>@endif
-                            <span class="text-xs" title="{{ $c->datosPais()['nombre'] }}">{{ $c->datosPais()['bandera'] }}</span>
+                            <span class="text-xs" title="{{ $c->datosPais()['nombre'] }}"></span>
                             @unless($c->activo)<span class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700">Mantenimiento</span>@endunless
                         </div>
                     </td>
@@ -100,13 +100,13 @@
                     @endif
                     <td class="py-2.5 whitespace-nowrap">
                         <a href="{{ route('clientes.show', $c) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-oro-700 hover:text-oro-800">
-                            <i data-lucide="id-card" class="size-3.5"></i> Ver ficha
+                            <x-icono name="id-card" class="size-3.5" /> Ver ficha
                         </a>
                         <a href="{{ route('clientes.edit', $c) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-azul-800 hover:text-oro-700 ml-2">
-                            <i data-lucide="pencil" class="size-3.5"></i> Editar / CV
+                            <x-icono name="pencil" class="size-3.5" /> Editar / CV
                         </a>
                         <a href="{{ route('clientes.show', $c) }}#generar-cv" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-oro-700 ml-2">
-                            <i data-lucide="file-text" class="size-3.5"></i> CV (PDF)
+                            <x-icono name="file-text" class="size-3.5" /> CV (PDF)
                         </a>
                     </td>
                 </tr>

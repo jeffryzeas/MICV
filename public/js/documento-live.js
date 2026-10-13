@@ -73,20 +73,20 @@
       let html = '';
       if (data.cedula) {
         if (data.cedula.valida) {
-          html += '<strong>✓ Cédula válida</strong> · '
+          html += '<strong>Cédula válida</strong> · '
             + (data.cedula.municipio || '') + ' / ' + (data.cedula.departamento || '')
             + ' · Nac: ' + (data.cedula.fecha_nacimiento || '') + ' · Edad: ' + (data.cedula.edad ?? '—');
         } else {
-          html += '<strong>✗ Cédula inválida</strong>: ' + (data.cedula.errores || []).join(' · ');
+          html += '<strong>Error: Cédula inválida</strong>: ' + (data.cedula.errores || []).join(' · ');
         }
       }
       if (data.cr) {
         html += data.cr.valida
-          ? '<strong>✓ Número válido</strong> · ' + (data.numero_ui || '') + (data.cr.resumen ? ' · ' + data.cr.resumen : '') + (data.cr.aviso ? '<br>⚠ ' + data.cr.aviso : '')
-          : '<strong>✗ Número inválido</strong>: ' + (data.cr.errores || []).join(' · ');
+          ? '<strong>Número válido</strong> · ' + (data.numero_ui || '') + (data.cr.resumen ? ' · ' + data.cr.resumen : '') + (data.cr.aviso ? '<br>Aviso: ' + data.cr.aviso : '')
+          : '<strong>Error: Número inválido</strong>: ' + (data.cr.errores || []).join(' · ');
       }
       if (data.existe && data.cliente) {
-        html += (html ? '<br>' : '') + '<strong>⚠ Ya existe en el sistema:</strong> '
+        html += (html ? '<br>' : '') + '<strong>Aviso: Ya existe en el sistema:</strong> '
           + (data.cliente.nombre_completo || '') + (data.cliente.id ? ' (ID ' + data.cliente.id + ')' : '') + '.';
         status(live, 'warn', html);
       } else if ((data.cedula && !data.cedula.valida) || (data.cr && !data.cr.valida)) {

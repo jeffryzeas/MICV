@@ -133,6 +133,10 @@
         }, 100);
     }
     function sync() {
+        $("file-status").textContent = state.photos.length
+            ? state.photos.length +
+              " foto(s) cargada(s). Puede ajustar las esquinas."
+            : "JPG, PNG o WebP · hasta 12 MB por foto";
         const p = actual();
         updateTabs();
         paint();
@@ -147,6 +151,8 @@
         live();
     }
     function updateButtons() {
+        $("upload").disabled = state.busy;
+        $("upload-zone").disabled = state.busy;
         for (const input of $("app").querySelectorAll("input,select"))
             input.disabled = state.busy;
         $("clear").disabled = state.busy;
@@ -251,9 +257,8 @@
         p.points = corners(p);
         return p;
     }
-    $("files").addEventListener("change", () =>
-        busy(async () => {
-            const files = [...$("files").files];
+    function receive(files) {
+        return busy(async () => {
             if (files.length > 2) throw Error("Seleccione una o dos fotos.");
             const loaded = [];
             for (const f of files) loaded.push(await cargar(f));
@@ -268,12 +273,31 @@
             }
             state.active = Math.min(state.active, state.photos.length - 1);
             $("files").value = "";
+            $("file-status").textContent =
+                state.photos.length +
+                " foto(s) cargada(s). Puede ajustar las esquinas.";
             sync();
             message(
                 "Arrastre las esquinas: la vista se actualiza automáticamente.",
             );
-        }),
-    );
+        });
+    }
+    $("upload").onclick = () => $("files").click();
+    $("upload-zone").onclick = () => $("files").click();
+    $("files").addEventListener("change", () => receive([...$("files").files]));
+    for (const event of ["dragenter", "dragover"])
+        $("drop").addEventListener(event, (e) => {
+            e.preventDefault();
+            if (!state.busy) $("drop").classList.add("dragging");
+        });
+    for (const event of ["dragleave", "drop"])
+        $("drop").addEventListener(event, (e) => {
+            e.preventDefault();
+            $("drop").classList.remove("dragging");
+        });
+    $("drop").addEventListener("drop", (e) => {
+        if (!state.busy) receive([...e.dataTransfer.files]);
+    });
     function sourcePoint(e) {
         const r = canvas.getBoundingClientRect();
         return {

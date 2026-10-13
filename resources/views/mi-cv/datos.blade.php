@@ -8,7 +8,7 @@
         <div class="bg-white rounded-xl shadow p-4 sm:p-6">
             <nav data-indice></nav>
             <section class="jz-seccion" data-titulo="Foto" id="sec-foto">
-                <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><i data-lucide="camera" class="size-4 text-oro-500"></i> Mi foto</h3>
+                <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><x-icono name="camera" class="size-4 text-oro-500" /> Mi foto</h3>
                 @include('partials.foto-campo', ['cliente' => $cliente])
             </section>
             <div class="border-t border-gray-200 pt-5 mt-5 jz-separador"></div>

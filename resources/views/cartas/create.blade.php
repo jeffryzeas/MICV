@@ -2,7 +2,7 @@
 <x-layout :titulo="$tituloTipo" activo="cartas">
 
     <a href="{{ route('cartas.index') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 hover:bg-azul-800 hover:text-white text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors mb-5">
-        <i data-lucide="arrow-left" class="size-4"></i> Volver a tipos de carta
+        <x-icono name="arrow-left" class="size-4" /> Volver a tipos de carta
     </a>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -146,7 +146,7 @@
                 @endif
 
                 <button type="submit" class="mt-2 inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
-                    <i data-lucide="download" class="size-4"></i> Descargar PDF para imprimir
+                    <x-icono name="download" class="size-4" /> Descargar PDF para imprimir
                 </button>
             </form>
         </div>

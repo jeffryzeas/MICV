@@ -1,6 +1,6 @@
 <x-publico titulo="Verificar correo">
     <div class="text-center mb-5">
-        <div class="size-14 rounded-full bg-blue-50 text-[#0B3C74] flex items-center justify-center mx-auto mb-3"><i data-lucide="mail-check" class="size-7"></i></div>
+        <div class="size-14 rounded-full bg-blue-50 text-[#0B3C74] flex items-center justify-center mx-auto mb-3"><x-icono name="mail-check" class="size-7" /></div>
         <h2 class="font-bold text-lg text-[#061a33]">Verifique su correo</h2>
         <p class="text-sm text-gray-500 mt-1">Escriba el código de 6 dígitos que enviamos a<br><b class="text-gray-700">{{ $user->email }}</b></p>
     </div>

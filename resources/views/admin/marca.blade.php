@@ -10,7 +10,7 @@
         @csrf @method('PUT')
 
         <div class="bg-white rounded-xl shadow p-5 sm:p-6">
-            <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><i data-lucide="badge-check" class="size-[18px] text-oro-500"></i> Identidad</h2>
+            <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><x-icono name="badge-check" class="size-[18px] text-oro-500" /> Identidad</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label class="{{ $lb }}">Nombre del sistema *</label>
                     <input type="text" name="nombre_negocio" value="{{ old('nombre_negocio', $cfg->nombre_negocio) }}" required maxlength="120" class="{{ $in }}"></div>
@@ -33,7 +33,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow p-5 sm:p-6">
-            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><i data-lucide="phone" class="size-[18px] text-oro-500"></i> Contacto y redes</h2>
+            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><x-icono name="phone" class="size-[18px] text-oro-500" /> Contacto y redes</h2>
             <p class="text-xs text-gray-500 mb-4">Se muestra en el pie de página, en los correos y en las políticas (la ley pide que la persona sepa cómo contactarle).</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label class="{{ $lb }}">Teléfono</label><input type="text" name="marca_telefono" value="{{ old('marca_telefono', $cfg->marca_telefono) }}" placeholder="+506 8888 8888" class="{{ $in }}"></div>
@@ -49,7 +49,7 @@
         </div>
 
         <div class="bg-white rounded-xl shadow p-5 sm:p-6">
-            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><i data-lucide="smartphone" class="size-[18px] text-oro-500"></i> App Android (Google Play)</h2>
+            <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><x-icono name="smartphone" class="size-[18px] text-oro-500" /> App Android (Google Play)</h2>
             <p class="text-xs text-gray-500 mb-4">Solo si publica la app como TWA (Bubblewrap / PWABuilder). Con esto Android confía en su dominio y la app abre sin barra del navegador.</p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div><label class="{{ $lb }}">Nombre del paquete</label>
@@ -66,7 +66,7 @@
         </div>
 
         <button type="submit" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-6 py-3 rounded-lg transition-colors w-full sm:w-auto justify-center">
-            <i data-lucide="check" class="size-4"></i> Guardar marca
+            <x-icono name="check" class="size-4" /> Guardar marca
         </button>
     </form>
 </x-layout>

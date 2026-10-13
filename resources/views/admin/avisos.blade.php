@@ -5,7 +5,7 @@
     @endunless
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="lg:col-span-2 bg-white rounded-xl shadow p-5 sm:p-6">
-            <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><i data-lucide="megaphone" class="size-[18px] text-oro-500"></i> Enviar un aviso</h2>
+            <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><x-icono name="megaphone" class="size-[18px] text-oro-500" /> Enviar un aviso</h2>
             <form method="GET" id="fGrupo" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
                 <div class="sm:col-span-2"><label class="{{ $lb }}">¿A quién?</label>
                     <select name="grupo" class="{{ $in }}" onchange="this.form.submit()">
@@ -29,7 +29,7 @@
                 <div><label class="{{ $lb }}">Texto del botón</label>
                     <input type="text" name="boton" maxlength="40" value="{{ old('boton', 'Completar mi CV') }}" class="{{ $in }}"></div>
                 <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg disabled:opacity-40" @disabled(!$cantidad || !$correoListo)>
-                    <i data-lucide="send" class="size-4"></i> Enviar a {{ min($cantidad, \App\Http\Controllers\Admin\AvisoController::MAXIMO_POR_ENVIO) }} persona(s)
+                    <x-icono name="send" class="size-4" /> Enviar a {{ min($cantidad, \App\Http\Controllers\Admin\AvisoController::MAXIMO_POR_ENVIO) }} persona(s)
                 </button>
             </form>
         </div>

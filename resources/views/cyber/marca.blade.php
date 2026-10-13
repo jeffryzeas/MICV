@@ -24,7 +24,7 @@
                     <input type="text" name="direccion" value="{{ old('direccion', $cyber->direccion) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2.5"></div>
             </div>
             <button type="submit" class="mt-6 inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
-                <i data-lucide="check" class="size-4"></i> Guardar marca
+                <x-icono name="check" class="size-4" /> Guardar marca
             </button>
         </form>
     </div>

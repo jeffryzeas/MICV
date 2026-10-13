@@ -114,6 +114,7 @@
     main { padding: 0 !important; }
 }
 </style>
+@include('partials.iconos-js')
 </head>
 <body class="min-h-screen bg-gray-100 text-gray-800 antialiased">
 <div class="flex min-h-screen">
@@ -138,11 +139,11 @@
 
         <div class="px-3 pt-3 pb-2 shrink-0">
             <div class="relative">
-                <i data-lucide="search" class="absolute left-2.5 top-2.5 size-4 text-white/40"></i>
+                <x-icono name="search" class="absolute left-2.5 top-2.5 size-4 text-white/40" />
                 <input type="text" id="jzBuscarMenu" placeholder="Buscar en el menú…" autocomplete="off"
                        class="w-full bg-white/10 border border-white/15 rounded-lg pl-8 pr-7 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-oro-300/60">
                 <button type="button" id="jzLimpiarMenu" class="hidden absolute right-2 top-2 text-white/50 hover:text-white">
-                    <i data-lucide="x" class="size-4"></i>
+                    <x-icono name="x" class="size-4" />
                 </button>
             </div>
         </div>
@@ -155,7 +156,7 @@
                         <summary class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer list-none select-none {{ $abierto ? 'text-white' : 'text-white/75 hover:bg-white/5 hover:text-white' }}">
                             <i data-lucide="{{ $item['icon'] }}" class="size-[18px] shrink-0"></i>
                             <span>{{ $item['label'] }}</span>
-                            <i data-lucide="chevron-down" class="size-4 ml-auto transition-transform group-open/g:rotate-180"></i>
+                            <x-icono name="chevron-down" class="size-4 ml-auto transition-transform group-open/g:rotate-180" />
                         </summary>
                         <div class="ml-4 pl-2 border-l border-white/10 space-y-0.5 mt-0.5 mb-1">
                             @foreach($item['hijos'] as $hijo)
@@ -175,7 +176,7 @@
         <header class="bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between sticky top-0 z-20">
             <div class="flex items-center gap-3 min-w-0 flex-1">
                 <button type="button" onclick="toggleSidebar()" class="lg:hidden text-gray-500">
-                    <i data-lucide="menu" class="size-5"></i>
+                    <x-icono name="menu" class="size-5" />
                 </button>
                 <h1 class="text-lg font-semibold text-azul-950 truncate" title="{{ $titulo }}">{{ $titulo ?? '' }}</h1>
             </div>
@@ -183,16 +184,16 @@
                 <span class="px-2 py-0.5 rounded-full bg-oro-500/15 text-oro-700 text-xs font-bold uppercase">{{ $rolBadge ?? '' }}</span>
                 <span class="text-gray-600 hidden sm:inline-flex items-center gap-1">{{ $usuarioNombre ?? '' }}@if($yo?->verificado())@include('partials.verificado', ['tam' => 16])@endif</span>
                 <button type="button" onclick="jzAlternarModoOscuro()" title="Modo oscuro" class="text-gray-500 hover:text-azul-800 border border-gray-200 rounded-lg p-2 transition-colors">
-                    <i data-lucide="moon" id="jzIconoOscuro" class="size-4"></i>
-                    <i data-lucide="sun" id="jzIconoClaro" class="size-4 hidden"></i>
+                    <x-icono name="moon" id="jzIconoOscuro" class="size-4" />
+                    <x-icono name="sun" id="jzIconoClaro" class="size-4 hidden" />
                 </button>
                 @if($yo && (\App\Services\ChatAcceso::habilitado($yo)))
-                <a href="{{ route('chat.index') }}" id="jz-chat-notificacion" data-url="{{ route('chat.lista') }}" aria-label="Mensajes y notificaciones" style="position:relative;display:inline-flex;align-items:center;gap:5px;padding:8px;color:#087c58"><i data-lucide="bell" class="size-5"></i><span id="jz-chat-contador" hidden style="font-size:11px;border-radius:20px;background:#b42318;color:#fff;padding:2px 6px"></span></a>
+                <a href="{{ route('chat.index') }}" id="jz-chat-notificacion" data-url="{{ route('chat.lista') }}" aria-label="Mensajes y notificaciones" style="position:relative;display:inline-flex;align-items:center;gap:5px;padding:8px;color:#087c58"><x-icono name="bell" class="size-5" /><span id="jz-chat-contador" hidden style="font-size:11px;border-radius:20px;background:#b42318;color:#fff;padding:2px 6px"></span></a>
                 @endif
                 <form method="POST" action="{{ $logoutUrl ?? '#' }}" class="m-0">
                     @csrf
                     <button type="submit" title="Cerrar sesión" class="flex items-center gap-1.5 text-gray-500 hover:text-red-600 border border-gray-200 hover:border-red-300 rounded-lg px-2.5 py-1.5 transition-colors">
-                        <i data-lucide="log-out" class="size-4"></i>
+                        <x-icono name="log-out" class="size-4" />
                         <span class="hidden sm:inline text-xs font-semibold">Salir</span>
                     </button>
                 </form>
@@ -350,7 +351,7 @@
                 c.classList.toggle('bg-azul-800', activo); c.classList.toggle('text-white', activo); c.classList.toggle('border-azul-800', activo);
                 c.classList.toggle('bg-white', !activo); c.classList.toggle('text-azul-800', !activo);
                 const n = c.querySelector('.jz-num');
-                n.textContent = hecho && !activo ? '✓' : (i + 1);
+                n.innerHTML = hecho && !activo ? window.jzIcono('check','size-4') : String(i + 1);
                 n.className = 'jz-num inline-flex items-center justify-center size-4 rounded-full text-[10px] ' + (activo ? 'bg-white/25' : hecho ? 'bg-emerald-500 text-white' : 'bg-gray-200');
             });
             if (barra) {
@@ -429,7 +430,7 @@
                 icon: 'warning', title: 'Tiene cambios sin guardar',
                 html: 'Si sale ahora, <b>se pierde lo que escribió</b> desde la última vez que guardó.',
                 showDenyButton: true, showCancelButton: true,
-                confirmButtonText: '<span style="display:inline-flex;align-items:center;gap:6px">💾 Guardar ahora</span>',
+                confirmButtonText: '<span style="display:inline-flex;align-items:center;gap:6px"><x-icono name="save" class="size-4"/> Guardar ahora</span>',
                 denyButtonText: 'Salir sin guardar', cancelButtonText: 'Seguir editando',
                 confirmButtonColor: '#0B3C74', denyButtonColor: '#dc2626', reverseButtons: false,
             }).then(function (r) {

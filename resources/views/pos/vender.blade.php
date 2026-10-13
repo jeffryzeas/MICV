@@ -6,14 +6,14 @@
             <div class="p-3 border-b border-gray-100 space-y-2">
                 <div class="flex gap-2">
                     <div class="relative flex-1">
-                        <i data-lucide="scan-barcode" class="size-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <x-icono name="scan-barcode" class="size-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input id="buscar" type="search" autocomplete="off" placeholder="Buscar o escanear código…  (F2)" class="w-full border border-gray-300 rounded-xl pl-10 pr-3 py-2.5 text-sm focus:border-azul-800 focus:ring-1 focus:ring-azul-800">
                     </div>
-                    <button type="button" id="btnLibre" class="shrink-0 inline-flex items-center gap-1.5 border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-3 rounded-xl" title="Cobrar algo que no está en la lista"><i data-lucide="plus" class="size-4"></i><span class="hidden sm:inline">Otro</span></button>
+                    <button type="button" id="btnLibre" class="shrink-0 inline-flex items-center gap-1.5 border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-3 rounded-xl" title="Cobrar algo que no está en la lista"><x-icono name="plus" class="size-4" /><span class="hidden sm:inline">Otro</span></button>
                 </div>
                 <div class="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" id="cats">
                     <button type="button" data-cat="" class="jz-cat shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold bg-azul-800 text-white">Todos</button>
-                    <button type="button" data-cat="fav" class="jz-cat shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">★ Favoritos</button>
+                    <button type="button" data-cat="fav" class="jz-cat shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600"><x-icono name="star" class="size-4"/> Favoritos</button>
                     @foreach($categorias as $cat)
                         <button type="button" data-cat="{{ $cat->id }}" class="jz-cat shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600"><span class="inline-block size-2 rounded-full mr-1" style="background: {{ $cat->color }}"></span>{{ $cat->nombre }}</button>
                     @endforeach
@@ -26,9 +26,9 @@
         <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5 flex flex-col min-h-0" id="carritoCaja">
             <div class="p-3 border-b border-gray-100 relative" style="flex-shrink:0;z-index:30;background:#f0f7ff;border-radius:16px 16px 0 0"><label for="cliente" style="display:block;color:#173e62;font-size:12px;font-weight:700;margin-bottom:6px">Cliente de la venta · opcional</label>
                 <div class="flex items-center gap-2">
-                    <i data-lucide="user-round" class="size-5 text-gray-400 shrink-0"></i>
+                    <x-icono name="user-round" class="size-5 text-gray-400 shrink-0" />
                     <input id="cliente" type="text" autocomplete="off" placeholder="Buscar nombre o documento" style="display:block;width:100%;min-height:44px;background:white;color:#172d43;border:1px solid #9bb5cd;border-radius:8px;padding:10px" class="flex-1 min-w-0 border-0 focus:ring-0 text-sm px-0">
-                    <button type="button" id="quitarCliente" class="hidden text-gray-400 hover:text-red-600"><i data-lucide="x" class="size-4"></i></button>
+                    <button type="button" id="quitarCliente" class="hidden text-gray-400 hover:text-red-600"><x-icono name="x" class="size-4" /></button>
                 </div><p style="font-size:11px;color:#536b80;margin-top:5px">Sin seleccionar: Cliente general</p>
                 <div id="clientesRes" class="hidden absolute left-2 right-2 top-full z-20 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 max-h-64 overflow-y-auto"></div>
             </div>
@@ -36,14 +36,14 @@
             <div class="border-t border-gray-100 p-3 space-y-1.5 text-sm">
                 <div class="flex justify-between text-gray-500"><span>Subtotal</span><span id="tSub" class="tabular-nums"></span></div>
                 <div class="flex justify-between items-center text-gray-500">
-                    <button type="button" id="btnDesc" class="inline-flex items-center gap-1 hover:text-azul-800"><i data-lucide="percent" class="size-3.5"></i> Descuento <span id="descPct"></span></button>
+                    <button type="button" id="btnDesc" class="inline-flex items-center gap-1 hover:text-azul-800"><x-icono name="percent" class="size-3.5" /> Descuento <span id="descPct"></span></button>
                     <span id="tDesc" class="tabular-nums"></span>
                 </div>
                 <div class="flex justify-between text-gray-500"><span>{{ $cfg->impuesto_nombre }} {{ $cfg->precios_con_impuesto ? '(incluido)' : '' }}</span><span id="tImp" class="tabular-nums"></span></div>
                 <div class="flex justify-between items-end pt-1"><span class="font-semibold text-azul-950">Total</span><span id="tTotal" class="text-3xl font-black text-azul-950 tabular-nums"></span></div>
                 <div class="grid grid-cols-[auto_1fr] gap-2 pt-2">
-                    <button type="button" id="btnVaciar" class="px-3 rounded-xl border border-gray-300 text-gray-500 hover:text-red-600 hover:border-red-300" title="Vaciar"><i data-lucide="trash-2" class="size-5"></i></button>
-                    <button type="button" id="btnCobrar" class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold text-lg py-3.5 rounded-xl"><i data-lucide="banknote" class="size-6"></i> Cobrar <span class="text-xs font-semibold opacity-75">(F9)</span></button>
+                    <button type="button" id="btnVaciar" class="px-3 rounded-xl border border-gray-300 text-gray-500 hover:text-red-600 hover:border-red-300" title="Vaciar"><x-icono name="trash-2" class="size-5" /></button>
+                    <button type="button" id="btnCobrar" class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold text-lg py-3.5 rounded-xl"><x-icono name="banknote" class="size-6" /> Cobrar <span class="text-xs font-semibold opacity-75">(F9)</span></button>
                 </div>
                 <div class="flex justify-between text-[11px] text-gray-400 pt-1">
                     <span>Caja abierta {{ $caja->abierta_en->diffForHumans() }} · {{ $caja->usuario?->name }}</span>
@@ -59,7 +59,7 @@
             <div id="pasoPago" class="p-5">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-bold text-azul-950">Cobrar</h2>
-                    <button type="button" data-cerrar class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="size-6"></i></button>
+                    <button type="button" data-cerrar class="text-gray-400 hover:text-gray-600"><x-icono name="x" class="size-6" /></button>
                 </div>
                 <div class="text-center my-3"><p class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Total a pagar</p><p id="cTotal" class="text-5xl font-black text-azul-950 tabular-nums"></p></div>
                 <div id="metodos" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
@@ -76,20 +76,20 @@
                     <span class="font-semibold" id="lblCambio">Cambio</span><span id="cCambio" class="text-3xl font-black tabular-nums"></span>
                 </div>
                 <input id="notas" type="text" maxlength="300" placeholder="Nota (opcional)" class="mt-3 w-full border border-gray-200 rounded-xl px-3 py-2 text-sm">
-                <button type="button" id="btnConfirmar" class="mt-4 w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold text-lg py-4 rounded-2xl"><i data-lucide="check" class="size-6"></i> Confirmar venta <span class="text-xs opacity-75">(Enter)</span></button>
+                <button type="button" id="btnConfirmar" class="mt-4 w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold text-lg py-4 rounded-2xl"><x-icono name="check" class="size-6" /> Confirmar venta <span class="text-xs opacity-75">(Enter)</span></button>
             </div>
             <div id="pasoListo" class="hidden p-6 text-center">
-                <div class="mx-auto size-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center"><i data-lucide="check" class="size-9"></i></div>
+                <div class="mx-auto size-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center"><x-icono name="check" class="size-9" /></div>
                 <h2 class="text-xl font-bold text-azul-950 mt-3">Venta <span id="lNumero"></span></h2>
                 <p class="text-gray-500"><span id="lTotal"></span></p>
                 <div id="lCambioCaja" class="mt-4 rounded-2xl bg-amber-50 text-amber-800 py-4"><p class="text-xs uppercase tracking-widest font-semibold">Entregue de cambio</p><p id="lCambio" class="text-5xl font-black tabular-nums"></p></div>
                 <div class="grid grid-cols-2 gap-2 mt-5">
-                    <button type="button" id="btnImprimir" class="inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white font-semibold py-3 rounded-xl"><i data-lucide="printer" class="size-5"></i> Imprimir</button>
-                    <button type="button" id="btnWhats" class="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5b] text-white font-semibold py-3 rounded-xl"><i data-lucide="message-circle" class="size-5"></i> WhatsApp</button>
-                    <button type="button" id="btnCorreo" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 font-semibold py-3 rounded-xl"><i data-lucide="mail" class="size-5"></i> Correo</button>
-                    <a id="btnVer" href="#" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 font-semibold py-3 rounded-xl"><i data-lucide="receipt-text" class="size-5"></i> Ver</a>
+                    <button type="button" id="btnImprimir" class="inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white font-semibold py-3 rounded-xl"><x-icono name="printer" class="size-5" /> Imprimir</button>
+                    <button type="button" id="btnWhats" class="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5b] text-white font-semibold py-3 rounded-xl"><x-icono name="message-circle" class="size-5" /> WhatsApp</button>
+                    <button type="button" id="btnCorreo" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 font-semibold py-3 rounded-xl"><x-icono name="mail" class="size-5" /> Correo</button>
+                    <a id="btnVer" href="#" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 font-semibold py-3 rounded-xl"><x-icono name="receipt-text" class="size-5" /> Ver</a>
                 </div>
-                <button type="button" id="btnNueva" class="mt-3 w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg py-3.5 rounded-2xl"><i data-lucide="plus" class="size-5"></i> Nueva venta <span class="text-xs opacity-75">(Esc)</span></button>
+                <button type="button" id="btnNueva" class="mt-3 w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-lg py-3.5 rounded-2xl"><x-icono name="plus" class="size-5" /> Nueva venta <span class="text-xs opacity-75">(Esc)</span></button>
             </div>
         </div>
     </div>
@@ -149,7 +149,7 @@
             $('grid').innerHTML = lista.length ? lista.map(p => `
                 <button type="button" data-id="${p.id}" class="jz-prod text-left rounded-xl border border-gray-200 hover:border-azul-800 hover:shadow-md p-3 transition flex flex-col justify-between min-h-[92px] ${p.s !== null && p.s <= 0 ? 'opacity-50' : ''}">
                     ${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" style="width:100%;height:85px;object-fit:contain;margin-bottom:8px;border-radius:8px">` : ''}
-                    <span class="text-sm font-semibold text-azul-950 leading-tight line-clamp-2">${p.f ? '<span class="text-oro-500">★</span> ' : ''}${esc(p.n)}</span>
+                    <span class="text-sm font-semibold text-azul-950 leading-tight line-clamp-2">${p.f ? '<span class="text-oro-500">'+window.jzIcono('star','size-4')+'</span> ' : ''}${esc(p.n)}</span>
                     <span class="flex items-end justify-between gap-1 mt-2"><span class="font-bold text-azul-800 tabular-nums">${din(p.p)}</span>
                     ${p.s !== null ? `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded ${p.s <= 0 ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-500'}">${p.s <= 0 ? 'Agotado' : nfCant(p.s) + ' ' + esc(p.u)}</span>` : ''}</span>
                 </button>`).join('')
@@ -201,7 +201,7 @@
         function pintarCarrito(nuevo) {
             if (nuevo) abierta = venta.lineas.length - 1;
             const ul = $('lineas');
-            if (!venta.lineas.length) { ul.innerHTML = '<li class="h-full flex flex-col items-center justify-center text-gray-300 py-10"><i data-lucide="shopping-cart" class="size-12"></i><p class="text-sm mt-2 text-gray-400">Toque un producto para agregarlo</p></li>'; }
+            if (!venta.lineas.length) { ul.innerHTML = '<li class="h-full flex flex-col items-center justify-center text-gray-300 py-10"><x-icono name="shopping-cart" class="size-12" /><p class="text-sm mt-2 text-gray-400">Toque un producto para agregarlo</p></li>'; }
             else ul.innerHTML = venta.lineas.map((l, i) => { const c = linea(l); return `
                 <li class="px-3 py-2.5 ${i === abierta ? 'bg-blue-50/60' : ''}" data-i="${i}">
                     <div class="flex items-start gap-2">
@@ -218,7 +218,7 @@
                         <label>Cantidad<input data-campo="cant" type="number" min="0.01" step="any" value="${l.cant}" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></label>
                         <label>Precio<input data-campo="precio" ${PUEDE_PRECIO ? '' : 'disabled'} type="number" min="0" step="any" value="${l.precio}" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></label>
                         <label>Descuento<input data-campo="desc" ${PUEDE_DESCUENTO ? '' : 'disabled'} type="number" min="0" step="any" value="${l.desc || ''}" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></label>
-                        <button type="button" data-acc="quitar" class="self-end size-9 rounded-lg text-red-500 hover:bg-red-50 flex items-center justify-center" title="Quitar"><i data-lucide="trash-2" class="size-4"></i></button>
+                        <button type="button" data-acc="quitar" class="self-end size-9 rounded-lg text-red-500 hover:bg-red-50 flex items-center justify-center" title="Quitar"><x-icono name="trash-2" class="size-4" /></button>
                     </div>` : ''}
                 </li>`; }).join('');
             const t = totales();

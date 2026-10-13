@@ -26,15 +26,15 @@
         </section>
         <aside class="space-y-3">
             <div class="{{ $card }} p-3 grid grid-cols-2 gap-2">
-                <a href="{{ route('pos.ventas.tiquete', [$v, 'imprimir' => 1]) }}" target="_blank" class="col-span-2 inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold py-3 rounded-lg"><i data-lucide="printer" class="size-4"></i> Imprimir comprobante</a>
-                <a href="{{ route('pos.ventas.imagen', $v) }}" target="_blank" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg"><i data-lucide="image" class="size-4"></i> Imagen</a>
-                <button type="button" id="btnCorreo" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg"><i data-lucide="mail" class="size-4"></i> Correo</button>
+                <a href="{{ route('pos.ventas.tiquete', [$v, 'imprimir' => 1]) }}" target="_blank" class="col-span-2 inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold py-3 rounded-lg"><x-icono name="printer" class="size-4" /> Imprimir comprobante</a>
+                <a href="{{ route('pos.ventas.imagen', $v) }}" target="_blank" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg"><x-icono name="image" class="size-4" /> Imagen</a>
+                <button type="button" id="btnCorreo" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg"><x-icono name="mail" class="size-4" /> Correo</button>
             </div>
             <iframe src="{{ route('pos.ventas.tiquete', $v) }}" class="w-full h-[520px] rounded-2xl ring-1 ring-gray-200 bg-gray-200" title="Comprobante"></iframe>
             @if($v->estado === 'pagada')
                 <form method="POST" action="{{ route('pos.ventas.anular', $v) }}" onsubmit="return jzAnular(event)" class="{{ $card }} p-3" @if(!auth()->user()->tienePermiso('pos.anular')) hidden style="display:none" @endif>
                     @csrf<input type="hidden" name="motivo">
-                    <button class="w-full inline-flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 text-sm font-semibold py-2.5 rounded-lg"><i data-lucide="ban" class="size-4"></i> Anular venta</button>
+                    <button class="w-full inline-flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 text-sm font-semibold py-2.5 rounded-lg"><x-icono name="ban" class="size-4" /> Anular venta</button>
                     <p class="text-[11px] text-gray-400 text-center">Devuelve el inventario y la saca de los totales.</p>
                 </form>
             @endif

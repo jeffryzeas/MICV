@@ -6,12 +6,12 @@
     $lb = 'block text-xs font-semibold uppercase text-azul-800 mb-1';
 @endphp
 <section class="jz-seccion" data-titulo="Documento" id="sec-documento">
-    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><i data-lucide="id-card" class="size-4 text-oro-500"></i> Documento de identidad</h3>
+    <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-3"><x-icono name="id-card" class="size-4 text-oro-500" /> Documento de identidad</h3>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
             <label class="{{ $lb }}">País del documento</label>
             <select name="pais" id="fPais" class="{{ $in }}">
-                @foreach(\App\Support\Pais::porRegion() as $region => $lista)<optgroup label="{{ $region }}">@foreach($lista as $cod => $p)<option value="{{ $cod }}" @selected($paisActual === $cod)>{{ $p['bandera'] }} {{ $p['nombre'] }}</option>@endforeach</optgroup>@endforeach
+                @foreach(\App\Support\Pais::porRegion() as $region => $lista)<optgroup label="{{ $region }}">@foreach($lista as $cod => $p)<option value="{{ $cod }}" @selected($paisActual === $cod)>{{ $p['nombre'] }}</option>@endforeach</optgroup>@endforeach
             </select>
             <p class="text-[11px] text-gray-400 mt-1">El país que emitió el documento. Ej.: un nicaragüense con DIMEX elige Costa Rica.</p>
         </div>
@@ -52,10 +52,10 @@
             if (!r.ok) return;
             const d = await r.json();
             let ok = true, html = '';
-            if (d.cedula) { ok = d.cedula.valida; html = ok ? '✓ Cédula válida · ' + (d.cedula.municipio || '') + ' / ' + (d.cedula.departamento || '') + ' · ' + (d.cedula.edad ?? '') + ' años' : '✗ ' + d.cedula.errores.join(' · '); }
-            if (d.cr) { ok = d.cr.valida; html = ok ? '✓ Número válido' + (d.cr.resumen ? ' · ' + d.cr.resumen : '') + (d.cr.aviso ? '<br>⚠ ' + d.cr.aviso : '') : '✗ ' + d.cr.errores.join(' · ');
+            if (d.cedula) { ok = d.cedula.valida; html = ok ? 'Cédula válida · ' + (d.cedula.municipio || '') + ' / ' + (d.cedula.departamento || '') + ' · ' + (d.cedula.edad ?? '') + ' años' : 'Error: ' + d.cedula.errores.join(' · '); }
+            if (d.cr) { ok = d.cr.valida; html = ok ? 'Número válido' + (d.cr.resumen ? ' · ' + d.cr.resumen : '') + (d.cr.aviso ? '<br>Aviso: ' + d.cr.aviso : '') : 'Error: ' + d.cr.errores.join(' · ');
                 if (ok) window.jzLlenarDesdeDocumento && jzLlenarDesdeDocumento(d.cr); }
-            if (d.existe && (!d.cliente || String(d.cliente.id) !== num.dataset.ignorar)) { ok = false; html += (html ? '<br>' : '') + '⚠ Ese documento ya está registrado para otra persona.'; }
+            if (d.existe && (!d.cliente || String(d.cliente.id) !== num.dataset.ignorar)) { ok = false; html += (html ? '<br>' : '') + 'Aviso: Ese documento ya está registrado para otra persona.'; }
             caja.className = 'live-status show ' + (ok ? 'ok' : 'err'); caja.innerHTML = html || 'Documento disponible.';
         }, 450);
     }

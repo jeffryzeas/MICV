@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between flex-wrap gap-3 mb-5">
         <p class="text-gray-500">Cada Cyber ve solo sus clientes. El logo y los colores también los puede cambiar el propio Cyber desde "Mi marca".</p>
         <a href="{{ route('admin.cybers.create') }}" class="inline-flex items-center gap-2 bg-oro-500 hover:bg-oro-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors shrink-0">
-            <i data-lucide="plus" class="size-4"></i> Registrar Cyber
+            <x-icono name="plus" class="size-4" /> Registrar Cyber
         </a>
     </div>
 
@@ -36,10 +36,10 @@
                     </td>
                     <td class="py-2.5">
                         <div class="flex flex-wrap gap-3 items-center">
-                            <a href="{{ route('admin.cybers.edit', $s) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-azul-800 hover:text-oro-700"><i data-lucide="pencil" class="size-3.5"></i> Editar</a>
-                            <a href="{{ route('admin.usuarios.index', ['cyber_id' => $s->id]) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-azul-800"><i data-lucide="user-cog" class="size-3.5"></i> Usuarios</a>
-                            <a href="{{ route('admin.usuarios.create', ['cyber_id' => $s->id]) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-azul-800"><i data-lucide="user-plus" class="size-3.5"></i> Crear usuario</a>
-                            <a href="{{ route('clientes.index', ['cyber_id' => $s->id]) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-azul-800"><i data-lucide="list" class="size-3.5"></i> Clientes</a>
+                            <a href="{{ route('admin.cybers.edit', $s) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-azul-800 hover:text-oro-700"><x-icono name="pencil" class="size-3.5" /> Editar</a>
+                            <a href="{{ route('admin.usuarios.index', ['cyber_id' => $s->id]) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-azul-800"><x-icono name="user-cog" class="size-3.5" /> Usuarios</a>
+                            <a href="{{ route('admin.usuarios.create', ['cyber_id' => $s->id]) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-azul-800"><x-icono name="user-plus" class="size-3.5" /> Crear usuario</a>
+                            <a href="{{ route('clientes.index', ['cyber_id' => $s->id]) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-azul-800"><x-icono name="list" class="size-3.5" /> Clientes</a>
                             <form method="POST" action="{{ route('admin.cybers.toggle', $s) }}" onsubmit="return confToggle(event, {{ $s->activo ? 'true' : 'false' }})">
                                 @csrf
                                 <button type="submit" class="inline-flex items-center gap-1 text-xs font-semibold {{ $s->activo ? 'text-red-600 hover:text-red-800' : 'text-emerald-600 hover:text-emerald-800' }}">
@@ -49,7 +49,7 @@
                             @if($s->usuarios_count === 0)
                             <form method="POST" action="{{ route('admin.cybers.destroy', $s) }}" onsubmit="return confBorrar(event)">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-red-700"><i data-lucide="trash-2" class="size-3.5"></i> Eliminar</button>
+                                <button type="submit" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-red-700"><x-icono name="trash-2" class="size-3.5" /> Eliminar</button>
                             </form>
                             @endif
                         </div>

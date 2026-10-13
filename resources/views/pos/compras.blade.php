@@ -2,7 +2,7 @@
     @include('pos._barra')
     <div class="flex items-center justify-between mb-3">
         <p class="text-sm text-gray-500">Cada compra suma al inventario y actualiza el costo promedio de los productos.</p>
-        <a href="{{ route('pos.compras.crear') }}" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="plus" class="size-4"></i> Registrar compra</a>
+        <a href="{{ route('pos.compras.crear') }}" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="plus" class="size-4" /> Registrar compra</a>
     </div>
     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5 overflow-x-auto">
         <table class="w-full text-sm">

@@ -192,7 +192,10 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
             ->group(function () {
                 $c = ChatController::class;
                 Route::get("/", [$c, "index"])->name("index");
-                Route::get("lista", [$c, "lista"])
+                Route::get('perfil/{usuario}/foto',[\App\Http\Controllers\ChatPerfilController::class,'foto'])->name('perfil.foto');
+            Route::get('perfil/{usuario}',[\App\Http\Controllers\ChatPerfilController::class,'ver'])->name('perfil.ver');
+            Route::post('perfil',[\App\Http\Controllers\ChatPerfilController::class,'guardar'])->name('perfil.guardar')->middleware('throttle:20,1');
+            Route::get("lista", [$c, "lista"])
                     ->name("lista")
                     ->middleware("throttle:120,1");
                 Route::get("contactos", [$c, "contactos"])
@@ -204,7 +207,8 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                 Route::get("archivo/{mensaje}", [$c, "archivo"])->name(
                     "archivo",
                 );
-                Route::get("{chat}/historial", [$c, "mensajes"])
+                Route::get('{chat}/archivos',[$c,'archivos'])->name('archivos')->middleware('throttle:60,1');
+            Route::get("{chat}/historial", [$c, "mensajes"])
                     ->name("historial")
                     ->middleware("throttle:120,1");
                 Route::post("{chat}/leer", [$c, "leer"])

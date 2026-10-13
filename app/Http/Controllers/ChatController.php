@@ -44,11 +44,20 @@ class ChatController extends Controller
             ->orderByDesc("updated_at")
             ->get()
             ->filter(fn($c) => ChatAcceso::puede($u, $c->otro($u)));
+        \Illuminate\Support\Facades\Cache::put(
+            "jz-online-" . $u->id,
+            true,
+            now()->addSeconds(45),
+        );
         $filas = $chats
             ->map(function ($c) use ($u) {
                 $o = $c->otro($u);
 
+                $ultimo = $c->mensajes()->latest("id")->first();
                 return [
+                    "perfil" => ChatPerfilController::datos($o),
+                    "ultimo" => $ultimo?->texto ?: $ultimo?->nombre ?? "",
+                    "fecha" => $ultimo?->created_at?->toIso8601String(),
                     "id" => $c->id,
                     "nombre" => $o->name,
                     "rol" => $o->esAdmin()
@@ -82,15 +91,7 @@ class ChatController extends Controller
                 ->limit(80)
                 ->get()
                 ->filter(fn($o) => ChatAcceso::puede($u, $o))
-                ->map(
-                    fn($o) => [
-                        "id" => $o->id,
-                        "nombre" => $o->name,
-                        "rol" => $o->esAdmin()
-                            ? "Sistema JZ"
-                            : $o->cyber?->nombre ?? "Cliente",
-                    ],
-                )
+                ->map(fn($o) => ChatPerfilController::datos($o))
                 ->values(),
         );
     }
@@ -154,6 +155,44 @@ class ChatController extends Controller
                 ),
                 "ultimo" => (int) $chat->mensajes()->max("id"),
                 "otro_leido" => (int) $otroLeido,
+            ])
+            ->header("Cache-Control", "no-store");
+    }
+
+    public function archivos(Request $r, JzChat $chat)
+    {
+        $this->autorizar($r, $chat);
+        $d = $r->validate(["antes" => "nullable|integer|min:1"]);
+        $rows = $chat
+            ->mensajes()
+            ->whereNotNull("archivo")
+            ->when(
+                $d["antes"] ?? null,
+                fn($q, $id) => $q->where("id", "<", $id),
+            )
+            ->orderByDesc("id")
+            ->limit(31)
+            ->get();
+        $mas = $rows->count() > 30;
+        $rows = $rows->take(30);
+        return response()
+            ->json([
+                "archivos" => $rows
+                    ->map(
+                        fn($m) => [
+                            "id" => $m->id,
+                            "nombre" => $m->nombre,
+                            "mime" => $m->mime,
+                            "bytes" => $m->bytes,
+                            "archivo" => route("chat.archivo", $m),
+                            "miniatura" => $m->miniatura
+                                ? route("chat.archivo", [$m, "mini" => 1])
+                                : null,
+                        ],
+                    )
+                    ->values(),
+                "mas" => $mas,
+                "antes" => $rows->last()?->id,
             ])
             ->header("Cache-Control", "no-store");
     }

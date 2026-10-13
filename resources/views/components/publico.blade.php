@@ -18,6 +18,7 @@
 @include('partials.head-app')
 <link rel="stylesheet" href="{{ asset('css/tema.css') }}?v={{ @filemtime(public_path('css/tema.css')) }}">
 <script src="{{ asset('vendor/lucide.min.js') }}"></script>
+@include('partials.iconos-js')
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4" style="background-color:{{ $pri }};">
 <div class="w-full {{ $ancho }}">
@@ -41,7 +42,7 @@
         @endif
         @if ($errors->any())
             <div class="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm flex items-start gap-2">
-                <i data-lucide="alert-circle" class="size-4 mt-0.5 shrink-0"></i>
+                <x-icono name="alert-circle" class="size-4 mt-0.5 shrink-0" />
                 <div>@foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach</div>
             </div>
         @endif
@@ -60,7 +61,7 @@ document.querySelectorAll('input[type=password]').forEach(function (inp) {
     inp.parentNode.insertBefore(caja, inp); caja.appendChild(inp); inp.classList.add('pr-11');
     const b = document.createElement('button'); b.type = 'button'; b.tabIndex = -1; b.setAttribute('aria-label', 'Ver contraseña');
     b.className = 'absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-700';
-    b.innerHTML = '<i data-lucide="eye" class="size-4"></i>';
+    b.innerHTML = '<x-icono name="eye" class="size-4" />';
     b.addEventListener('click', function () { const ver = inp.type === 'password'; inp.type = ver ? 'text' : 'password'; b.innerHTML = '<i data-lucide="' + (ver ? 'eye-off' : 'eye') + '" class="size-4"></i>'; lucide.createIcons(); });
     caja.appendChild(b);
 });

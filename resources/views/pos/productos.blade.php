@@ -9,10 +9,10 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-2 mb-3">
-        <a href="{{ route('pos.productos.crear') }}" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="plus" class="size-4"></i> Producto</a>
-        <a href="{{ route('pos.productos.crear', ['tipo' => 'servicio']) }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="plus" class="size-4"></i> Servicio</a>
-        <a href="{{ route('pos.compras.crear') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="truck" class="size-4"></i> Registrar compra</a>
-        <form method="POST" action="{{ route('pos.productos.sugeridos') }}">@csrf<button class="inline-flex items-center gap-2 bg-white border border-dashed border-gray-300 hover:border-azul-800 text-gray-600 text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="sparkles" class="size-4"></i> Agregar servicios típicos de un Cyber</button></form>
+        <a href="{{ route('pos.productos.crear') }}" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="plus" class="size-4" /> Producto</a>
+        <a href="{{ route('pos.productos.crear', ['tipo' => 'servicio']) }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="plus" class="size-4" /> Servicio</a>
+        <a href="{{ route('pos.compras.crear') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="truck" class="size-4" /> Registrar compra</a>
+        <form method="POST" action="{{ route('pos.productos.sugeridos') }}">@csrf<button class="inline-flex items-center gap-2 bg-white border border-dashed border-gray-300 hover:border-azul-800 text-gray-600 text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="sparkles" class="size-4" /> Agregar servicios típicos de un Cyber</button></form>
         <form class="ml-auto flex flex-wrap gap-2">
             <input type="search" name="q" value="{{ request('q') }}" placeholder="Nombre o código" class="{{ $in }}">
             <select name="categoria" class="{{ $in }}" onchange="this.form.submit()"><option value="">Todas las categorías</option>@foreach($categorias as $c)<option value="{{ $c->id }}" @selected(request('categoria') == $c->id)>{{ $c->nombre }}</option>@endforeach</select>
@@ -27,7 +27,7 @@
                 <tbody>
                 @forelse($productos as $p)
                     <tr class="border-b last:border-0">
-                        <td class="p-3">@if($p->foto)<img src="{{ $p->fotoUrl() }}" loading="lazy" alt="" class="w-12 h-12 rounded-lg object-cover mb-2">@endif<a href="{{ route('pos.productos.editar', $p) }}" class="font-semibold text-azul-950 hover:text-azul-800">@if($p->favorito)<span class="text-oro-500">★</span> @endif{{ $p->nombre }}</a>
+                        <td class="p-3">@if($p->foto)<img src="{{ $p->fotoUrl() }}" loading="lazy" alt="" class="w-12 h-12 rounded-lg object-cover mb-2">@endif<a href="{{ route('pos.productos.editar', $p) }}" class="font-semibold text-azul-950 hover:text-azul-800">@if($p->favorito)<span class="text-oro-500"><x-icono name="star" class="size-4"/></span> @endif{{ $p->nombre }}</a>
                             <span class="block text-xs text-gray-400">{{ $p->tipo === 'servicio' ? 'Servicio' : 'Producto' }}@if($p->codigo) · <span class="font-mono">{{ $p->codigo }}</span>@endif @if($p->exento) · Exento @endif</span></td>
                         <td class="p-3">@if($p->categoria)<span class="inline-flex items-center gap-1.5 text-xs"><span class="size-2 rounded-full" style="background: {{ $p->categoria->color }}"></span>{{ $p->categoria->nombre }}</span>@else<span class="text-gray-300">—</span>@endif</td>
                         <td class="p-3 text-right font-semibold tabular-nums {{ (float) $p->precio == 0 ? 'text-red-500' : '' }}">{{ $cfg->dinero($p->precio) }}</td>
@@ -40,7 +40,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="p-10 text-center text-gray-400"><i data-lucide="package-open" class="size-10 mx-auto text-gray-300"></i><p class="mt-2">No hay productos aquí todavía.</p></td></tr>
+                    <tr><td colspan="6" class="p-10 text-center text-gray-400"><x-icono name="package-open" class="size-10 mx-auto text-gray-300" /><p class="mt-2">No hay productos aquí todavía.</p></td></tr>
                 @endforelse
                 </tbody>
             </table>
@@ -52,13 +52,13 @@
             <ul class="space-y-1 text-sm mb-3">
                 @foreach($categorias as $c)
                     <li class="flex items-center gap-2 group"><span class="size-3 rounded-full shrink-0" style="background: {{ $c->color }}"></span><a href="?categoria={{ $c->id }}" class="flex-1 truncate hover:text-azul-800">{{ $c->nombre }}</a><span class="text-xs text-gray-400">{{ $c->productos_count }}</span>
-                        <form method="POST" action="{{ route('pos.categorias.borrar', $c) }}" class="jz-confirmar" data-msg="Los productos de «{{ $c->nombre }}» quedan sin categoría.">@csrf @method('DELETE')<button class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600" title="Borrar"><i data-lucide="x" class="size-3.5"></i></button></form></li>
+                        <form method="POST" action="{{ route('pos.categorias.borrar', $c) }}" class="jz-confirmar" data-msg="Los productos de «{{ $c->nombre }}» quedan sin categoría.">@csrf @method('DELETE')<button class="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-600" title="Borrar"><x-icono name="x" class="size-3.5" /></button></form></li>
                 @endforeach
             </ul>
             <form method="POST" action="{{ route('pos.categorias.guardar') }}" class="flex gap-2">@csrf
                 <input type="color" name="color" value="#0B3C74" class="h-9 w-10 border border-gray-300 rounded-lg shrink-0">
                 <input type="text" name="nombre" required maxlength="60" placeholder="Nueva categoría" class="{{ $in }} flex-1 min-w-0">
-                <button class="bg-gray-100 hover:bg-gray-200 rounded-lg px-3"><i data-lucide="plus" class="size-4"></i></button>
+                <button class="bg-gray-100 hover:bg-gray-200 rounded-lg px-3"><x-icono name="plus" class="size-4" /></button>
             </form>
         </aside>
     </div>

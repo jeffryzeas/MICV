@@ -50,12 +50,12 @@
         </fieldset>
 
         <div class="flex flex-wrap gap-4 text-sm">
-            <label class="inline-flex items-center gap-2"><input type="checkbox" name="favorito" value="1" @checked(old('favorito', $p->favorito))> ★ Favorito (sale primero en la caja)</label>
+            <label class="inline-flex items-center gap-2"><input type="checkbox" name="favorito" value="1" @checked(old('favorito', $p->favorito))> <x-icono name="star" class="size-4"/> Favorito (sale primero en la caja)</label>
             <input type="hidden" name="activo" value="0"><label class="inline-flex items-center gap-2"><input type="checkbox" name="activo" value="1" @checked(old('activo', $p->activo ?? true))> Activo</label>
         </div>
 
         <div class="flex flex-wrap items-center gap-2 pt-2 border-t">
-            <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"><i data-lucide="check" class="size-4"></i> Guardar</button>
+            <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"><x-icono name="check" class="size-4" /> Guardar</button>
             @if($nuevo)<button name="otro" value="1" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-5 py-2.5 rounded-lg">Guardar y agregar otro</button>@endif
             <a href="{{ route('pos.productos') }}" class="text-sm text-gray-500 hover:text-azul-800 px-3">Cancelar</a>
         </div>

@@ -13,7 +13,7 @@
             <div><label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Usuario o detalle</label><input type="search" name="usuario" value="{{ $usuario }}" class="{{ $in }}"></div>
             <div><label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Desde</label><input type="date" name="desde" value="{{ $desde }}" class="{{ $in }}"></div>
             <div><label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Hasta</label><input type="date" name="hasta" value="{{ $hasta }}" class="{{ $in }}"></div>
-            <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="search" class="size-4"></i> Filtrar</button>
+            <button class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="search" class="size-4" /> Filtrar</button>
             @if($accion || $usuario || $desde || $hasta)<a href="{{ route('admin.actividad') }}" class="text-sm text-gray-500 px-3 py-2.5">Limpiar</a>@endif
         </form>
         <div class="overflow-x-auto">

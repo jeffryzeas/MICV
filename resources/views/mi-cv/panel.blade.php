@@ -14,22 +14,22 @@
                 <img src="{{ route('clientes.foto', $cliente) }}" class="size-24 rounded-full object-cover ring-4 ring-white/80 shrink-0" alt="Mi foto">
             @else
                 <a href="{{ route('mi-cv.editar') }}#sec-foto" title="Agregar foto" class="size-24 shrink-0 rounded-full bg-white/10 border-2 border-dashed border-white/50 text-white/80 hover:bg-white/20 flex flex-col items-center justify-center">
-                    <i data-lucide="user-round" class="size-10"></i><span class="text-[10px] font-semibold uppercase">Sin foto</span>
+                    <x-icono name="user-round" class="size-10" /><span class="text-[10px] font-semibold uppercase">Sin foto</span>
                 </a>
             @endif
             <div class="flex-1 min-w-0 text-center sm:text-left">
-                <p class="text-white/70 text-sm">{{ $p['bandera'] }} {{ $cliente->nacionalidad ?: $p['nombre'] }}</p>
+                <p class="text-white/70 text-sm">{{ $cliente->nacionalidad ?: $p['nombre'] }}</p>
                 <h1 class="text-2xl sm:text-3xl font-bold leading-tight inline-flex items-center gap-2 justify-center sm:justify-start flex-wrap">Hola, {{ $cliente->primer_nombre }}
                     @if(auth()->user()->verificado())<span class="inline-flex items-center gap-1 bg-white/95 text-[#0f5fa8] text-xs font-semibold rounded-full pl-1 pr-2.5 py-0.5 shadow">@include('partials.verificado', ['tam' => 18]) Verificado</span>@endif
                 </h1>
                 <p class="text-white/80 mt-0.5">{{ $cliente->profesion ?: 'Agregue su profesión u oficio para que su CV destaque' }}</p>
                 @if($siguiente)
                     <a href="{{ route('mi-cv.editar') }}#{{ $siguiente[2] }}" class="mt-4 inline-flex items-center gap-2 bg-white text-azul-800 hover:bg-oro-500 hover:text-white font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors">
-                        <i data-lucide="arrow-right-circle" class="size-4"></i> Siguiente paso: {{ mb_strtolower($siguiente[0]) }}
+                        <x-icono name="arrow-right-circle" class="size-4" /> Siguiente paso: {{ mb_strtolower($siguiente[0]) }}
                     </a>
                 @else
                     <a href="#generar-cv" class="mt-4 inline-flex items-center gap-2 bg-oro-500 text-white hover:bg-white hover:text-azul-800 font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors">
-                        <i data-lucide="party-popper" class="size-4"></i> ¡Su CV está completo! Descárguelo
+                        <x-icono name="party-popper" class="size-4" /> ¡Su CV está completo! Descárguelo
                     </a>
                 @endif
             </div>
@@ -47,7 +47,7 @@
     {{-- Lo que tiene y lo que falta --}}
     <section class="bg-white rounded-xl shadow p-4 sm:p-5 mb-5">
         <div class="flex items-center justify-between gap-2 mb-3">
-            <h2 class="font-semibold text-azul-950 flex items-center gap-2"><i data-lucide="list-checks" class="size-[18px] text-oro-500"></i> Su CV paso a paso</h2>
+            <h2 class="font-semibold text-azul-950 flex items-center gap-2"><x-icono name="list-checks" class="size-[18px] text-oro-500" /> Su CV paso a paso</h2>
             <span class="text-xs text-gray-500">{{ count($pendientes) - count($faltan) }} de {{ count($pendientes) }} listos</span>
         </div>
         <div class="flex flex-wrap gap-2">

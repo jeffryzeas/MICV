@@ -1,7 +1,7 @@
 @extends('correos.base')
 @section('preheader')Su cuenta en {{ $marca }} está lista. Así hace su CV en pocos minutos.@endsection
 @section('cuerpo')
-<p style="font-size:17px;margin:0 0 12px;color:#111827">¡Bienvenido(a), <b>{{ $nombre }}</b>! 🎉</p>
+<p style="font-size:17px;margin:0 0 12px;color:#111827">¡Bienvenido(a), <b>{{ $nombre }}</b>!</p>
 <p style="margin:0 0 16px;color:#374151">Su cuenta en {{ $marca }} ya está lista. Con estos tres pasos tiene su currículum:</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
   @foreach([['1', 'Llene sus datos', 'Foto, documento, estudios, experiencia e idiomas. Puede ir paso a paso.'], ['2', 'Elija un diseño', 'Hay varios diseños profesionales, en español o en inglés.'], ['3', 'Descárguelo o envíeselo', 'En PDF, listo para imprimir o mandar a las empresas.']] as [$n, $t, $d])

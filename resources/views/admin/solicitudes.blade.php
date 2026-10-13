@@ -40,19 +40,19 @@
                                 <input type="hidden" name="borrar_ficha" value="1">
                             @endif
                             <input type="text" name="nota" maxlength="1000" placeholder="Nota (opcional)" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                            <button class="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"><i data-lucide="check" class="size-4"></i> Aprobar y eliminar</button>
+                            <button class="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg"><x-icono name="check" class="size-4" /> Aprobar y eliminar</button>
                         </form>
                         <form method="POST" action="{{ route('admin.solicitudes.rechazar', $s) }}" class="border border-red-200 rounded-lg p-3 space-y-2">
                             @csrf
                             <textarea name="nota" required maxlength="1000" rows="2" placeholder="Motivo del rechazo (se le envía a la persona)" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></textarea>
-                            <button class="w-full inline-flex items-center justify-center gap-2 bg-white border border-red-300 text-red-700 hover:bg-red-50 text-sm font-semibold px-4 py-2 rounded-lg"><i data-lucide="x" class="size-4"></i> Rechazar</button>
+                            <button class="w-full inline-flex items-center justify-center gap-2 bg-white border border-red-300 text-red-700 hover:bg-red-50 text-sm font-semibold px-4 py-2 rounded-lg"><x-icono name="x" class="size-4" /> Rechazar</button>
                         </form>
                     </div>
                 @endif
             </div>
         @empty
             <div class="bg-white rounded-xl shadow p-10 text-center text-gray-400">
-                <i data-lucide="inbox" class="size-10 mx-auto mb-2"></i> No hay solicitudes {{ $estado === 'todas' ? '' : strtolower($tabs[$estado] ?? '') }}.
+                <x-icono name="inbox" class="size-10 mx-auto mb-2" /> No hay solicitudes {{ $estado === 'todas' ? '' : strtolower($tabs[$estado] ?? '') }}.
             </div>
         @endforelse
     </div>

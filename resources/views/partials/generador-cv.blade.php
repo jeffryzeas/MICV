@@ -4,7 +4,7 @@
     $correoDestino = $esUsuario ? auth()->user()->email : $cliente->correo;
 @endphp
 <div id="generar-cv" class="bg-white rounded-xl shadow p-4 sm:p-6 mb-5" data-vista="{{ route('cv.vista', $cliente) }}" data-pdf="{{ route('cv.pdf', $cliente) }}" data-word="{{ route('cv.word', $cliente) }}" data-enviar="{{ route('cv.enviar', $cliente) }}">
-    <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><i data-lucide="file-text" class="size-[18px] text-oro-500"></i> Currículum en PDF</h2>
+    <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><x-icono name="file-text" class="size-[18px] text-oro-500" /> Currículum en PDF</h2>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="space-y-4">
             <div>
@@ -41,25 +41,25 @@
                 <p class="text-xs font-semibold uppercase text-azul-800 mb-2">Idioma del CV</p>
                 <div class="grid grid-cols-2 gap-2">
                     <label class="cursor-pointer"><input type="radio" name="idioma" value="es" class="peer hidden" checked>
-                        <span class="flex items-center justify-center gap-2 border-2 border-gray-200 rounded-lg py-2 text-sm font-semibold text-gray-600 peer-checked:border-azul-800 peer-checked:bg-blue-50 peer-checked:text-azul-800">🇪🇸 Español</span></label>
+                        <span class="flex items-center justify-center gap-2 border-2 border-gray-200 rounded-lg py-2 text-sm font-semibold text-gray-600 peer-checked:border-azul-800 peer-checked:bg-blue-50 peer-checked:text-azul-800">Español Español</span></label>
                     <label class="cursor-pointer"><input type="radio" name="idioma" value="en" class="peer hidden">
-                        <span class="flex items-center justify-center gap-2 border-2 border-gray-200 rounded-lg py-2 text-sm font-semibold text-gray-600 peer-checked:border-azul-800 peer-checked:bg-blue-50 peer-checked:text-azul-800">🇺🇸 English</span></label>
+                        <span class="flex items-center justify-center gap-2 border-2 border-gray-200 rounded-lg py-2 text-sm font-semibold text-gray-600 peer-checked:border-azul-800 peer-checked:bg-blue-50 peer-checked:text-azul-800">Inglés English</span></label>
                 </div>
                 <p class="text-[11px] text-gray-400 mt-1">En inglés se traducen los títulos. El perfil y el oficio salen en inglés si los escribió en "Mis datos → Perfil".</p>
             </div>
             <div class="flex flex-col gap-2 pt-1">
                 <button type="button" onclick="jzCv('descargar')" class="inline-flex items-center justify-center gap-1.5 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-3 rounded-lg transition-colors">
-                    <i data-lucide="download" class="size-4"></i> Descargar PDF
+                    <x-icono name="download" class="size-4" /> Descargar PDF
                 </button>
                 <button type="button" onclick="jzCv('word')" class="inline-flex items-center justify-center gap-1.5 bg-[#2B579A] hover:bg-[#1e3f73] text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors">
-                    <i data-lucide="file-type" class="size-4"></i> Descargar en Word (.docx)
+                    <x-icono name="file-type" class="size-4" /> Descargar en Word (.docx)
                 </button>
                 <div class="grid grid-cols-2 gap-2">
                     <button type="button" onclick="jzCv('ver')" class="inline-flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold px-3 py-2.5 rounded-lg">
-                        <i data-lucide="eye" class="size-4"></i> Ver PDF
+                        <x-icono name="eye" class="size-4" /> Ver PDF
                     </button>
                     <button type="button" onclick="jzCv('correo')" @disabled(!$correoDestino) title="{{ $correoDestino ? 'Se envía a ' . $correoDestino : 'No hay correo registrado' }}" class="inline-flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold px-3 py-2.5 rounded-lg disabled:opacity-40">
-                        <i data-lucide="send" class="size-4"></i> {{ $esUsuario ? 'A mi correo' : 'Al correo' }}
+                        <x-icono name="send" class="size-4" /> {{ $esUsuario ? 'A mi correo' : 'Al correo' }}
                     </button>
                 </div>
                 @unless($correoDestino)<p class="text-[11px] text-gray-400">Para enviarlo por correo, agregue el correo de la persona en sus datos.</p>@endunless
@@ -100,8 +100,8 @@
         const idiomaActual = sel('idioma', 'es');
         const opcion = (n, v, txt, on) => '<label class="jz-op"><input type="radio" name="' + n + '" value="' + v + '"' + (on ? ' checked' : '') + '><span>' + txt + '</span></label>';
         let html = '<div class="text-left space-y-3">';
-        if (tieneFoto) html += '<div><p class="jz-op-t">¿Lleva foto?</p><div class="jz-ops">' + opcion('sw_foto', '1', '📷 Con foto', true) + opcion('sw_foto', '0', 'Sin foto', false) + '</div></div>';
-        html += '<div><p class="jz-op-t">Idioma</p><div class="jz-ops">' + opcion('sw_idioma', 'es', '🇪🇸 Español', idiomaActual === 'es') + opcion('sw_idioma', 'en', '🇺🇸 English', idiomaActual === 'en') + '</div></div>';
+        if (tieneFoto) html += '<div><p class="jz-op-t">¿Lleva foto?</p><div class="jz-ops">' + opcion('sw_foto', '1', 'Con foto', true) + opcion('sw_foto', '0', 'Sin foto', false) + '</div></div>';
+        html += '<div><p class="jz-op-t">Idioma</p><div class="jz-ops">' + opcion('sw_idioma', 'es', 'Español Español', idiomaActual === 'es') + opcion('sw_idioma', 'en', 'Inglés English', idiomaActual === 'en') + '</div></div>';
         if (accion === 'word') html += '<p class="text-xs text-gray-500">Sale en un diseño sencillo para que pueda cambiar cualquier texto en Word.</p>';
         if (accion === 'correo') html += '<p class="text-xs text-gray-500">Se enviará a <b>' + @json($correoDestino ?? '') + '</b>.</p>';
         html += '</div>';

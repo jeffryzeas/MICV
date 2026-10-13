@@ -5,14 +5,14 @@
 @endphp
 <x-layout titulo="Textos legales" activo="legal">
     <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 mb-5 text-sm flex gap-3">
-        <i data-lucide="info" class="size-5 shrink-0 mt-0.5"></i>
+        <x-icono name="info" class="size-5 shrink-0 mt-0.5" />
         <div>Los textos vienen listos como plantilla según la Ley 8968 (Costa Rica) y la Ley 787 (Nicaragua). <b>No son asesoría legal:</b> pídale a un abogado que los revise antes de publicar. Versión vigente: <b>{{ $cfg->legal_version ?: '1.0' }}</b>@if($cfg->legal_actualizado_en) · actualizada {{ $cfg->legal_actualizado_en->format('d/m/Y') }}@endif.</div>
     </div>
 
     <form method="POST" action="{{ route('admin.legal.update') }}" class="space-y-5">
         @csrf @method('PUT')
         <div class="bg-white rounded-xl shadow p-5 sm:p-6">
-            <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><i data-lucide="building-2" class="size-[18px] text-oro-500"></i> Responsable de los datos</h2>
+            <h2 class="font-semibold text-azul-950 mb-4 flex items-center gap-2"><x-icono name="building-2" class="size-[18px] text-oro-500" /> Responsable de los datos</h2>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="sm:col-span-1"><label class="{{ $lb }}">Nombre o razón social *</label>
                     <input type="text" name="legal_responsable" value="{{ old('legal_responsable', $cfg->legal_responsable ?: $cfg->nombre_negocio) }}" required maxlength="160" class="{{ $in }}"></div>
@@ -21,7 +21,7 @@
                 <div><label class="{{ $lb }}">País de la ley aplicable *</label>
                     <select name="legal_pais" class="{{ $in }}">
                         @foreach(\App\Support\Pais::activos() as $cod => $p)
-                            <option value="{{ $cod }}" @selected(old('legal_pais', $cfg->legal_pais ?: 'CR') === $cod)>{{ $p['bandera'] ?? '' }} {{ $p['nombre'] }}</option>
+                            <option value="{{ $cod }}" @selected(old('legal_pais', $cfg->legal_pais ?: 'CR') === $cod)>{{ $p['nombre'] }}</option>
                         @endforeach
                     </select></div>
             </div>
@@ -40,7 +40,7 @@
                 <div data-panel="{{ $k }}" class="jz-panel {{ $loop->first ? '' : 'hidden' }}">
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <label class="{{ $lb }} mb-0">{{ $titulo }} (formato Markdown)</label>
-                        <a href="{{ route('legal.ver', $k) }}" target="_blank" class="text-xs text-azul-800 underline inline-flex items-center gap-1"><i data-lucide="external-link" class="size-3.5"></i> Ver publicado</a>
+                        <a href="{{ route('legal.ver', $k) }}" target="_blank" class="text-xs text-azul-800 underline inline-flex items-center gap-1"><x-icono name="external-link" class="size-3.5" /> Ver publicado</a>
                     </div>
                     <textarea name="textos[{{ $k }}]" rows="22" class="{{ $in }} font-mono text-xs leading-relaxed">{{ old('textos.' . $k, $textos[$k]) }}</textarea>
                 </div>
@@ -66,7 +66,7 @@
                 <span><b>Publicar como nueva versión</b> ({{ $cfg->legal_version ?: '1.0' }} → siguiente). Todos los usuarios y Cybers deberán aceptar los textos otra vez al entrar. Úselo solo con cambios importantes.</span>
             </label>
             <button type="submit" class="inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-6 py-3 rounded-lg shrink-0">
-                <i data-lucide="check" class="size-4"></i> Guardar textos
+                <x-icono name="check" class="size-4" /> Guardar textos
             </button>
         </div>
     </form>

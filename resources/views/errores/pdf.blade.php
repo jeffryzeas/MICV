@@ -1,7 +1,7 @@
 <x-layout titulo="No se pudo generar el PDF" activo="clientes">
     <div class="bg-white rounded-xl shadow p-6">
         <div class="flex items-start gap-3">
-            <i data-lucide="alert-triangle" class="size-6 text-red-500 shrink-0"></i>
+            <x-icono name="alert-triangle" class="size-6 text-red-500 shrink-0" />
             <div class="text-sm text-gray-700 space-y-2">
                 <p>Chromium no pudo crear el PDF. Revise:</p>
                 <ol class="list-decimal pl-5 space-y-1">
@@ -17,6 +17,6 @@
                 <pre class="mt-2 bg-gray-50 border rounded-lg p-3 text-xs whitespace-pre-wrap break-words">{{ \Illuminate\Support\Str::limit($error, 4000) }}</pre>
             </details>
         @endif
-        <a href="{{ url()->previous() }}" class="mt-5 inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="arrow-left" class="size-4"></i> Volver</a>
+        <a href="{{ url()->previous() }}" class="mt-5 inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="arrow-left" class="size-4" /> Volver</a>
     </div>
 </x-layout>

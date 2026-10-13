@@ -21,12 +21,12 @@
                     <iframe id="visorTarjeta" title="Vista previa de la tarjeta" class="w-full rounded-lg bg-[#e9edf3] aspect-[1.45]"></iframe>
                 </div>
                 <div class="bg-white rounded-xl shadow p-3 grid grid-cols-2 gap-2">
-                    <button type="button" onclick="jzTarjeta('guardar')" class="col-span-2 inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold py-3 rounded-lg transition-colors"><i data-lucide="save" class="size-4"></i> Guardar tarjeta</button>
-                    <button type="button" onclick="jzTarjeta('whatsapp')" class="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5b] text-white text-sm font-semibold py-2.5 rounded-lg"><i data-lucide="message-circle" class="size-4"></i> WhatsApp</button>
-                    <button type="button" onclick="jzTarjeta('png')" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg"><i data-lucide="image" class="size-4"></i> Imagen PNG</button>
-                    <button type="button" onclick="jzTarjeta('hoja')" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg"><i data-lucide="printer" class="size-4"></i> Hoja de 10</button>
-                    <button type="button" onclick="jzTarjeta('pdf')" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg"><i data-lucide="file-down" class="size-4"></i> PDF (1)</button>
-                    <button type="button" onclick="jzTarjeta('correo')" @disabled(!$correoDestino) class="col-span-2 inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg disabled:opacity-40"><i data-lucide="send" class="size-4"></i> {{ $esUsuario ? 'Enviar a mi correo' : 'Enviar al correo del cliente' }}</button>
+                    <button type="button" onclick="jzTarjeta('guardar')" class="col-span-2 inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold py-3 rounded-lg transition-colors"><x-icono name="save" class="size-4" /> Guardar tarjeta</button>
+                    <button type="button" onclick="jzTarjeta('whatsapp')" class="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe5b] text-white text-sm font-semibold py-2.5 rounded-lg"><x-icono name="message-circle" class="size-4" /> WhatsApp</button>
+                    <button type="button" onclick="jzTarjeta('png')" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg"><x-icono name="image" class="size-4" /> Imagen PNG</button>
+                    <button type="button" onclick="jzTarjeta('hoja')" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg"><x-icono name="printer" class="size-4" /> Hoja de 10</button>
+                    <button type="button" onclick="jzTarjeta('pdf')" class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg"><x-icono name="file-down" class="size-4" /> PDF (1)</button>
+                    <button type="button" onclick="jzTarjeta('correo')" @disabled(!$correoDestino) class="col-span-2 inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg disabled:opacity-40"><x-icono name="send" class="size-4" /> {{ $esUsuario ? 'Enviar a mi correo' : 'Enviar al correo del cliente' }}</button>
                     <p class="col-span-2 text-[11px] text-gray-400 leading-snug">Para imprimir: cartulina tamaño carta, a <b>tamaño real (100 %)</b>, sin "ajustar a la página". Corte por las líneas.</p>
                 </div>
             </div>
@@ -35,7 +35,7 @@
         {{-- Formulario --}}
         <div class="lg:col-span-3 lg:order-1 space-y-5">
             <section class="bg-white rounded-xl shadow p-4 sm:p-5">
-                <h2 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><i data-lucide="palette" class="size-[18px] text-oro-500"></i> 1. Elija un diseño</h2>
+                <h2 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><x-icono name="palette" class="size-[18px] text-oro-500" /> 1. Elija un diseño</h2>
                 <div class="flex gap-2 overflow-x-auto pb-2 mb-3 -mx-1 px-1" id="filtrosCat">
                     <button type="button" data-cat="" class="jz-cat shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border border-azul-800 bg-azul-800 text-white">Todos</button>
                     @foreach(\App\Support\TarjetaDisenos::categorias() as $c)
@@ -75,7 +75,7 @@
 
             <section class="bg-white rounded-xl shadow p-4 sm:p-5">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                    <h2 class="font-semibold text-azul-950 flex items-center gap-2"><i data-lucide="contact" class="size-[18px] text-oro-500"></i> 2. Sus datos</h2>
+                    <h2 class="font-semibold text-azul-950 flex items-center gap-2"><x-icono name="contact" class="size-[18px] text-oro-500" /> 2. Sus datos</h2>
                     <button type="button" id="btnDelCv" class="text-xs font-semibold text-azul-800 underline">Traer los datos de mi CV</button>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -92,7 +92,7 @@
             </section>
 
             <section class="bg-white rounded-xl shadow p-4 sm:p-5">
-                <h2 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><i data-lucide="image" class="size-[18px] text-oro-500"></i> 3. Foto o logo</h2>
+                <h2 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><x-icono name="image" class="size-[18px] text-oro-500" /> 3. Foto o logo</h2>
                 <div class="grid grid-cols-3 gap-2 mb-3">
                     @foreach(['foto' => ['user-round', 'Mi foto'], 'logo' => ['badge-check', 'Mi logo'], 'ninguna' => ['shapes', 'Ícono del oficio']] as $k => [$ic, $tx])
                         <label class="cursor-pointer"><input type="radio" name="imagen" value="{{ $k }}" class="peer sr-only" @checked($t->imagen === $k)>
@@ -102,7 +102,7 @@
                 @if(!$cliente->tieneFoto())<p class="text-[11px] text-amber-700 mb-2">No hay foto en el CV: si elige "Mi foto" salen sus iniciales. Puede subirla en "Mis datos".</p>@endif
                 <div class="flex flex-wrap items-center gap-3">
                     <label class="inline-flex items-center gap-2 cursor-pointer border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2 rounded-lg">
-                        <i data-lucide="upload" class="size-4"></i> {{ $t->logo ? 'Cambiar logo' : 'Subir logo' }}
+                        <x-icono name="upload" class="size-4" /> {{ $t->logo ? 'Cambiar logo' : 'Subir logo' }}
                         <input type="file" name="logo" id="logoTj" accept="image/png,image/jpeg,image/webp" class="sr-only">
                     </label>
                     @if($t->logo)<label class="inline-flex items-center gap-2 text-sm text-gray-600"><input type="checkbox" name="quitar_logo" value="1"> Quitar logo</label>@endif
@@ -112,7 +112,7 @@
             </section>
 
             <section class="bg-white rounded-xl shadow p-4 sm:p-5">
-                <h2 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><i data-lucide="qr-code" class="size-[18px] text-oro-500"></i> 4. Código QR</h2>
+                <h2 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><x-icono name="qr-code" class="size-[18px] text-oro-500" /> 4. Código QR</h2>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     @foreach(['whatsapp' => ['message-circle', 'Abre WhatsApp'], 'contacto' => ['contact', 'Guarda mi contacto'], 'web' => ['globe', 'Abre mi sitio'], 'ninguno' => ['x', 'Sin QR']] as $k => [$ic, $tx])
                         <label class="cursor-pointer"><input type="radio" name="qr" value="{{ $k }}" class="peer sr-only" @checked($t->qr === $k)>

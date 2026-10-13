@@ -18,7 +18,7 @@
             <input type="date" name="hasta" value="{{ $hasta->format('Y-m-d') }}" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
             <button class="bg-azul-800 text-white text-sm font-semibold px-3 py-1.5 rounded-lg">Ver</button>
         </div>
-        <a href="{{ route('pos.reportes.excel', request()->query()) }}" class="ml-auto inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2 rounded-lg"><i data-lucide="file-spreadsheet" class="size-4"></i> Descargar para Excel</a>
+        <a href="{{ route('pos.reportes.excel', request()->query()) }}" class="ml-auto inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2 rounded-lg"><x-icono name="file-spreadsheet" class="size-4" /> Descargar para Excel</a>
     </form>
     <p class="text-sm text-gray-500 mb-3">Del {{ $desde->format('d/m/Y') }} al {{ $hasta->format('d/m/Y') }}</p>
 
@@ -64,11 +64,11 @@
             </table>
         </section>
         <section class="{{ $card }} p-4 sm:p-5">
-            <h2 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><i data-lucide="triangle-alert" class="size-[18px] text-red-500"></i> Por agotarse</h2>
+            <h2 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><x-icono name="triangle-alert" class="size-[18px] text-red-500" /> Por agotarse</h2>
             @forelse($bajos as $p)
                 <a href="{{ route('pos.productos.kardex', $p) }}" class="flex justify-between text-sm py-1.5 hover:text-azul-800"><span class="truncate">{{ $p->nombre }}</span><span class="font-semibold text-red-600 tabular-nums shrink-0 ml-2">{{ rtrim(rtrim(number_format((float) $p->stock, 2, '.', ''), '0'), '.') }} {{ $p->unidad }}</span></a>
-            @empty<p class="text-sm text-gray-400">Todo con existencias. 👍</p>@endforelse
-            @if($bajos->isNotEmpty())<a href="{{ route('pos.compras.crear') }}" class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-azul-800 hover:underline"><i data-lucide="truck" class="size-4"></i> Registrar compra</a>@endif
+            @empty<p class="text-sm text-gray-400">Todo con existencias. <x-icono name="circle-check" class="size-4"/></p>@endforelse
+            @if($bajos->isNotEmpty())<a href="{{ route('pos.compras.crear') }}" class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-azul-800 hover:underline"><x-icono name="truck" class="size-4" /> Registrar compra</a>@endif
         </section>
     </div>
 </x-layout>

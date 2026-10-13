@@ -1,6 +1,6 @@
 <x-publico titulo="¡Listo!" ancho="max-w-sm">
     <div class="text-center">
-        <div class="mx-auto size-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center"><i data-lucide="check" class="size-9"></i></div>
+        <div class="mx-auto size-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center"><x-icono name="check" class="size-9" /></div>
         <h2 class="text-xl font-bold text-azul-950 mt-4">¡Gracias{{ $nombre ? ', ' . $nombre : '' }}!</h2>
         <p class="text-gray-500 mt-1">Recibimos sus datos en <b>{{ $cyber->nombre }}</b>.</p>
         <div class="mt-6 rounded-2xl bg-azul-800 text-white py-6">

@@ -11,7 +11,7 @@
 
     @unless($fondoListo)
         <div class="mb-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm p-3 flex gap-2">
-            <i data-lucide="triangle-alert" class="size-5 shrink-0"></i>
+            <x-icono name="triangle-alert" class="size-5 shrink-0" />
             <div>El quitador de fondo todavía no está instalado en el servidor. Mientras tanto se puede recortar e imprimir con el fondo original.
                 @if(auth()->user()->esAdmin()) Para activarlo, en el servidor corra: <code class="bg-white px-1 rounded">php artisan micv:modelo-fondo</code>@endif
             </div>
@@ -24,20 +24,20 @@
             <section class="{{ $card }} p-4 sm:p-5">
                 <h2 class="font-semibold text-azul-950 mb-3 flex items-center gap-2"><span class="size-6 rounded-full bg-azul-800 text-white text-xs flex items-center justify-center">1</span> La foto</h2>
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" id="btnCamara" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="camera" class="size-4"></i> Usar la cámara</button>
+                    <button type="button" id="btnCamara" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="camera" class="size-4" /> Usar la cámara</button>
                     <label class="inline-flex items-center gap-2 cursor-pointer bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg">
-                        <i data-lucide="upload" class="size-4"></i> Subir foto
+                        <x-icono name="upload" class="size-4" /> Subir foto
                         <input type="file" id="archivoFoto" accept="image/*" class="sr-only">
                     </label>
                     @if($cliente && $cliente->tieneFoto())
-                        <button type="button" id="btnFotoCv" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><i data-lucide="user-round" class="size-4"></i> Usar la foto del CV</button>
+                        <button type="button" id="btnFotoCv" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg"><x-icono name="user-round" class="size-4" /> Usar la foto del CV</button>
                     @endif
                 </div>
                 <ul class="mt-3 text-xs text-gray-500 grid sm:grid-cols-2 gap-x-4 gap-y-1">
-                    <li class="flex gap-1.5"><i data-lucide="check" class="size-3.5 text-emerald-600 mt-0.5 shrink-0"></i> De frente, mirando a la cámara, sin lentes oscuros.</li>
-                    <li class="flex gap-1.5"><i data-lucide="check" class="size-3.5 text-emerald-600 mt-0.5 shrink-0"></i> Buena luz en la cara, sin sombras fuertes.</li>
-                    <li class="flex gap-1.5"><i data-lucide="check" class="size-3.5 text-emerald-600 mt-0.5 shrink-0"></i> Que se vean los hombros y la cabeza completa.</li>
-                    <li class="flex gap-1.5"><i data-lucide="check" class="size-3.5 text-emerald-600 mt-0.5 shrink-0"></i> Cualquier fondo sirve: el sistema lo cambia.</li>
+                    <li class="flex gap-1.5"><x-icono name="check" class="size-3.5 text-emerald-600 mt-0.5 shrink-0" /> De frente, mirando a la cámara, sin lentes oscuros.</li>
+                    <li class="flex gap-1.5"><x-icono name="check" class="size-3.5 text-emerald-600 mt-0.5 shrink-0" /> Buena luz en la cara, sin sombras fuertes.</li>
+                    <li class="flex gap-1.5"><x-icono name="check" class="size-3.5 text-emerald-600 mt-0.5 shrink-0" /> Que se vean los hombros y la cabeza completa.</li>
+                    <li class="flex gap-1.5"><x-icono name="check" class="size-3.5 text-emerald-600 mt-0.5 shrink-0" /> Cualquier fondo sirve: el sistema lo cambia.</li>
                 </ul>
             </section>
 
@@ -49,7 +49,7 @@
                         <label class="cursor-pointer {{ !$fondoListo && $color !== 'original' ? 'opacity-40 pointer-events-none' : '' }}">
                             <input type="radio" name="fondo" value="{{ $color }}" class="peer sr-only" @checked($fondoListo ? $color === '#ffffff' : $color === 'original')>
                             <span class="flex items-center gap-2 border-2 border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-600 peer-checked:border-azul-800 peer-checked:text-azul-800">
-                                @if($color === 'original')<i data-lucide="image" class="size-5"></i>@else<span class="size-5 rounded-full ring-1 ring-gray-300" style="background: {{ $color }}"></span>@endif
+                                @if($color === 'original')<x-icono name="image" class="size-5" />@else<span class="size-5 rounded-full ring-1 ring-gray-300" style="background: {{ $color }}"></span>@endif
                                 {{ $nombre }}
                             </span>
                         </label>
@@ -75,7 +75,7 @@
                     </div>
                 </div>
                 <div id="zonaRecorte" class="jz-foto-recorte relative rounded-xl overflow-hidden bg-gray-100 h-[420px] flex items-center justify-center">
-                    <div id="vacio" class="text-center text-gray-400 px-6"><i data-lucide="scan-face" class="size-14 mx-auto"></i><p class="mt-2 text-sm">Aquí aparece la foto para acomodarla.</p></div>
+                    <div id="vacio" class="text-center text-gray-400 px-6"><x-icono name="scan-face" class="size-14 mx-auto" /><p class="mt-2 text-sm">Aquí aparece la foto para acomodarla.</p></div>
                     <img id="imgRecorte" alt="" class="hidden max-w-full">
                 </div>
                 <p class="text-xs text-gray-500 mt-2">Arrastre la foto para moverla y use la rueda o los botones para acercar. La cabeza debe quedar dentro del óvalo y la barbilla sobre la línea.</p>
@@ -116,12 +116,12 @@
                     </div>
                 </section>
                 <section class="{{ $card }} p-3 grid grid-cols-2 gap-2">
-                    <button type="button" id="btnHoja" disabled class="col-span-2 inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold py-3 rounded-lg disabled:opacity-40 disabled:hover:bg-azul-800"><i data-lucide="printer" class="size-4"></i> Hoja para imprimir (PDF)</button>
-                    <button type="button" id="btnUna" disabled class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg disabled:opacity-40"><i data-lucide="image-down" class="size-4"></i> Una foto (JPG)</button>
+                    <button type="button" id="btnHoja" disabled class="col-span-2 inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold py-3 rounded-lg disabled:opacity-40 disabled:hover:bg-azul-800"><x-icono name="printer" class="size-4" /> Hoja para imprimir (PDF)</button>
+                    <button type="button" id="btnUna" disabled class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg disabled:opacity-40"><x-icono name="image-down" class="size-4" /> Una foto (JPG)</button>
                     @if($cliente)
-                        <button type="button" id="btnCv" disabled class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg disabled:opacity-40"><i data-lucide="file-user" class="size-4"></i> Poner en su CV</button>
+                        <button type="button" id="btnCv" disabled class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg disabled:opacity-40"><x-icono name="file-user" class="size-4" /> Poner en su CV</button>
                     @else
-                        <button type="button" id="btnTransparente" disabled class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg disabled:opacity-40"><i data-lucide="layers" class="size-4"></i> Sin fondo (PNG)</button>
+                        <button type="button" id="btnTransparente" disabled class="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold py-2.5 rounded-lg disabled:opacity-40"><x-icono name="layers" class="size-4" /> Sin fondo (PNG)</button>
                     @endif
                     <p class="col-span-2 text-[11px] text-gray-400 leading-snug">Imprima a <b>tamaño real (100 %)</b>, sin "ajustar a la página", en papel fotográfico o de buena calidad.</p>
                 </section>
@@ -141,7 +141,7 @@
                 <select id="camaras" class="border border-gray-300 rounded-lg px-2 py-2 text-sm max-w-[55%]"></select>
                 <div class="flex gap-2">
                     <button type="button" id="camCerrar" class="px-4 py-2.5 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-100">Cancelar</button>
-                    <button type="button" id="camTomar" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"><i data-lucide="aperture" class="size-4"></i> Tomar (3 s)</button>
+                    <button type="button" id="camTomar" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg"><x-icono name="aperture" class="size-4" /> Tomar (3 s)</button>
                 </div>
             </div>
         </div>
@@ -232,7 +232,7 @@
                 if (n !== pedido) return;
                 if (!r.ok || !j.ok) throw new Error(r.status === 429 ? 'Muchas fotos seguidas. Espere un minuto.' : (j.mensaje || j.message || 'No se pudo quitar el fondo.'));
                 sinFondo = j.imagen;
-                $('estadoFondo').innerHTML = '<span class="text-emerald-700 font-semibold">✓ Fondo quitado.</span> Puede cambiar el color cuando quiera.';
+                $('estadoFondo').innerHTML = '<span class="text-emerald-700 font-semibold">Fondo quitado.</span> Puede cambiar el color cuando quiera.';
                 cargarEnRecorte();
             } catch (e) {
                 if (n !== pedido) return;
