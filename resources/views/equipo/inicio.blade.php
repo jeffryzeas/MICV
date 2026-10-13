@@ -1,0 +1,1 @@
+<x-layout titulo="Mi espacio" activo="dashboard"><div class="bg-white rounded-xl p-6 shadow"><h2 class="text-xl font-bold">Hola, {{ auth()->user()->name }}</h2><p class="mt-2">Elija una de las herramientas habilitadas en el menú.</p><p class="text-sm text-gray-500 mt-2">{{ auth()->user()->cyber?->nombre }}</p></div></x-layout>

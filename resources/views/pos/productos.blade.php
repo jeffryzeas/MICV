@@ -27,7 +27,7 @@
                 <tbody>
                 @forelse($productos as $p)
                     <tr class="border-b last:border-0">
-                        <td class="p-3"><a href="{{ route('pos.productos.editar', $p) }}" class="font-semibold text-azul-950 hover:text-azul-800">@if($p->favorito)<span class="text-oro-500">★</span> @endif{{ $p->nombre }}</a>
+                        <td class="p-3">@if($p->foto)<img src="{{ $p->fotoUrl() }}" loading="lazy" alt="" class="w-12 h-12 rounded-lg object-cover mb-2">@endif<a href="{{ route('pos.productos.editar', $p) }}" class="font-semibold text-azul-950 hover:text-azul-800">@if($p->favorito)<span class="text-oro-500">★</span> @endif{{ $p->nombre }}</a>
                             <span class="block text-xs text-gray-400">{{ $p->tipo === 'servicio' ? 'Servicio' : 'Producto' }}@if($p->codigo) · <span class="font-mono">{{ $p->codigo }}</span>@endif @if($p->exento) · Exento @endif</span></td>
                         <td class="p-3">@if($p->categoria)<span class="inline-flex items-center gap-1.5 text-xs"><span class="size-2 rounded-full" style="background: {{ $p->categoria->color }}"></span>{{ $p->categoria->nombre }}</span>@else<span class="text-gray-300">—</span>@endif</td>
                         <td class="p-3 text-right font-semibold tabular-nums {{ (float) $p->precio == 0 ? 'text-red-500' : '' }}">{{ $cfg->dinero($p->precio) }}</td>

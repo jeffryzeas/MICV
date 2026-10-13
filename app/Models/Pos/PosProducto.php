@@ -10,11 +10,16 @@ class PosProducto extends Model
 {
     protected $table = 'pos_productos';
 
-    protected $fillable = ['cyber_id', 'categoria_id', 'proveedor_id', 'tipo', 'codigo', 'nombre', 'precio', 'costo', 'impuesto_tasa', 'exento', 'controla_stock', 'stock', 'stock_minimo', 'unidad', 'favorito', 'activo'];
+    protected $fillable = ['foto', 'cyber_id', 'categoria_id', 'proveedor_id', 'tipo', 'codigo', 'nombre', 'precio', 'costo', 'impuesto_tasa', 'exento', 'controla_stock', 'stock', 'stock_minimo', 'unidad', 'favorito', 'activo'];
 
     protected function casts(): array
     {
         return ['precio' => 'decimal:2', 'costo' => 'decimal:2', 'impuesto_tasa' => 'decimal:2', 'stock' => 'decimal:2', 'stock_minimo' => 'decimal:2', 'exento' => 'boolean', 'controla_stock' => 'boolean', 'favorito' => 'boolean', 'activo' => 'boolean'];
+    }
+
+    public function fotoUrl(): ?string
+    {
+        return $this->foto ? route('pos.productos.foto', ['producto'=>$this->id,'v'=>substr(sha1($this->foto),0,12)]) : null;
     }
 
     public function categoria(): BelongsTo { return $this->belongsTo(PosCategoria::class, 'categoria_id'); }

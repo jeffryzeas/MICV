@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\RequiereInstalacion::class,
         ], append: [
             \App\Http\Middleware\CabecerasSeguridad::class,
+            \App\Http\Middleware\PermisosModulo::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class . ':global',
         ]);
 

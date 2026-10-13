@@ -32,7 +32,7 @@
             </div>
             <iframe src="{{ route('pos.ventas.tiquete', $v) }}" class="w-full h-[520px] rounded-2xl ring-1 ring-gray-200 bg-gray-200" title="Comprobante"></iframe>
             @if($v->estado === 'pagada')
-                <form method="POST" action="{{ route('pos.ventas.anular', $v) }}" onsubmit="return jzAnular(event)" class="{{ $card }} p-3">
+                <form method="POST" action="{{ route('pos.ventas.anular', $v) }}" onsubmit="return jzAnular(event)" class="{{ $card }} p-3" @if(!auth()->user()->tienePermiso('pos.anular')) hidden style="display:none" @endif>
                     @csrf<input type="hidden" name="motivo">
                     <button class="w-full inline-flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 text-sm font-semibold py-2.5 rounded-lg"><i data-lucide="ban" class="size-4"></i> Anular venta</button>
                     <p class="text-[11px] text-gray-400 text-center">Devuelve el inventario y la saca de los totales.</p>

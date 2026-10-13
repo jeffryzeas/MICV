@@ -7,8 +7,12 @@
 @endphp
 <x-layout :titulo="$nuevo ? 'Nuevo ' . ($tipo === 'servicio' ? 'servicio' : 'producto') : $p->nombre" activo="pos-productos">
     @include('pos._barra')
-    <form method="POST" action="{{ $nuevo ? route('pos.productos.guardar') : route('pos.productos.actualizar', $p) }}" class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5 p-5 sm:p-6 max-w-3xl space-y-5">
+    <form method="POST" enctype="multipart/form-data" action="{{ $nuevo ? route('pos.productos.guardar') : route('pos.productos.actualizar', $p) }}" class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5 p-5 sm:p-6 max-w-3xl space-y-5">
         @csrf @unless($nuevo) @method('PUT') @endunless
+        <fieldset class="border border-gray-200 rounded-xl p-4"><legend class="text-sm font-bold">Foto del producto</legend>
+            @if($p->foto)<img src="{{ $p->fotoUrl() }}" alt="{{ $p->nombre }}" class="w-24 h-24 object-cover rounded-lg mb-3"><label class="text-sm"><input type="checkbox" name="quitar_foto" value="1"> Quitar foto actual</label>@endif
+            <input type="file" name="foto" accept="image/jpeg,image/png,image/webp" class="block text-sm mt-2"><p class="text-xs text-gray-500 mt-1">JPG, PNG o WebP. Máximo 8 MB.</p>
+        </fieldset>
         <div class="grid grid-cols-2 gap-2 max-w-sm">
             @foreach(['producto' => ['package', 'Producto (se cuenta)'], 'servicio' => ['hand-helping', 'Servicio']] as $k => [$ic, $t])
                 <label class="cursor-pointer"><input type="radio" name="tipo" value="{{ $k }}" class="peer sr-only" @checked($tipo === $k)>

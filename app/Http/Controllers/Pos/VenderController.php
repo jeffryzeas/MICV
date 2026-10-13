@@ -23,7 +23,7 @@ class VenderController extends PosBase
         $cfg = $c['cfg'];
         $productos = PosProducto::where('cyber_id', $c['cyberPos']->id)->where('activo', true)->orderByDesc('favorito')->orderBy('nombre')->get()
             ->map(fn ($p) => [
-                'id' => $p->id, 'n' => $p->nombre, 'c' => $p->codigo, 'p' => (float) $p->precio, 't' => $p->tipo, 'cat' => $p->categoria_id,
+                'foto' => $p->fotoUrl(), 'id' => $p->id, 'n' => $p->nombre, 'c' => $p->codigo, 'p' => (float) $p->precio, 't' => $p->tipo, 'cat' => $p->categoria_id,
                 's' => $p->controla_stock ? (float) $p->stock : null, 'u' => $p->unidad, 'f' => $p->favorito, 'tasa' => $p->tasa($cfg),
             ]);
         $cliente = null;

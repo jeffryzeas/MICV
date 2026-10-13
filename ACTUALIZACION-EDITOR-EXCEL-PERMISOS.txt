@@ -1,0 +1,88 @@
+ACTUALIZACIÓN: EXCEL, FOTOS DE PRODUCTOS, CAJEROS Y EDITOR DE DOCUMENTOS
+
+QUÉ INCLUYE
+1. Reporte Excel .xlsx real: Resumen, Ventas, Pagos, Inventario y Compras. Encabezados fijos, filtros, tablas, anchos y alturas ajustados, fechas y números reales, moneda y fórmulas con resultados guardados. El resumen excluye anuladas y descuenta el cambio del efectivo. Inventario representa el saldo actual, identificado en la hoja. La descarga anterior CSV ahora entrega Excel.
+2. Foto de producto: carga/reemplazo/eliminación; miniaturas en productos y pantalla de venta. Se procesa con Sharp, se endereza según EXIF, se comprime a JPG y se limita a 1000 px, sin depender de PHP GD. Almacenamiento privado y acceso limitado al Cyber correspondiente.
+3. Mi equipo: encargados crean cajeros de su propio Cyber; administrador general selecciona Cyber y encargado. Perfiles predeterminados Cajero y Operador de documentos, más permisos individuales por módulo y acción. Las cuentas antiguas de Cyber conservan su condición de encargado. El encargado solo puede conceder permisos que él mismo tenga. El cajero no puede administrar personal. El administrador puede configurar los perfiles también en Usuarios.
+4. Editor y copias de documentos: una o dos fotos JPG/PNG/WebP, cuatro puntos arrastrables para corrección de perspectiva, giro de 90 grados, color/gris/blanco y negro/aclarado de sombras, brillo, contraste y umbral. Descarga JPG/PNG de la cara seleccionada y PDF con una o dos caras en Carta o A4, medidas en mm, márgenes, separación y ajuste opcional a hoja.
+
+INSTALACIÓN
+Este ZIP contiene todas las mejoras anteriores (Word, plantilla Carta y lógica de residencia/POS). Para actualizar desde la versión mi-cv-logica-pos, reemplace los archivos enumerados al final de esta guía.
+
+Desde /var/www/micv, después de copiar los archivos:
+npm ci --omit=dev
+php artisan migrate --force
+php artisan optimize:clear
+
+npm instala ExcelJS y JSZip; Sharp y las demás dependencias existentes se conservan. No hace falta instalar Python ni GD para estas funciones. La biblioteca PDF del editor ya viene incluida con su licencia.
+No reemplace .env, storage, fotos ni su base de datos con los archivos del ZIP. La migración nueva agrega permisos/encargado a usuarios y foto a productos, sin borrar los registros existentes.
+Si aún no aplicó las actualizaciones anteriores, aplique también los archivos y migraciones de las guías anteriores incluidas.
+
+USO
+- Reportes: Punto de venta > Reportes > Descargar para Excel. Respeta el período seleccionado y el Cyber activo.
+- Fotos: Productos > Nuevo/Editar > Foto del producto. Máximo 8 MB por archivo; JPG, PNG o WebP. PHP debe aceptar cargas de ese tamaño.
+- Cajeros: Mi equipo > Crear cajero. Elija perfil y revise las casillas antes de guardar. El administrador también puede entrar a Usuarios, asignar Cyber, elegir Cajero/empleado y seleccionar un encargado del mismo negocio.
+- Cajero predeterminado: vender, abrir/ver caja, consultar comprobantes y usar editor de documentos. No cambia precios, aplica descuentos, anula, retira efectivo, cierra caja ni abre reportes/configuración hasta recibir esos permisos.
+- El carrito de venta se separa por Cyber y usuario. Los carritos guardados con la clave antigua no se trasladan entre cuentas.
+- Editor: cargue una o dos fotos; gire si hace falta; arrastre los puntos en orden 1 arriba izquierda, 2 arriba derecha, 3 abajo derecha y 4 abajo izquierda; pulse Enderezar y recortar en cada lado. Aplique filtros y revise la vista de la hoja. Puede exportar solo la foto o el PDF completo.
+- Medidas de tarjeta predeterminadas: 85,6 x 54 mm, editables. Confirme las medidas reales del documento y mande imprimir al 100% / tamaño real, sin ajuste automático de la impresora. Si activa Ajustar a la hoja, la escala se muestra en pantalla.
+- Las imágenes del editor se procesan durante la sesión y no se guardan como archivos de clientes ni en el historial del servidor.
+
+PERMISOS
+Se validan en el servidor y en el menú. Los permisos de edición incluyen las lecturas necesarias. Cambios de precio, artículos libres y descuentos también se revisan en el servicio de venta, aunque se altere la petición manualmente.
+Los cajeros pertenecen a un encargado de su mismo Cyber. Antes de cambiar de negocio, convertir o eliminar a un encargado con cajeros, se deben reasignar esos cajeros.
+
+VERIFICACIÓN REALIZADA
+- Sintaxis PHP 8.3 de app, migraciones y pruebas; validación JS.
+- Pruebas de lógica de permisos y rutas protegidas, listas vacías y prevención de escalamiento de cajero a encargado.
+- Editor probado en Chromium: carga de dos fotos, arrastre de las ocho esquinas, recorte, filtros, giro, JPG, PDF y diseño móvil sin desbordamiento.
+- Geometría del PDF comprobada: una página Carta de 612 x 792 puntos, dos imágenes colocadas a 85,6 x 54 mm.
+- Algoritmo de perspectiva, polígonos inválidos, filtros y límites de medidas probados con imágenes sintéticas.
+- XLSX generado y reabierto con dos lectores; cinco hojas revisadas visualmente, fórmulas y resultados comprobados, pagos mixtos y cambio conciliados, anulaciones excluidas del resumen, identificadores conservados como texto, reporte vacío válido. Se corrige el indicador de fila total que escribe ExcelJS 4.x para que la última venta no parezca un total.
+- Compresión de foto de producto con Sharp probada sin GD.
+
+PENDIENTE EN SU VPS
+No se ejecutó Laravel completo ni la migración contra su base de datos. Verifique en su despliegue: crear encargado/cajero, asignación a Cyber, denegación de módulos/acciones, subir/reemplazar/quitar foto de producto, descarga Excel y flujo completo del POS.
+Pruebas Laravel incluidas:
+php artisan test --filter='PermisosTest|PosIntegridadTest|SituacionLaboralTest'
+
+ARCHIVOS DE ESTA ACTUALIZACIÓN
+app/Http/Controllers/Admin/UsuarioController.php
+app/Http/Controllers/DashboardController.php
+app/Http/Controllers/EquipoController.php
+app/Http/Controllers/Pos/ProductoController.php
+app/Http/Controllers/Pos/ReporteController.php
+app/Http/Controllers/Pos/VenderController.php
+app/Http/Middleware/PermisosModulo.php
+app/Models/Pos/PosProducto.php
+app/Models/User.php
+app/Services/FotoProducto.php
+app/Services/Pos/Ventas.php
+app/Support/Menu.php
+app/Support/Permisos.php
+bootstrap/app.php
+database/migrations/2026_10_22_000004_equipo_fotos.php
+package-lock.json
+package.json
+public/js/documentos-core.js
+public/js/documentos-editor.js
+public/vendor/LICENSE-pdf-lib.md
+public/vendor/pdf-lib.min.js
+resources/images/producto-foto.cjs
+resources/reports/pos-excel.cjs
+resources/views/admin/usuarios/form.blade.php
+resources/views/documentos/editor.blade.php
+resources/views/equipo/form.blade.php
+resources/views/equipo/index.blade.php
+resources/views/equipo/inicio.blade.php
+resources/views/partials/permisos-selector.blade.php
+resources/views/pos/caja.blade.php
+resources/views/pos/compra.blade.php
+resources/views/pos/producto-form.blade.php
+resources/views/pos/productos.blade.php
+resources/views/pos/reportes.blade.php
+resources/views/pos/vender.blade.php
+resources/views/pos/venta.blade.php
+routes/web.php
+tests/Feature/PermisosTest.php
+tests/Feature/PosIntegridadTest.php

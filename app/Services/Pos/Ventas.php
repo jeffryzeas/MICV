@@ -41,6 +41,9 @@ class Ventas
      */
     public static function registrar(array $d, PosConfig $cfg, PosCaja $caja, User $u): PosVenta
     {
+        if (!$u->tienePermiso('pos.vender') || (!$u->esAdmin() && (int)$u->cyber_id !== (int)$cfg->cyber_id)) {
+            throw ValidationException::withMessages(['items'=>'No tiene permiso para vender en este Cyber.']);
+        }
         return DB::transaction(function () use ($d, $cfg, $caja, $u) {
             // Mismo bloqueo que retiros y cierre: la venta no puede cruzarse con el cierre.
             $caja = PosCaja::whereKey($caja->id)->where('cyber_id', $cfg->cyber_id)->lockForUpdate()->firstOrFail();
@@ -52,6 +55,9 @@ class Ventas
             }
             if ($caja->estado !== 'abierta') {
                 throw ValidationException::withMessages(['pagos' => 'La caja se cerró. Ábrala antes de vender.']);
+            }
+            if (!$u->tienePermiso('pos.descuentos') && ((float)($d['descuento_pct']??0)>0 || collect($d['items'])->contains(fn ($it)=>(float)($it['descuento']??0)>0))) {
+                throw ValidationException::withMessages(['items'=>'Su cuenta no tiene permiso para aplicar descuentos.']);
             }
             $dec = (int) $cfg->decimales;
             $pct = max(0, min(100, (float) ($d['descuento_pct'] ?? 0)));
@@ -65,6 +71,9 @@ class Ventas
                 }
                 $cant = round((float) $it['cantidad'], 2);
                 $precio = round((float) ($it['precio'] ?? $p?->precio ?? 0), 2);
+                if (!$u->tienePermiso('pos.precios') && (!$p || abs($precio-(float)$p->precio)>0.004)) {
+                    throw ValidationException::withMessages(['items'=>'Su cuenta no puede cambiar precios ni agregar artículos libres.']);
+                }
                 $tasa = $p ? $p->tasa($cfg) : (float) $cfg->impuesto_tasa;
                 $bruto = $precio * $cant;
                 $desc = (float) ($it['descuento'] ?? 0);
@@ -143,6 +152,9 @@ class Ventas
 
     public static function anular(PosVenta $v, User $u, string $motivo): void
     {
+        if (!$u->tienePermiso('pos.anular') || (!$u->esAdmin() && (int)$u->cyber_id !== (int)$v->cyber_id)) {
+            throw ValidationException::withMessages(['motivo'=>'No tiene permiso para anular ventas de este Cyber.']);
+        }
         DB::transaction(function () use ($v, $u, $motivo) {
             $caja = PosCaja::whereKey($v->caja_id)->lockForUpdate()->first();
             $v = PosVenta::whereKey($v->id)->lockForUpdate()->firstOrFail();

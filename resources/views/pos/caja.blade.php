@@ -28,7 +28,7 @@
                 <li class="flex justify-between"><span class="text-gray-500">Salidas de efectivo</span><span class="tabular-nums text-red-600">−{{ $cfg->dinero($r['retiros']) }}</span></li>
                 <li class="flex justify-between border-t pt-2 font-bold text-azul-950"><span>Efectivo esperado</span><span class="tabular-nums">{{ $cfg->dinero($r['esperado']) }}</span></li>
             </ul>
-            <form method="POST" action="{{ route('pos.caja.movimiento') }}" class="mt-5 space-y-2 border-t pt-4">
+            <form method="POST" action="{{ route('pos.caja.movimiento') }}" class="mt-5 space-y-2 border-t pt-4" @if(!auth()->user()->tienePermiso('pos.caja.movimientos')) hidden style="display:none" @endif>
                 @csrf
                 <p class="text-sm font-semibold text-azul-950">Entrada o salida de efectivo</p>
                 <div class="grid grid-cols-2 gap-2">
@@ -44,7 +44,7 @@
         <section class="{{ $card }} p-4 sm:p-5">
             <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><i data-lucide="lock" class="size-[18px] text-oro-500"></i> Cerrar caja</h2>
             <p class="text-xs text-gray-500 mb-3">Cuente los billetes y monedas. El sistema compara con lo que debería haber.</p>
-            <form method="POST" action="{{ route('pos.caja.cerrar') }}" id="fCierre" onsubmit="return jzCerrar(event)">
+            <form method="POST" action="{{ route('pos.caja.cerrar') }}" id="fCierre" onsubmit="return jzCerrar(event)" @if(!auth()->user()->tienePermiso('pos.caja.cerrar')) hidden style="display:none" @endif>
                 @csrf
                 <div class="grid grid-cols-2 gap-x-3 gap-y-1.5">
                     @foreach($billetes as $b)

@@ -91,4 +91,18 @@ class PosIntegridadTest extends TestCase
             }
         }
     }
+    public function test_cajero_no_puede_alterar_precio_ni_descuento_en_el_payload(): void
+    {
+        [$cfg,$caja,$admin,$p]=$this->contexto();
+        $encargado=User::create(['usuario'=>'ENCARGADO','name'=>'Encargado','email'=>'encargado@example.test','password'=>'clave-segura','rol'=>'cyber','cyber_id'=>$cfg->cyber_id]);
+        $cajero=User::create(['usuario'=>'CAJERO','name'=>'Cajero','email'=>'cajero@example.test','password'=>'clave-segura','rol'=>'cyber','cyber_id'=>$cfg->cyber_id,'encargado_id'=>$encargado->id]);
+        foreach (['precio','descuento'] as $cambio) {
+            $d=$this->datos($p);
+            if($cambio==='precio')$d['items'][0]['precio']=9;
+            else $d['descuento_pct']=5;
+            try { Ventas::registrar($d,$cfg,$caja,$cajero);$this->fail('El cambio no autorizado debía rechazarse.'); }
+            catch(ValidationException $e) {$this->assertDatabaseCount('pos_ventas',0);$this->assertEquals(2,$p->fresh()->stock);}
+        }
+    }
+
 }

@@ -129,6 +129,13 @@ Route::middleware(['auth', 'activo', 'verificado', 'terminos'])->group(function 
     Route::put('clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update')->middleware('throttle:guardar');
     Route::delete('clientes/{cliente}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
 
+    Route::get('equipo', [\App\Http\Controllers\EquipoController::class, 'index'])->name('equipo.index');
+    Route::get('equipo/nuevo', [\App\Http\Controllers\EquipoController::class, 'crear'])->name('equipo.crear');
+    Route::get('equipo/{usuario}/editar', [\App\Http\Controllers\EquipoController::class, 'editar'])->name('equipo.editar');
+    Route::post('equipo', [\App\Http\Controllers\EquipoController::class, 'guardar'])->name('equipo.guardar')->middleware('throttle:guardar');
+    Route::put('equipo/{usuario}', [\App\Http\Controllers\EquipoController::class, 'actualizar'])->name('equipo.actualizar')->middleware('throttle:guardar');
+    Route::get('documentos/editor', fn () => view('documentos.editor'))->name('documentos.index');
+
     // ── Fotos carné y pasaporte (quitar fondo + hoja para imprimir)
     Route::get('fotos', [\App\Http\Controllers\FotoController::class, 'index'])->name('fotos.index');
     Route::post('fotos/procesar', [\App\Http\Controllers\FotoController::class, 'procesar'])->name('fotos.procesar')->middleware('throttle:fondo');
@@ -165,6 +172,7 @@ Route::middleware(['auth', 'activo', 'verificado', 'terminos'])->group(function 
         Route::post('productos/sugeridos', [$P . 'ProductoController', 'sugeridos'])->name('productos.sugeridos');
         Route::post('categorias', [$P . 'ProductoController', 'categoria'])->name('categorias.guardar');
         Route::delete('categorias/{categoria}', [$P . 'ProductoController', 'categoriaBorrar'])->name('categorias.borrar');
+        Route::get('productos/{producto}/foto', [$P . 'ProductoController', 'foto'])->name('productos.foto');
         Route::get('productos/{producto}', [$P . 'ProductoController', 'editar'])->name('productos.editar');
         Route::put('productos/{producto}', [$P . 'ProductoController', 'actualizar'])->name('productos.actualizar');
         Route::delete('productos/{producto}', [$P . 'ProductoController', 'borrar'])->name('productos.borrar');
@@ -179,6 +187,7 @@ Route::middleware(['auth', 'activo', 'verificado', 'terminos'])->group(function 
         Route::get('compras/{compra}', [$P . 'CompraController', 'ver'])->name('compras.ver');
         Route::post('compras/{compra}/anular', [$P . 'CompraController', 'anular'])->name('compras.anular');
         Route::get('reportes', [$P . 'ReporteController', 'index'])->name('reportes');
+        Route::get('reportes/excel', [$P . 'ReporteController', 'excel'])->name('reportes.excel');
         Route::get('reportes/csv', [$P . 'ReporteController', 'csv'])->name('reportes.csv');
         Route::get('configuracion', [$P . 'ConfigController', 'editar'])->name('config');
         Route::put('configuracion', [$P . 'ConfigController', 'actualizar'])->name('config.actualizar');

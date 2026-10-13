@@ -37,6 +37,7 @@ class UsuarioController extends Controller
         return view('admin.usuarios.form', [
             'usuario' => new User(['rol' => 'cyber', 'activo' => true, 'cyber_id' => $request->query('cyber_id')]),
             'cybers'  => $cybers,
+            'encargados' => User::where('rol','cyber')->whereNull('encargado_id')->where('activo',true)->get(),
         ]);
     }
 
@@ -54,7 +55,7 @@ class UsuarioController extends Controller
     public function edit(User $usuario)
     {
         $cybers = Cyber::orderBy('nombre')->get();
-        return view('admin.usuarios.form', compact('usuario', 'cybers'));
+        return view('admin.usuarios.form', ['usuario'=>$usuario,'cybers'=>$cybers,'encargados'=>User::where('rol','cyber')->whereNull('encargado_id')->where('activo',true)->where('id','!=',$usuario->id)->get()]);
     }
 
     public function update(Request $request, User $usuario)
@@ -102,6 +103,7 @@ class UsuarioController extends Controller
             return back()->withErrors(['general' => 'Debe quedar al menos un administrador activo.']);
         }
 
+        if ($usuario->cajeros()->exists()) return back()->withErrors(['general'=>'Reasigne primero los cajeros de este encargado.']);
         $nombre = $usuario->usuario;
         $usuario->delete();
         Actividad::registrar('usuario_eliminar', $nombre);
@@ -130,6 +132,10 @@ class UsuarioController extends Controller
             'email'    => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($u?->id)],
             'rol'      => ['required', Rule::in($u?->esCliente() ? ['cliente'] : ['admin', 'cyber'])],
             'cyber_id' => ['nullable', 'required_if:rol,cyber', 'integer', 'exists:cybers,id'],
+            'perfil_acceso'=>['nullable','in:encargado,cajero'],
+            'encargado_id'=>['nullable','integer'],
+            'permisos'=>['nullable','array','max:40'],
+            'permisos.*'=>['string',Rule::in(array_keys(\App\Support\Permisos::LISTA))],
             'password' => [$u ? 'nullable' : 'required', 'confirmed', Password::min(8)],
         ], [
             'usuario.regex' => 'El usuario solo puede tener letras, números, punto, guion y guion bajo (sin espacios).',
@@ -139,6 +145,21 @@ class UsuarioController extends Controller
             $datos['cyber_id'] = null;
         }
 
+        $perfil=$datos['perfil_acceso']??($u?->encargado_id?'cajero':'encargado');
+        if ($u && $u->cajeros()->exists() && ($datos['rol'] !== 'cyber' || (int)($datos['cyber_id']??0) !== (int)$u->cyber_id || $perfil === 'cajero')) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['cyber_id'=>'Reasigne primero los cajeros de este encargado.']);
+        }
+        if ($datos['rol']==='cyber' && $perfil==='cajero') {
+            $enc=User::where('rol','cyber')->whereNull('encargado_id')->where('activo',true)->where('cyber_id',$datos['cyber_id'])->where('id','!=',$u?->id??0)->find($datos['encargado_id']??$u?->encargado_id??0);
+            if (!$enc) throw \Illuminate\Validation\ValidationException::withMessages(['encargado_id'=>'Seleccione un encargado activo del mismo Cyber.']);
+            $datos['encargado_id']=$enc->id;
+        } else { $datos['encargado_id']=null; }
+        if ($datos['rol']==='cyber') {
+            $lista=$request->has('permisos_enviados') ? ($datos['permisos']??[]) : ($u?->permisos ?? \App\Support\Permisos::perfil($datos['encargado_id']?'cajero':'encargado'));
+            if ($datos['encargado_id']) $lista=array_values(array_diff($lista,['personal']));
+            $datos['permisos']=\App\Support\Permisos::completar($lista);
+        } else { $datos['permisos']=null; }
+        unset($datos['perfil_acceso']);
         unset($datos['password']);
         $datos['activo'] = $request->boolean('activo');
 

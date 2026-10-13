@@ -87,6 +87,16 @@ class Menu
 
         $items[] = ['id' => 'perfil', 'url' => route('perfil.edit'), 'icon' => 'user-circle', 'label' => 'Mi perfil y contraseña'];
 
-        return $items;
+        if ($u->esAdmin() || $u->esEncargado()) {
+            $items[] = ['id'=>'equipo','url'=>route('equipo.index'),'icon'=>'users-round','label'=>'Mi equipo'];
+        }
+        $items[] = ['id'=>'documentos','url'=>route('documentos.index'),'icon'=>'scan-line','label'=>'Editor y copias de documentos'];
+        $mapa = ['clientes-nuevo'=>'clientes.editar','clientes'=>'clientes.ver','cartas'=>'cartas','fotos'=>'fotos','autoservicio'=>'autoservicio','marca'=>'marca','equipo'=>'personal','documentos'=>'documentos',
+            'pos-vender'=>'pos.vender','pos-caja'=>'pos.caja','pos-ventas'=>'pos.ventas','pos-productos'=>'pos.productos','pos-compras'=>'pos.compras','pos-proveedores'=>'pos.proveedores','pos-reportes'=>'pos.reportes','pos-config'=>'pos.config'];
+        foreach ($items as &$item) {
+            if (!empty($item['hijos'])) $item['hijos'] = array_values(array_filter($item['hijos'], fn ($h) => !isset($mapa[$h['id']]) || $u->tienePermiso($mapa[$h['id']])));
+        }
+        unset($item);
+        return array_values(array_filter($items, fn ($i) => (!isset($mapa[$i['id']]) || $u->tienePermiso($mapa[$i['id']])) && ($i['id'] !== 'pos' || !empty($i['hijos']))));
     }
 }

@@ -50,28 +50,39 @@ class ReporteController extends PosBase
         ]);
     }
 
+    /** Excel con resumen, ventas, pagos, inventario y compras. */
+    public function excel(Request $request)
+    {
+        $cfg=$this->config($request); [$desde,$hasta]=$this->rango($request);
+        $ventas=PosVenta::where('cyber_id',$cfg->cyber_id)->whereBetween('created_at',[$desde,$hasta])->with('pagos','usuario','cliente')->orderBy('id')->get();
+        $datos=[
+            'negocio'=>$cfg->nombre_comercial ?: $cfg->cyber->nombre, 'moneda'=>$cfg->moneda, 'simbolo'=>$cfg->simbolo,
+            'periodo'=>$desde->format('d/m/Y').' al '.$hasta->format('d/m/Y'), 'generado'=>now()->format('d/m/Y H:i'),
+            'ventas'=>$ventas->map(fn($v)=>[
+                'numero'=>$v->numero,'fecha'=>$v->created_at->format('Y-m-d\TH:i:s'),'cliente'=>$v->nombreCliente(),'cajero'=>$v->usuario?->name??'',
+                'subtotal'=>(float)$v->subtotal,'descuento'=>(float)$v->descuento,'impuesto'=>(float)$v->impuesto,'total'=>(float)$v->total,'costo'=>(float)$v->costo_total,'cambio'=>(float)$v->cambio,
+                'estado'=>$v->estado,'motivo'=>$v->motivo_anulacion,'pagos'=>$v->pagos->map(fn($p)=>['clave'=>$p->metodo,'metodo'=>$cfg->nombreMetodo($p->metodo),'monto'=>(float)$p->monto,'referencia'=>$p->referencia])->all(),
+            ])->all(),
+            'inventario'=>PosProducto::where('cyber_id',$cfg->cyber_id)->where('controla_stock',true)->with('categoria')->orderBy('nombre')->get()->map(fn($p)=>[
+                'codigo'=>$p->codigo,'nombre'=>$p->nombre,'categoria'=>$p->categoria?->nombre,'stock'=>(float)$p->stock,'unidad'=>$p->unidad,'minimo'=>(float)$p->stock_minimo,'costo'=>(float)$p->costo,'precio'=>(float)$p->precio,'activo'=>(bool)$p->activo,
+            ])->all(),
+            'compras'=>\App\Models\Pos\PosCompra::where('cyber_id',$cfg->cyber_id)->whereBetween('fecha',[$desde->toDateString(),$hasta->toDateString()])->with('proveedor','usuario')->orderBy('fecha')->get()->map(fn($c)=>[
+                'id'=>$c->id,'fecha'=>$c->fecha->format('Y-m-d').'T00:00:00','factura'=>$c->numero_factura,'proveedor'=>$c->proveedor?->nombre,'usuario'=>$c->usuario?->name,'total'=>(float)$c->total,'estado'=>$c->estado,
+            ])->all(),
+        ];
+        $dir=storage_path('app/tmp-excel'); if(!is_dir($dir)) mkdir($dir,0775,true);
+        $salida=$dir.'/'.\Illuminate\Support\Str::random(24).'.xlsx';
+        try {
+            \App\Services\Nodo::correr(resource_path('reports/pos-excel.cjs'),[$salida],120,json_encode($datos,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+            $bin=file_get_contents($salida);
+        } finally { @unlink($salida); }
+        return response($bin,200,['Content-Type'=>'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Disposition'=>'attachment; filename="Reporte_POS_'.$desde->format('Ymd').'_'.$hasta->format('Ymd').'.xlsx"','Cache-Control'=>'no-store']);
+    }
+
     /** Detalle de ventas en CSV (abre en Excel). */
     public function csv(Request $request)
     {
-        $cfg = $this->config($request);
-        [$desde, $hasta] = $this->rango($request);
-        $ventas = PosVenta::where('cyber_id', $cfg->cyber_id)->whereBetween('created_at', [$desde, $hasta])->with('pagos', 'usuario', 'cliente')->orderBy('id')->get();
-        $out = fopen('php://temp', 'w+');
-        fwrite($out, "\xEF\xBB\xBF"); // BOM para que Excel lea las tildes
-        fputcsv($out, ['Número', 'Fecha', 'Hora', 'Cliente', 'Cajero', 'Subtotal', 'Descuento', $cfg->impuesto_nombre, 'Total', 'Costo', 'Pagos', 'Estado', 'Motivo anulación'], ';');
-        foreach ($ventas as $v) {
-            fputcsv($out, [
-                $v->numero, $v->created_at->format('d/m/Y'), $v->created_at->format('H:i'), $v->nombreCliente(), $v->usuario?->name,
-                $v->subtotal, $v->descuento, $v->impuesto, $v->total, $v->costo_total,
-                $v->pagos->map(fn ($p) => $cfg->nombreMetodo($p->metodo) . ' ' . $p->monto)->implode(' + '),
-                $v->estado, $v->motivo_anulacion,
-            ], ';');
-        }
-        rewind($out);
-        return response(stream_get_contents($out), 200, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="ventas_' . $desde->format('Ymd') . '_' . $hasta->format('Ymd') . '.csv"',
-        ]);
+        return $this->excel($request);
     }
 
     /** @return array{0: Carbon, 1: Carbon} */

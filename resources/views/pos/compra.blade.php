@@ -13,7 +13,7 @@
         </table>
         @if($compra->notas)<p class="text-sm text-gray-600">Notas: {{ $compra->notas }}</p>@endif
         @if($compra->estado === 'registrada')
-            <form method="POST" action="{{ route('pos.compras.anular', $compra) }}" class="jz-confirmar mt-4 text-right" data-msg="Se rebajan del inventario las cantidades de esta compra.">@csrf<button class="text-sm text-red-600 hover:underline">Anular compra</button></form>
+            <form method="POST" action="{{ route('pos.compras.anular', $compra) }}" class="jz-confirmar mt-4 text-right" data-msg="Se rebajan del inventario las cantidades de esta compra." @if(!auth()->user()->tienePermiso('pos.compras.anular')) hidden style="display:none" @endif>@csrf<button class="text-sm text-red-600 hover:underline">Anular compra</button></form>
         @endif
     </div>
 </x-layout>

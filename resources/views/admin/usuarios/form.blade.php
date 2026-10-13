@@ -38,6 +38,15 @@
                 @endif
             </div>
 
+            @unless($usuario->esCliente())
+            <div id="bloqueAccesoCyber" class="{{ $rolSel !== 'cyber' ? 'hidden' : '' }}">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <label class="text-sm">Perfil del usuario de Cyber<select name="perfil_acceso" class="w-full border rounded-lg p-2"><option value="encargado" @selected(old('perfil_acceso',$usuario->encargado_id?'cajero':'encargado')==='encargado')>Encargado del negocio</option><option value="cajero" @selected(old('perfil_acceso',$usuario->encargado_id?'cajero':'encargado')==='cajero')>Cajero / empleado</option></select></label>
+                <label class="text-sm">Encargado (para cajeros)<select name="encargado_id" class="w-full border rounded-lg p-2"><option value="">Seleccione</option>@foreach($encargados as $enc)<option data-cyber="{{ $enc->cyber_id }}" value="{{ $enc->id }}" @selected(old('encargado_id',$usuario->encargado_id)==$enc->id)>{{ $enc->name }} — {{ $enc->cyber?->nombre }}</option>@endforeach</select></label>
+            </div>
+            @include('partials.permisos-selector')
+            </div>
+            @endunless
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Nombre completo</label>
@@ -74,11 +83,16 @@
     <script>
     function jzRol(){
         const r = document.querySelector('input[name=rol]:checked');
+        document.getElementById('bloqueAccesoCyber')?.classList.toggle('hidden', !r || r.value !== 'cyber');
         document.getElementById('bloqueCyber').classList.toggle('hidden', !r || r.value === 'admin');
         document.querySelectorAll('input[name=rol]').forEach(i => {
             const l = i.closest('label'); l.classList.toggle('border-azul-800', i.checked); l.classList.toggle('bg-blue-50', i.checked); l.classList.toggle('border-gray-200', !i.checked);
         });
     }
+    const perfilAcceso=document.querySelector('[name=perfil_acceso]');
+    perfilAcceso?.addEventListener('change',()=>document.querySelector('[data-permisos-selector] [data-perfil="'+(perfilAcceso.value==='cajero'?'cajero':'encargado')+'"]')?.click());
+    function filtrarEncargados(){const c=document.querySelector('[name=cyber_id]'),e=document.querySelector('[name=encargado_id]');if(!c||!e)return;e.querySelectorAll('option[data-cyber]').forEach(o=>{o.hidden=o.dataset.cyber!==c.value;if(o.hidden&&o.selected)e.value='';});}
+    document.querySelector('[name=cyber_id]')?.addEventListener('change',filtrarEncargados);filtrarEncargados();
     </script>
     @endpush
 </x-layout>

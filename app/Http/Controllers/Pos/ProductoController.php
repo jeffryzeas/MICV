@@ -9,6 +9,8 @@ use App\Models\Pos\PosProducto;
 use App\Models\Pos\PosProveedor;
 use App\Services\Pos\Inventario;
 use App\Support\PosPaises;
+use App\Support\Archivos;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -16,6 +18,15 @@ use Illuminate\Validation\Rule;
 /** Productos, servicios, categorías e inventario (ajustes y kardex). */
 class ProductoController extends PosBase
 {
+    public function foto(Request $request, PosProducto $producto)
+    {
+        $this->delCyber($request,$producto);
+        abort_unless(Archivos::existe($producto->foto),404);
+        return response(Storage::disk(Archivos::DISCO)->get($producto->foto),200,[
+            'Content-Type'=>Storage::disk(Archivos::DISCO)->mimeType($producto->foto),
+            'Cache-Control'=>'private, max-age=3600','Vary'=>'Cookie','X-Content-Type-Options'=>'nosniff',
+        ]);
+    }
     public function index(Request $request)
     {
         $c = $this->comunes($request);
@@ -62,6 +73,9 @@ class ProductoController extends PosBase
         $d = $this->validar($request, $cy->id);
         $inicial = (float) ($d['stock_inicial'] ?? 0);
         unset($d['stock_inicial']);
+        $nuevaFoto = $request->hasFile('foto') ? \App\Services\FotoProducto::guardar($request->file('foto')) : null;
+        $d['foto']=$nuevaFoto;
+        try {
         $p = DB::transaction(function () use ($d, $cy, $inicial, $request) {
             $p = PosProducto::create($d + ['cyber_id' => $cy->id, 'stock' => 0]);
             if ($p->controla_stock && $inicial != 0) {
@@ -69,6 +83,7 @@ class ProductoController extends PosBase
             }
             return $p;
         });
+        } catch (\Throwable $e) { Archivos::borrar($nuevaFoto); throw $e; }
         Actividad::registrar('pos_producto_crear', $p->nombre);
         return redirect()->route($request->boolean('otro') ? 'pos.productos.crear' : 'pos.productos', $request->boolean('otro') ? ['tipo' => $p->tipo] : [])
             ->with('mensaje', '«' . $p->nombre . '» guardado.');
@@ -79,7 +94,12 @@ class ProductoController extends PosBase
         $this->delCyber($request, $producto);
         $d = $this->validar($request, $producto->cyber_id, $producto->id);
         unset($d['stock_inicial']);
-        $producto->update($d);
+        $anterior=$producto->foto;
+        $nuevaFoto=$request->hasFile('foto') ? \App\Services\FotoProducto::guardar($request->file('foto')) : null;
+        if ($nuevaFoto || $request->boolean('quitar_foto')) $d['foto']=$nuevaFoto;
+        try { $producto->update($d); }
+        catch (\Throwable $e) { Archivos::borrar($nuevaFoto); throw $e; }
+        if (array_key_exists('foto',$d) && $anterior!==$d['foto']) Archivos::borrar($anterior);
         Actividad::registrar('pos_producto_editar', $producto->nombre);
         return redirect()->route('pos.productos')->with('mensaje', '«' . $producto->nombre . '» actualizado.');
     }
@@ -92,7 +112,9 @@ class ProductoController extends PosBase
             $producto->update(['activo' => false]);
             return back()->with('mensaje', '«' . $producto->nombre . '» tiene historial: se desactivó (ya no sale en la caja).');
         }
+        $foto=$producto->foto;
         $producto->delete();
+        Archivos::borrar($foto);
         return back()->with('mensaje', 'Producto borrado.');
     }
 
@@ -169,6 +191,8 @@ class ProductoController extends PosBase
     protected function validar(Request $request, int $cyberId, ?int $id = null): array
     {
         $d = $request->validate([
+            'foto'=>['nullable','image','mimes:jpg,jpeg,png,webp','max:8192'],
+            'quitar_foto'=>['nullable','boolean'],
             'tipo' => ['required', 'in:producto,servicio'],
             'nombre' => ['required', 'string', 'max:150'],
             'codigo' => ['nullable', 'string', 'max:60', Rule::unique('pos_productos', 'codigo')->where('cyber_id', $cyberId)->ignore($id)],
@@ -182,6 +206,7 @@ class ProductoController extends PosBase
             'stock_minimo' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
             'unidad' => ['nullable', 'string', 'max:15'],
         ], [], ['codigo' => 'código', 'precio' => 'precio de venta', 'impuesto_tasa' => 'tasa de impuesto']);
+        unset($d['foto'],$d['quitar_foto']);
         $d['exento'] = $d['impuesto'] === 'exento';
         $d['impuesto_tasa'] = $d['impuesto'] === 'propio' ? $d['impuesto_tasa'] : null;
         unset($d['impuesto']);

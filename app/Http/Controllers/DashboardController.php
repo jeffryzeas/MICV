@@ -18,6 +18,7 @@ class DashboardController extends Controller
         if ($u->esCliente()) {
             return redirect()->route('mi-cv.panel');
         }
+        if (!$u->esAdmin() && (!$u->esEncargado() || !$u->tienePermiso('clientes.ver'))) { return view('equipo.inicio'); }
         $base = Cliente::query()->visiblesPara($u);
         $inicioMes = now()->startOfMonth();
         $hace6 = now()->startOfMonth()->subMonths(5);

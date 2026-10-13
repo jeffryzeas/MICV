@@ -21,7 +21,7 @@ class User extends Authenticatable
         'cliente' => 'Usuario registrado (hace su propio CV)',
     ];
 
-    protected $fillable = [
+    protected $fillable = ['encargado_id', 'permisos', 
         'cyber_id', 'usuario', 'name', 'email', 'password', 'rol', 'activo', 'ultimo_acceso',
         'terminos_version', 'terminos_aceptados_en',
     ];
@@ -31,6 +31,7 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'permisos' => 'array',
             'email_verified_at' => 'datetime',
             'ultimo_acceso'     => 'datetime',
             'terminos_aceptados_en' => 'datetime',
@@ -44,6 +45,22 @@ class User extends Authenticatable
         return $this->belongsTo(Cyber::class);
     }
 
+    public function esEncargado(): bool
+    {
+        return $this->rol === 'cyber' && $this->encargado_id === null;
+    }
+    public function tienePermiso(string $permiso): bool
+    {
+        if ($this->esAdmin()) return true;
+        if ($this->esCliente()) return false;
+        if ($permiso === 'personal' && !$this->esEncargado()) return false;
+        $lista = $this->permisos ?? \App\Support\Permisos::perfil($this->esEncargado() ? 'encargado' : 'cajero');
+        return in_array($permiso, \App\Support\Permisos::completar($lista), true);
+    }
+    public function cajeros(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(self::class, 'encargado_id');
+    }
     public function esAdmin(): bool
     {
         return $this->rol === 'admin';

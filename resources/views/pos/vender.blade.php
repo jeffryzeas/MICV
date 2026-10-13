@@ -105,10 +105,13 @@
     <script>
     (function () {
         const CFG = @json($cfg->paraJs());
+        const PUEDE_PRECIO=@json(auth()->user()->tienePermiso('pos.precios')),PUEDE_DESCUENTO=@json(auth()->user()->tienePermiso('pos.descuentos'));
         let PRODUCTOS = @json($productos);
         const URL_VENTA = @json(route('pos.ventas.guardar')), URL_CLIENTES = @json(route('cartas.buscar'));
         const token = document.querySelector('meta[name=csrf-token]').content;
         const $ = id => document.getElementById(id);
+        $('btnLibre').hidden=!PUEDE_PRECIO; $('btnLibre').style.display=PUEDE_PRECIO?'':'none'; $('btnDesc').hidden=!PUEDE_DESCUENTO; $('btnDesc').style.display=PUEDE_DESCUENTO?'':'none';
+
         const nf = new Intl.NumberFormat(CFG.locale, { minimumFractionDigits: CFG.decimales, maximumFractionDigits: CFG.decimales });
         const nfFracciones = new Intl.NumberFormat(CFG.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const din = n => (n < 0 ? '-' : '') + CFG.simbolo + (CFG.decimales === 0 && Math.abs(n - Math.round(n)) > 0.004 ? nfFracciones : nf).format(Math.abs(n));
@@ -116,10 +119,11 @@
         const rd = n => { const f = Math.pow(10, CFG.decimales); return Math.round((n + Number.EPSILON) * f) / f; };
         const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-        // Estado de la venta (se guarda en el navegador por si se recarga la página).
+        const CLAVE_CARRITO='pos-venta-'+@json($cyberPos->id)+'-usuario-'+@json(auth()->id());
+        // Cada cajero conserva su propio carrito.
         let venta = { lineas: [], descPct: 0, cliente: @json($clientePre), clienteNombre: '' };
-        try { const g = JSON.parse(localStorage.getItem('pos-venta-' + @json($cyberPos->id))); if (g && g.lineas && !venta.cliente) venta = Object.assign(venta, g); } catch (e) {}
-        const guardarLocal = () => { try { localStorage.setItem('pos-venta-' + @json($cyberPos->id), JSON.stringify(venta)); } catch (e) {} };
+        try { const g = JSON.parse(localStorage.getItem(CLAVE_CARRITO)); if (g && g.lineas && !venta.cliente) venta = Object.assign(venta, g); } catch (e) {}
+        const guardarLocal = () => { try { localStorage.setItem(CLAVE_CARRITO, JSON.stringify(venta)); } catch (e) {} };
 
         // ── Cálculo (igual que el servidor)
         function linea(l) {
@@ -144,6 +148,7 @@
             const lista = PRODUCTOS.filter(p => (!catActual || (catActual === 'fav' ? p.f : String(p.cat) === catActual)) && (!q || p.n.toLowerCase().includes(q) || (p.c || '').toLowerCase() === q)).slice(0, 120);
             $('grid').innerHTML = lista.length ? lista.map(p => `
                 <button type="button" data-id="${p.id}" class="jz-prod text-left rounded-xl border border-gray-200 hover:border-azul-800 hover:shadow-md p-3 transition flex flex-col justify-between min-h-[92px] ${p.s !== null && p.s <= 0 ? 'opacity-50' : ''}">
+                    ${p.foto ? `<img src="${esc(p.foto)}" alt="" loading="lazy" style="width:100%;height:85px;object-fit:contain;margin-bottom:8px;border-radius:8px">` : ''}
                     <span class="text-sm font-semibold text-azul-950 leading-tight line-clamp-2">${p.f ? '<span class="text-oro-500">★</span> ' : ''}${esc(p.n)}</span>
                     <span class="flex items-end justify-between gap-1 mt-2"><span class="font-bold text-azul-800 tabular-nums">${din(p.p)}</span>
                     ${p.s !== null ? `<span class="text-[10px] font-semibold px-1.5 py-0.5 rounded ${p.s <= 0 ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-500'}">${p.s <= 0 ? 'Agotado' : nfCant(p.s) + ' ' + esc(p.u)}</span>` : ''}</span>
@@ -179,6 +184,7 @@
             pintarCarrito(true);
         }
         $('btnLibre').addEventListener('click', async () => {
+            if(!PUEDE_PRECIO)return;
             const r = await Swal.fire({ title: 'Otro artículo o servicio', html:
                 '<input id="lDesc" class="swal2-input" placeholder="Descripción (ej: Impresión 3 hojas)" maxlength="150">' +
                 '<input id="lPrecio" type="number" min="0" step="any" class="swal2-input" placeholder="Precio unitario">' +
@@ -210,8 +216,8 @@
                     </div>
                     ${i === abierta ? `<div class="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 mt-2 text-[11px] text-gray-500">
                         <label>Cantidad<input data-campo="cant" type="number" min="0.01" step="any" value="${l.cant}" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></label>
-                        <label>Precio<input data-campo="precio" type="number" min="0" step="any" value="${l.precio}" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></label>
-                        <label>Descuento<input data-campo="desc" type="number" min="0" step="any" value="${l.desc || ''}" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></label>
+                        <label>Precio<input data-campo="precio" ${PUEDE_PRECIO ? '' : 'disabled'} type="number" min="0" step="any" value="${l.precio}" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></label>
+                        <label>Descuento<input data-campo="desc" ${PUEDE_DESCUENTO ? '' : 'disabled'} type="number" min="0" step="any" value="${l.desc || ''}" class="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm"></label>
                         <button type="button" data-acc="quitar" class="self-end size-9 rounded-lg text-red-500 hover:bg-red-50 flex items-center justify-center" title="Quitar"><i data-lucide="trash-2" class="size-4"></i></button>
                     </div>` : ''}
                 </li>`; }).join('');
@@ -241,6 +247,7 @@
         });
         $('btnVaciar').addEventListener('click', async () => { if (!venta.lineas.length) return; const r = await Swal.fire({ title: '¿Vaciar la venta?', icon: 'question', showCancelButton: true, confirmButtonText: 'Vaciar', cancelButtonText: 'No', confirmButtonColor: '#c0392b' }); if (r.isConfirmed) nuevaVenta(); });
         $('btnDesc').addEventListener('click', async () => {
+            if(!PUEDE_DESCUENTO)return;
             const r = await Swal.fire({ title: 'Descuento a toda la venta', input: 'number', inputValue: venta.descPct || '', inputAttributes: { min: 0, max: 100, step: 'any' }, inputLabel: 'Porcentaje (%)', showCancelButton: true, confirmButtonText: 'Aplicar', cancelButtonText: 'Cancelar', confirmButtonColor: '#0B3C74' });
             if (r.isConfirmed) { venta.descPct = Math.max(0, Math.min(100, +r.value || 0)); pintarCarrito(); }
         });

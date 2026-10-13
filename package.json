@@ -7,7 +7,9 @@
         "docx": "^9.11.0",
         "onnxruntime-web": "^1.30.0",
         "puppeteer": "^24.0.0",
-        "sharp": "^0.35.5"
+        "sharp": "^0.35.5",
+        "exceljs": "^4.4.0",
+        "jszip": "^3.10.1"
     },
     "scripts": {
         "css": "tailwindcss -c tailwind.config.js -i resources/css/tema.css -o public/css/tema.css --minify"
