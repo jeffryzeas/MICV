@@ -49,9 +49,12 @@ class CompraController extends PosBase
 
         $compra = DB::transaction(function () use ($d, $cy, $request) {
             $compra = PosCompra::create(collect($d)->except('items')->all() + ['cyber_id' => $cy->id, 'user_id' => $request->user()->id, 'total' => 0]);
+            $productos = PosProducto::where('cyber_id', $cy->id)->whereIn('id', array_column($d['items'], 'producto_id'))
+                ->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             $total = 0;
             foreach ($d['items'] as $it) {
-                $p = PosProducto::find($it['producto_id']);
+                $p = $productos->get($it['producto_id']);
+                abort_unless($p, 422, 'El producto ya no existe. Recargue la compra.');
                 $sub = round($it['cantidad'] * $it['costo'], 2);
                 $total += $sub;
                 $compra->items()->create(['producto_id' => $p->id, 'descripcion' => $p->nombre, 'cantidad' => $it['cantidad'], 'costo' => $it['costo'], 'subtotal' => $sub]);
@@ -81,6 +84,9 @@ class CompraController extends PosBase
         $this->delCyber($request, $compra);
         abort_unless($compra->estado === 'registrada', 422);
         DB::transaction(function () use ($compra, $request) {
+            $compra = PosCompra::whereKey($compra->id)->lockForUpdate()->firstOrFail();
+            abort_unless($compra->estado === 'registrada', 422, 'Esta compra ya estaba anulada.');
+            PosProducto::whereIn('id', $compra->items()->pluck('producto_id')->filter())->orderBy('id')->lockForUpdate()->get();
             foreach ($compra->items()->with('producto')->get() as $it) {
                 if ($it->producto) {
                     Inventario::mover($it->producto, -(float) $it->cantidad, 'anula_compra', 'Anulación compra #' . $compra->id, $request->user()->id);

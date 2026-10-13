@@ -9,7 +9,7 @@ class ClienteExperiencia extends Model
 {
     protected $table = 'cliente_experiencias';
 
-    protected $fillable = ['cliente_id', 'cargo', 'empresa', 'descripcion', 'fecha_inicio', 'fecha_fin', 'orden'];
+    protected $fillable = ['ubicacion', 'jornada', 'duracion', 'cliente_id', 'cargo', 'empresa', 'descripcion', 'fecha_inicio', 'fecha_fin', 'orden'];
 
     protected function casts(): array
     {

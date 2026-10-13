@@ -9,8 +9,20 @@ const {
     BorderStyle, AlignmentType, ShadingType, TabStopType, VerticalAlign, LevelFormat, PageOrientation,
 } = require('docx');
 
+async function generar() {
 const salida = process.argv[2];
 const d = JSON.parse(fs.readFileSync(0, 'utf8'));
+// Sharp ya es una dependencia del proyecto. Normaliza también WebP y EXIF.
+if (d.foto) {
+    const sharp = require('sharp');
+    const { data, info } = await sharp(Buffer.from(d.foto.datos, 'base64'))
+        .rotate()
+        .resize({ width: 900, height: 900, fit: 'inside', withoutEnlargement: true })
+        .flatten({ background: '#ffffff' })
+        .jpeg({ quality: 90 })
+        .toBuffer({ resolveWithObject: true });
+    d.foto = { tipo: 'jpg', datos: data.toString('base64'), ancho: info.width, alto: info.height };
+}
 const C1 = (d.color || '#0B3C74').replace('#', '');      // color principal
 const C2 = (d.acento || '#C9971F').replace('#', '');     // acento
 const GRIS = '555B66', OSCURO = '1F2430';
@@ -125,5 +137,9 @@ const doc = new Document({
     }],
 });
 
-Packer.toBuffer(doc).then((buf) => { fs.writeFileSync(salida, buf); console.log(JSON.stringify({ ok: true, bytes: buf.length })); })
-    .catch((e) => { console.error(e && e.stack || String(e)); process.exit(1); });
+const buf = await Packer.toBuffer(doc);
+fs.writeFileSync(salida, buf);
+console.log(JSON.stringify({ ok: true, bytes: buf.length }));
+}
+
+generar().catch((e) => { console.error(e && e.stack || String(e)); process.exit(1); });

@@ -13,7 +13,7 @@ class PosVenta extends Model
 {
     protected $table = 'pos_ventas';
 
-    protected $fillable = [
+    protected $fillable = ['clave_operacion', 
         'cyber_id', 'caja_id', 'user_id', 'cliente_id', 'cliente_nombre', 'consecutivo', 'numero', 'subtotal', 'descuento', 'impuesto',
         'total', 'pagado', 'cambio', 'costo_total', 'estado', 'anulada_por', 'anulada_en', 'motivo_anulacion', 'notas',
     ];

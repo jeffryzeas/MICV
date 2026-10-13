@@ -18,7 +18,7 @@ class ClienteEstudio extends Model
         'curso'       => 'Curso',
     ];
 
-    protected $fillable = ['cliente_id', 'nivel', 'titulo', 'institucion', 'anio', 'detalle', 'orden'];
+    protected $fillable = ['periodo', 'cliente_id', 'nivel', 'titulo', 'institucion', 'anio', 'detalle', 'orden'];
 
     public function cliente(): BelongsTo
     {

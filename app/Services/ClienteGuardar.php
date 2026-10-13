@@ -24,6 +24,7 @@ class ClienteGuardar
 {
     /** Campos personales (todo lo que se le pide al cliente). */
     public const CAMPOS = [
+        'pais_residencia', 'autorizacion_laboral', 'disponibilidad', 'cualidades',
         'inss_nss', 'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
         'fecha_nacimiento', 'municipio_nacimiento', 'departamento_nacimiento',
         'sexo', 'nacionalidad', 'numero_hijos', 'estado_civil', 'profesion', 'perfil_profesional',
@@ -40,6 +41,7 @@ class ClienteGuardar
     {
         $request->merge(['numero_documento' => \App\Support\Documentos::limpiar($request->input('tipo_documento'), $request->input('numero_documento'))]);
         $datos = $request->validate($this->reglas(true), $this->mensajes(), $this->atributos());
+        $datos = \App\Support\SituacionLaboral::validar($datos);
         $datos = $this->completarSegunDocumento($datos);
         $cyberId = $this->cyberDestino($request);
 
@@ -52,6 +54,7 @@ class ClienteGuardar
                 $nuevos = collect($datos)->only(self::CAMPOS)->filter(fn ($v) => filled($v))->all();
                 $nuevos['edad_calculada'] = $datos['edad_calculada'] ?? $existente->edad_calculada;
                 $nuevos['pais'] = $datos['pais'];
+                $nuevos['autorizacion_laboral'] = $datos['autorizacion_laboral'] ?? null;
                 $existente->update($nuevos);
                 $cliente = $existente;
                 $this->sincronizarCv($cliente, $datos, soloSiVienenDatos: true);
@@ -98,6 +101,7 @@ class ClienteGuardar
     {
         $request->merge(['numero_documento' => \App\Support\Documentos::limpiar($request->input('tipo_documento'), $request->input('numero_documento'))]);
         $datos = $request->validate($this->reglas(true), $this->mensajes(), $this->atributos());
+        $datos = \App\Support\SituacionLaboral::validar($datos);
         $datos = $this->completarSegunDocumento($datos);
 
         $otro = Cliente::where('tipo_documento', $datos['tipo_documento'])
@@ -221,6 +225,7 @@ class ClienteGuardar
                     'nivel' => ($e['nivel'] ?? null) ?: 'curso', 'titulo' => $e['titulo'] ?? null,
                     'institucion' => $e['institucion'] ?? null, 'anio' => $e['anio'] ?? null,
                     'detalle' => $e['detalle'] ?? null, 'orden' => $i,
+                    'periodo' => $e['periodo'] ?? null, 
                 ]);
             }
         }
@@ -230,6 +235,7 @@ class ClienteGuardar
                 $c->experiencias()->create([
                     'cargo' => $e['cargo'] ?? null, 'empresa' => $e['empresa'] ?? null,
                     'descripcion' => $e['descripcion'] ?? null,
+                    'ubicacion' => $e['ubicacion'] ?? null, 'jornada' => $e['jornada'] ?? null, 'duracion' => $e['duracion'] ?? null, 
                     'fecha_inicio' => ($e['fecha_inicio'] ?? null) ?: null, 'fecha_fin' => ($e['fecha_fin'] ?? null) ?: null,
                     'orden' => $i,
                 ]);
@@ -254,6 +260,7 @@ class ClienteGuardar
             foreach ($referencias as $i => $r) {
                 $c->referencias()->create([
                     'tratamiento' => $r['tratamiento'] ?? null, 'nombre' => $r['nombre'],
+                    'detalle' => $r['detalle'] ?? null, 
                     'telefono' => $r['telefono'] ?? null, 'correo' => $r['correo'] ?? null, 'orden' => $i,
                 ]);
             }
@@ -280,6 +287,15 @@ class ClienteGuardar
     protected function reglas(bool $nuevo): array
     {
         return [
+            'pais_residencia' => ['required', Rule::in(array_diff(Pais::codigos(), ['OT']))],
+            'autorizacion_laboral' => ['nullable', 'string', 'max:255'],
+            'disponibilidad' => ['nullable', 'string', 'max:255'],
+            'cualidades' => ['nullable', 'string', 'max:255'],
+            'estudios.*.periodo' => ['nullable', 'string', 'max:255'],
+            'experiencias.*.ubicacion' => ['nullable', 'string', 'max:255'],
+            'experiencias.*.jornada' => ['nullable', 'string', 'max:255'],
+            'experiencias.*.duracion' => ['nullable', 'string', 'max:255'],
+            'referencias.*.detalle' => ['nullable', 'string', 'max:255'],
             'pais'             => ['required', Rule::in(Pais::codigos())],
             'tipo_documento'   => ['required', Rule::in(array_keys(Pais::todosLosDocumentos()))],
             'numero_documento' => ['required', 'string', 'max:40'],
@@ -293,7 +309,7 @@ class ClienteGuardar
             'municipio_nacimiento'    => ['nullable', 'string', 'max:100'],
             'departamento_nacimiento' => ['nullable', 'string', 'max:100'],
             'sexo'             => ['nullable', Rule::in(['M', 'F', 'O'])],
-            'nacionalidad'     => ['nullable', 'string', 'max:60'],
+            'nacionalidad'     => ['required', 'string', 'max:60'],
             'numero_hijos'     => ['nullable', 'integer', 'between:0,30'],
             'estado_civil'     => ['nullable', 'string', 'max:40'],
             'profesion'        => ['nullable', 'string', 'max:120'],

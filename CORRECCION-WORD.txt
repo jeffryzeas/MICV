@@ -1,0 +1,19 @@
+CORRECCIÓN DE EXPORTACIÓN WORD CON FOTO
+
+Causa: CvWord llamaba imagecreatefromstring(), función de la extensión PHP GD que no está disponible en el servidor.
+
+Archivos modificados (reemplazar AMBOS en /var/www/micv):
+- app/Services/CvWord.php
+- resources/cv/cv-word.cjs
+
+La foto se envía a Node y Sharp la convierte a JPEG, ajustando orientación EXIF, tamaño y fondo blanco para transparencias. Sharp ya figura en package.json y package-lock.json; no se agregó ninguna dependencia.
+
+Después de reemplazar los archivos, ejecutar dentro de /var/www/micv:
+  php artisan optimize:clear
+
+Si las dependencias de Node del servidor no están completas:
+  npm ci --omit=dev
+
+No requiere migraciones ni cambios de base de datos. No reemplazar .env ni archivos de usuarios con el ZIP. Probar descargar un CV Word con foto desde la aplicación.
+
+Verificación realizada: generación DOCX con JPG, PNG, WebP y sin foto; comprobación de la imagen JPEG incrustada y sus dimensiones; rechazo de datos de imagen inválidos. Sintaxis JavaScript verificada. No se ejecutó Laravel/PHP en el entorno de revisión porque PHP no está instalado.

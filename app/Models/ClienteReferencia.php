@@ -9,7 +9,7 @@ class ClienteReferencia extends Model
 {
     protected $table = 'cliente_referencias';
 
-    protected $fillable = ['cliente_id', 'tratamiento', 'nombre', 'telefono', 'correo', 'orden'];
+    protected $fillable = ['detalle', 'cliente_id', 'tratamiento', 'nombre', 'telefono', 'correo', 'orden'];
 
     public function cliente(): BelongsTo
     {

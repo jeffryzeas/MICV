@@ -110,7 +110,8 @@
         const token = document.querySelector('meta[name=csrf-token]').content;
         const $ = id => document.getElementById(id);
         const nf = new Intl.NumberFormat(CFG.locale, { minimumFractionDigits: CFG.decimales, maximumFractionDigits: CFG.decimales });
-        const din = n => (n < 0 ? '-' : '') + CFG.simbolo + nf.format(Math.abs(n));
+        const nfFracciones = new Intl.NumberFormat(CFG.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const din = n => (n < 0 ? '-' : '') + CFG.simbolo + (CFG.decimales === 0 && Math.abs(n - Math.round(n)) > 0.004 ? nfFracciones : nf).format(Math.abs(n));
         const r2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
         const rd = n => { const f = Math.pow(10, CFG.decimales); return Math.round((n + Number.EPSILON) * f) / f; };
         const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -127,7 +128,7 @@
             const neto = bruto - desc, t = l.tasa;
             let total, imp;
             if (CFG.incluido) { total = rd(neto); imp = t > 0 ? r2(total - total / (1 + t / 100)) : 0; }
-            else { total = rd(neto * (1 + t / 100)); imp = r2(total - neto); }
+            else { total = rd(neto * (1 + t / 100)); imp = t > 0 ? r2(total - total / (1 + t / 100)) : 0; }
             return { bruto, desc, total, imp };
         }
         function totales() {
@@ -269,7 +270,7 @@
             $('modalCobro').classList.remove('hidden'); $('notas').value = '';
             pintarCobro(true);
         }
-        function falta() { return rd(totales().total - pagos.reduce((a, p) => a + p.monto, 0)); }
+        function falta() { return r2(totales().total - pagos.reduce((a, p) => a + p.monto, 0)); }
         function pintarCobro(reiniciar) {
             const t = totales().total, f = falta();
             $('cTotal').textContent = din(t);
@@ -284,7 +285,7 @@
             calcularCambio();
         }
         function calcularCambio() {
-            const f = falta(), m = +$('monto').value || 0, resto = rd(f - m);
+            const f = falta(), m = +$('monto').value || 0, resto = r2(f - m);
             const caja = $('cajaCambio');
             if (resto > 0.004) { $('lblCambio').textContent = 'Falta'; $('cCambio').textContent = din(resto); caja.className = 'mt-4 rounded-2xl p-3 flex items-center justify-between bg-red-50 text-red-700'; }
             else { $('lblCambio').textContent = metodo === 'efectivo' ? 'Cambio' : 'Completo'; $('cCambio').textContent = din(metodo === 'efectivo' ? -resto : 0); caja.className = 'mt-4 rounded-2xl p-3 flex items-center justify-between bg-emerald-50 text-emerald-700'; }
@@ -295,7 +296,7 @@
         $('monto').addEventListener('input', calcularCambio);
         $('btnAgregarPago').addEventListener('click', () => {
             const m = Math.min(+$('monto').value || 0, metodo === 'efectivo' ? Infinity : falta()); if (m <= 0) return;
-            pagos.push({ metodo, monto: rd(m), referencia: $('referencia').value.trim() || null }); $('referencia').value = '';
+            pagos.push({ metodo, monto: r2(m), referencia: $('referencia').value.trim() || null }); $('referencia').value = '';
             metodo = CFG.metodos.find(x => x.clave !== metodo)?.clave || 'efectivo'; pintarCobro(true);
         });
         $('pagosLista').addEventListener('click', e => { const b = e.target.closest('[data-quitar]'); if (b) { pagos.splice(+b.dataset.quitar, 1); pintarCobro(true); } });
@@ -304,8 +305,12 @@
         $('btnConfirmar').addEventListener('click', async () => {
             const btn = $('btnConfirmar'); if (btn.disabled) return; btn.disabled = true;
             const todos = pagos.slice(); const m = +$('monto').value || 0;
-            if (m > 0) todos.push({ metodo, monto: rd(m), referencia: $('referencia').value.trim() || null });
-            const cuerpo = { items: venta.lineas.map(l => ({ producto_id: l.id, descripcion: l.n, cantidad: l.cant, precio: l.precio, descuento: l.desc || 0 })),
+            if (m > 0) todos.push({ metodo, monto: r2(m), referencia: $('referencia').value.trim() || null });
+            if (!venta.clave_operacion) {
+                venta.clave_operacion = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+                guardarLocal();
+            }
+            const cuerpo = { clave_operacion: venta.clave_operacion, items: venta.lineas.map(l => ({ producto_id: l.id, descripcion: l.n, cantidad: l.cant, precio: l.precio, descuento: l.desc || 0 })),
                 descuento_pct: venta.descPct, pagos: todos, cliente_id: venta.cliente ? venta.cliente.id : null, cliente_nombre: venta.cliente ? null : (venta.clienteNombre || null), notas: $('notas').value || null };
             try {
                 const r = await fetch(URL_VENTA, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify(cuerpo) });

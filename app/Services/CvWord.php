@@ -20,12 +20,9 @@ class CvWord
         $foto = null;
         if ($conFoto && Archivos::existe($c->foto)) {
             $bin = Storage::disk(Archivos::DISCO)->get($c->foto);
-            $img = @imagecreatefromstring($bin);
-            if ($img !== false) {
-                ob_start();
-                imagejpeg($img, null, 90);
-                $foto = ['tipo' => 'jpg', 'datos' => base64_encode(ob_get_clean()), 'ancho' => imagesx($img), 'alto' => imagesy($img)];
-                imagedestroy($img);
+            // La conversión se hace con Sharp en Node; no requiere la extensión GD.
+            if (is_string($bin) && $bin !== '') {
+                $foto = ['datos' => base64_encode($bin)];
             }
         }
 
@@ -43,18 +40,18 @@ class CvWord
             )),
             'perfil'   => $vt['perfil'],
             'experiencias' => $d['experiencias']->map(fn ($e) => [
-                'cargo' => $e->cargo ?: $t('Experiencia'), 'fecha' => $e->periodoTexto($lang), 'empresa' => $e->empresa, 'descripcion' => $e->descripcion,
+                'cargo' => $e->cargo ?: $t('Experiencia'), 'fecha' => trim(($e->periodoTexto($lang) ?? '') . ($e->duracion ? ' · ' . $e->duracion : ''), ' ·'), 'empresa' => implode(' · ', array_filter([$e->empresa, $e->jornada, $e->ubicacion])), 'descripcion' => $e->descripcion,
             ])->values()->all(),
             'estudios' => $d['estudios']->map(fn ($e) => [
-                'titulo' => $e->titulo ?: $t($e->nivelLegible()), 'anio' => $e->anio ? (string) $e->anio : null,
+                'titulo' => $e->titulo ?: $t($e->nivelLegible()), 'anio' => $e->periodo ?: ($e->anio ? (string) $e->anio : null),
                 'sub' => trim($t($e->nivelLegible()) . ($e->institucion ? ' · ' . $e->institucion : '')), 'detalle' => $e->detalle,
             ])->values()->all(),
             'habilidades' => $d['habilidades']->pluck('habilidad')->filter()->values()->all(),
             'idiomas' => $d['idiomas']->map(fn ($x) => ['nombre' => $x->nombre($lang), 'nivel' => $x->nivelTexto($lang), 'puntos' => max(0, min(5, (int) $x->puntos()))])->values()->all(),
-            'personales' => array_values(array_map(fn ($f) => [$f[0], (string) $f[1]], $d['datosPro'])),
+            'personales' => array_values(array_map(fn ($f) => [$f[0], (string) $f[1]], array_merge($d['datosPro'], array_filter([['Autorización laboral', \App\Support\SituacionLaboral::esExtranjero($c->pais_residencia ?? '', $c->nacionalidad) ? $c->autorizacion_laboral : null], ['Disponibilidad', $c->disponibilidad], ['Cualidades', $c->cualidades]], fn ($f) => filled($f[1]))))),
             'referencias' => $d['referencias']->map(fn ($r) => [
                 'nombre' => $r->nombreConTratamiento(),
-                'detalle' => implode(' · ', array_filter([$r->telefono ? $t('Tel.') . ' ' . $r->telefono : null, $r->correo])),
+                'detalle' => implode(' · ', array_filter([$r->detalle, $r->telefono ? $t('Tel.') . ' ' . $r->telefono : null, $r->correo])),
             ])->values()->all(),
             'familia' => $d['familia'],
             'secciones' => [

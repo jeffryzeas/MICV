@@ -104,13 +104,17 @@ class ProductoController extends PosBase
             'cantidad' => ['required', 'numeric', 'min:0', 'max:1000000'],
             'motivo' => ['required', 'string', 'max:120'],
         ]);
-        if (!$producto->controla_stock) {
-            $producto->update(['controla_stock' => true]);
-        }
-        $cant = match ($d['modo']) { 'sumar' => (float) $d['cantidad'], 'restar' => -(float) $d['cantidad'], 'fijar' => (float) $d['cantidad'] - (float) $producto->stock };
-        if ($cant != 0) {
-            DB::transaction(fn () => Inventario::mover($producto, $cant, 'ajuste', $d['motivo'], $request->user()->id));
-        }
+        $cant = DB::transaction(function () use ($producto, $d, $request) {
+            $producto = PosProducto::whereKey($producto->id)->lockForUpdate()->firstOrFail();
+            if (!$producto->controla_stock) {
+                $producto->update(['controla_stock' => true]);
+            }
+            $cant = match ($d['modo']) { 'sumar' => (float) $d['cantidad'], 'restar' => -(float) $d['cantidad'], 'fijar' => (float) $d['cantidad'] - (float) $producto->stock };
+            if ($cant != 0) {
+                Inventario::mover($producto, $cant, 'ajuste', $d['motivo'], $request->user()->id);
+            }
+            return $cant;
+        });
         Actividad::registrar('pos_ajuste', $producto->nombre . ' ' . ($cant > 0 ? '+' : '') . $cant . ' · ' . $d['motivo']);
         return back()->with('mensaje', 'Inventario de «' . $producto->nombre . '» ajustado.');
     }
@@ -183,7 +187,7 @@ class ProductoController extends PosBase
         unset($d['impuesto']);
         $d['costo'] = $d['costo'] ?? 0;
         $d['stock_minimo'] = $d['stock_minimo'] ?? 0;
-        $d['unidad'] = $d['unidad'] ?: ($d['tipo'] === 'servicio' ? 'serv.' : 'unid.');
+        $d['unidad'] = ($d['unidad'] ?? null) ?: ($d['tipo'] === 'servicio' ? 'serv.' : 'unid.');
         $d['controla_stock'] = $d['tipo'] === 'producto' && $request->boolean('controla_stock');
         $d['favorito'] = $request->boolean('favorito');
         $d['activo'] = $request->boolean('activo', true);

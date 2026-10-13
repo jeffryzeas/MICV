@@ -24,7 +24,7 @@ class Cliente extends Model
         // Los demás países (HN, SV, GT, MX, CO, ES, US) están en App\Support\Pais.
     ];
 
-    protected $fillable = [
+    protected $fillable = ['pais_residencia', 'autorizacion_laboral', 'disponibilidad', 'cualidades', 
         'user_id', 'pais', 'tipo_documento', 'numero_documento', 'inss_nss',
         'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
         'fecha_nacimiento', 'edad_calculada', 'municipio_nacimiento', 'departamento_nacimiento',

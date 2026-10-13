@@ -1,0 +1,68 @@
+ACTUALIZACIÓN: LÓGICA DE RESIDENCIA/NACIONALIDAD Y CORRECCIONES POS
+
+FORMULARIO
+El país del documento se conserva. Se agrega País de residencia actual, obligatorio y sin asumir que coincide con el documento. También se exige nacionalidad.
+- Nicaragüense residente en Costa Rica: muestra y pide situación/autorización laboral.
+- Costarricense residente en Costa Rica: no lo muestra ni lo pide.
+- Nicaragüense residente en Nicaragua: no lo muestra ni lo pide.
+- Cualquier otra nacionalidad distinta al país de residencia: muestra y pide situación laboral.
+Se valida tanto en el navegador como en el servidor, en panel, cuenta propia y autoservicio. Nacionalidades conocidas se normalizan (tildes, mayúsculas, género); otras admiten texto de nacionalidad sin números. Se debe seleccionar un país de residencia específico, no Otro.
+El dato laboral es una declaración: admite permiso vigente, en trámite, sin autorización u otra situación. No verifica permisos ni determina derecho legal a trabajar.
+Al guardar como nacional en su país, se limpia el permiso anterior. Los registros existentes deben confirmar residencia al editarse; no se asignó una residencia a todos automáticamente.
+
+POS: CAMBIOS CONCRETOS
+- Venta, comprobación de stock y descuento de inventario dentro de la misma transacción, con bloqueo de productos.
+- Rechazo de productos inactivos al cobrar.
+- Clave de operación del carrito para reutilizar la misma venta cuando se reintenta una petición, evitando otro cargo y otra salida de inventario.
+- Revalidación de caja abierta bajo bloqueo; coordinación con retiros, apertura y cierre para operaciones simultáneas.
+- Anulaciones de venta y compra revalidan su estado bajo bloqueo para impedir devolver/rebajar stock dos veces.
+- No permite stock negativo en ventas, ajustes ni anulaciones de compras. Si ya se vendió el producto comprado, puede ser necesario resolver esa salida antes de anular la compra.
+- Ajuste Fijar stock calcula contra la existencia bloqueada actual.
+- Pagos en centavos: no acepta faltantes ni exceso de tarjeta/transferencia por usar cero decimales. La pantalla conserva fracciones en pagos y las muestra cuando existen.
+- Impuesto proporcional al total cobrado tras el redondeo: evita impuesto negativo en líneas sin impuesto con precios fraccionados.
+- Respuesta de existencias limitada al negocio actual.
+
+INSTALACIÓN EN /var/www/micv
+Este ZIP contiene el sistema completo con las mejoras anteriores de Word y plantilla Carta.
+Si ya aplicó la versión anterior, copie/reemplace los siguientes archivos:
+app/Http/Controllers/AutoservicioController.php
+app/Http/Controllers/Pos/CajaController.php
+app/Http/Controllers/Pos/CompraController.php
+app/Http/Controllers/Pos/ProductoController.php
+app/Http/Controllers/Pos/VenderController.php
+app/Models/Cliente.php
+app/Models/Pos/PosVenta.php
+app/Services/ClienteGuardar.php
+app/Services/CvWord.php
+app/Services/Pos/Inventario.php
+app/Services/Pos/Ventas.php
+app/Support/SituacionLaboral.php
+database/migrations/2026_10_22_000002_pais_residencia.php
+database/migrations/2026_10_22_000003_pos_clave_operacion.php
+public/js/situacion-laboral.js
+resources/views/autoservicio/formulario.blade.php
+resources/views/components/cv-form-fields.blade.php
+resources/views/cv/carta.blade.php
+resources/views/partials/situacion-laboral.blade.php
+resources/views/pos/vender.blade.php
+tests/Feature/PosIntegridadTest.php
+tests/Feature/SituacionLaboralTest.php
+
+Ejecutar después de copiar los archivos:
+php artisan migrate --force
+php artisan optimize:clear
+
+No reemplazar .env, storage, fotos ni la base de datos del servidor con archivos del ZIP. Las migraciones nuevas agregan residencia y clave de operación de ventas; no eliminan los registros existentes.
+Si aún no aplicó la versión Carta anterior, aplicar también los archivos indicados en ACTUALIZACION-CV-CARTA.txt y CORRECCION-WORD.txt.
+
+VERIFICACIÓN
+Ejecutado en esta revisión:
+- Análisis de sintaxis con PHP 8.3 real para todos los archivos PHP de app, migraciones y pruebas.
+- 10 escenarios DOM del formulario, incluyendo cambios de residencia/nacionalidad y visibilidad/obligatoriedad del campo.
+- 12 escenarios de validación laboral y 34 cálculos POS ejecutados con PHP; se sustituyeron las dependencias auxiliares de Laravel, sin probar la base de datos.
+- Sintaxis JS del POS y casos de pagos, impuestos y formato de claves de operación.
+
+Se incluyen pruebas Laravel adicionales. Para ejecutarlas con las dependencias instaladas:
+php artisan test --filter='SituacionLaboralTest|PosIntegridadTest'
+
+Pendiente: ejecutar Laravel completo, migraciones y pruebas integradas en el servidor; probar simultaneidad con el motor de base de datos del despliegue. La revisión corrige los problemas identificados y no constituye una garantía de ausencia total de errores en el POS.

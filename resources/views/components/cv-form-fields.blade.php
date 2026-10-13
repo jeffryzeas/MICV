@@ -6,7 +6,7 @@
 @php
     $estudios = old('estudios', $cliente->estudios->map(fn ($e) => [
         'nivel' => $e->nivel, 'titulo' => $e->titulo, 'institucion' => $e->institucion,
-        'anio' => $e->anio, 'detalle' => $e->detalle,
+        'anio' => $e->anio, 'detalle' => $e->detalle, 'periodo' => $e->periodo,
     ])->values()->all());
     if (empty($estudios)) {
         $estudios = [['nivel' => '', 'titulo' => '', 'institucion' => '', 'anio' => '', 'detalle' => '']];
@@ -14,6 +14,7 @@
 
     $experiencias = old('experiencias', $cliente->experiencias->map(fn ($e) => [
         'cargo' => $e->cargo, 'empresa' => $e->empresa, 'descripcion' => $e->descripcion,
+        'ubicacion' => $e->ubicacion, 'jornada' => $e->jornada, 'duracion' => $e->duracion,
         'fecha_inicio' => optional($e->fecha_inicio)->format('Y-m-d'),
         'fecha_fin' => optional($e->fecha_fin)->format('Y-m-d'),
     ])->values()->all());
@@ -23,7 +24,7 @@
 
     $referencias = old('referencias', $cliente->referencias->map(fn ($r) => [
         'tratamiento' => $r->tratamiento, 'nombre' => $r->nombre,
-        'telefono' => $r->telefono, 'correo' => $r->correo,
+        'telefono' => $r->telefono, 'correo' => $r->correo, 'detalle' => $r->detalle,
     ])->values()->all());
     if (empty($referencias)) {
         $referencias = [['tratamiento' => '', 'nombre' => '', 'telefono' => '', 'correo' => '']];
@@ -37,6 +38,7 @@
     if (empty($habilidades)) { $habilidades = ['']; }
 @endphp
 
+<div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Datos laborales"><h3>Datos laborales y cualidades</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-3">@include('partials.situacion-laboral')<label>Disponibilidad<input type="text" name="disponibilidad" maxlength="255" value="{{ old('disponibilidad', $cliente->disponibilidad) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></label><label>Cualidades (separadas por coma)<input type="text" name="cualidades" maxlength="255" value="{{ old('cualidades', $cliente->cualidades) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></label></div><p class="text-xs text-gray-500">Disponibilidad y cualidades son opcionales. Los cursos se agregan en Estudios eligiendo nivel Curso. Use Detalle para indicar semestre, avance u otra información académica.</p></div>
 {{-- ========== PERFIL PROFESIONAL ========== --}}
 <div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Perfil" id="sec-perfil">
     <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-2">
@@ -100,7 +102,8 @@
                 <input type="number" name="estudios[{{ $i }}][anio]" value="{{ $est['anio'] ?? '' }}"
                        class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm" min="1950" max="2100">
             </div>
-            <div>
+            <div><label class="block text-xs font-semibold text-gray-500">Período de estudios (ej. 2021 – 2025)</label><input type="text" name="estudios[{{ $i }}][periodo]" maxlength="255" value="{{ $est['periodo'] ?? '' }}" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
+<div>
                 <label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Detalle</label>
                 <input type="text" name="estudios[{{ $i }}][detalle]" value="{{ $est['detalle'] ?? '' }}"
                        class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
@@ -149,7 +152,10 @@
                 <input type="date" name="experiencias[{{ $i }}][fecha_fin]" value="{{ $exp['fecha_fin'] ?? '' }}"
                        class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
             </div>
-            <div>
+            <div><label class="block text-xs font-semibold text-gray-500">Ubicación del empleo</label><input type="text" name="experiencias[{{ $i }}][ubicacion]" maxlength="255" value="{{ $exp['ubicacion'] ?? '' }}" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
+<div><label class="block text-xs font-semibold text-gray-500">Jornada (ej. Tiempo completo)</label><input type="text" name="experiencias[{{ $i }}][jornada]" maxlength="255" value="{{ $exp['jornada'] ?? '' }}" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
+<div><label class="block text-xs font-semibold text-gray-500">Duración (ej. 3 años)</label><input type="text" name="experiencias[{{ $i }}][duracion]" maxlength="255" value="{{ $exp['duracion'] ?? '' }}" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
+<div>
                 <label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Descripción</label>
                 <input type="text" name="experiencias[{{ $i }}][descripcion]" value="{{ $exp['descripcion'] ?? '' }}"
                        class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
@@ -252,7 +258,8 @@
                 <input type="text" name="referencias[{{ $i }}][telefono]" value="{{ $ref['telefono'] ?? '' }}"
                        class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
             </div>
-            <div>
+            <div><label class="block text-xs font-semibold text-gray-500">Cargo, empresa o detalle de la referencia</label><input type="text" name="referencias[{{ $i }}][detalle]" maxlength="255" value="{{ $ref['detalle'] ?? '' }}" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
+<div>
                 <label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Correo (opcional)</label>
                 <input type="email" name="referencias[{{ $i }}][correo]" value="{{ $ref['correo'] ?? '' }}"
                        class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm">
@@ -272,7 +279,7 @@
 (function () {
     const plantillas = {
         estudios: () => {
-            const i = document.querySelectorAll('#lista-estudios .fila-repetible').length;
+            const i = Math.max(-1, ...[...document.querySelectorAll('#lista-estudios [name]')].map(el => Number(el.name.match(/\[(\d+)\]/)?.[1] ?? -1))) + 1;
             return `<div class="flex gap-2 items-start fila-repetible">
             <div class="grid grid-cols-1 sm:grid-cols-6 gap-2 p-3 bg-gray-50 rounded-lg flex-1">
                 <div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Nivel</label>
@@ -286,7 +293,8 @@
                 <input type="text" name="estudios[${i}][institucion]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
                 <div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Año</label>
                 <input type="number" name="estudios[${i}][anio]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm" min="1950" max="2100"></div>
-                <div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Detalle</label>
+                <div><label class="block text-xs font-semibold text-gray-500">Período de estudios (ej. 2021 – 2025)</label><input type="text" name="estudios[${i}][periodo]" maxlength="255" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
+<div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Detalle</label>
                 <input type="text" name="estudios[${i}][detalle]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
             </div>
             <button type="button" onclick="jzEliminarFila(this)" title="Quitar esta fila" class="mt-6 text-gray-400 hover:text-red-600 shrink-0">
@@ -295,7 +303,7 @@
             </div>`;
         },
         experiencias: () => {
-            const i = document.querySelectorAll('#lista-experiencias .fila-repetible').length;
+            const i = Math.max(-1, ...[...document.querySelectorAll('#lista-experiencias [name]')].map(el => Number(el.name.match(/\[(\d+)\]/)?.[1] ?? -1))) + 1;
             return `<div class="flex gap-2 items-start fila-repetible">
             <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 p-3 bg-gray-50 rounded-lg flex-1">
                 <div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Cargo</label>
@@ -306,7 +314,10 @@
                 <input type="date" name="experiencias[${i}][fecha_inicio]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
                 <div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Hasta</label>
                 <input type="date" name="experiencias[${i}][fecha_fin]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
-                <div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Descripción</label>
+                <div><label class="block text-xs font-semibold text-gray-500">Ubicación del empleo</label><input type="text" name="experiencias[${i}][ubicacion]" maxlength="255" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
+<div><label class="block text-xs font-semibold text-gray-500">Jornada (ej. Tiempo completo)</label><input type="text" name="experiencias[${i}][jornada]" maxlength="255" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
+<div><label class="block text-xs font-semibold text-gray-500">Duración (ej. 3 años)</label><input type="text" name="experiencias[${i}][duracion]" maxlength="255" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
+<div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Descripción</label>
                 <input type="text" name="experiencias[${i}][descripcion]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
             </div>
             <button type="button" onclick="jzEliminarFila(this)" title="Quitar esta fila" class="mt-6 text-gray-400 hover:text-red-600 shrink-0">
@@ -315,7 +326,7 @@
             </div>`;
         },
         referencias: () => {
-            const i = document.querySelectorAll('#lista-referencias .fila-repetible').length;
+            const i = Math.max(-1, ...[...document.querySelectorAll('#lista-referencias [name]')].map(el => Number(el.name.match(/\[(\d+)\]/)?.[1] ?? -1))) + 1;
             return `<div class="flex gap-2 items-start fila-repetible">
             <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 p-3 bg-gray-50 rounded-lg flex-1">
                 <div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Tratamiento</label>
@@ -324,7 +335,8 @@
                 <input type="text" name="referencias[${i}][nombre]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
                 <div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Celular</label>
                 <input type="text" name="referencias[${i}][telefono]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
-                <div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Correo</label>
+                <div><label class="block text-xs font-semibold text-gray-500">Cargo, empresa o detalle de la referencia</label><input type="text" name="referencias[${i}][detalle]" maxlength="255" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
+<div><label class="block text-[10px] font-semibold uppercase text-gray-500 mb-0.5">Correo</label>
                 <input type="email" name="referencias[${i}][correo]" class="w-full border border-gray-300 rounded-lg px-2 py-2 text-sm"></div>
             </div>
             <button type="button" onclick="jzEliminarFila(this)" title="Quitar esta fila" class="mt-6 text-gray-400 hover:text-red-600 shrink-0">

@@ -21,7 +21,7 @@
                 </div>
                 <p class="text-[11px] text-gray-400 mt-1">Los diseños Pro siempre salen en <b>una sola hoja</b>. @if($cliente->datosPais()['escudo'] || !empty($cliente->datosPais()['escudo_subido']))El Clásico lleva el escudo de {{ $cliente->datosPais()['nombre'] }}.@else El Clásico es formal, con marco doble.@endif</p>
             </div>
-            <div id="bloquePaleta">
+            <p class="text-xs text-gray-500">Carta Amarillo y Azul conserva los colores del diseño original.</p><div id="bloquePaleta">
                 <p class="text-xs font-semibold uppercase text-azul-800 mb-2">Colores (diseños Pro)</p>
                 <div class="flex flex-wrap gap-2">
                     @foreach($paletas as $k => $p)
@@ -85,7 +85,7 @@
     function opciones(foto, idioma) {
         const diseno = sel('diseno', 'pro'), paleta = sel('paleta', '');
         caja.querySelectorAll('.jz-diseno').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
-        document.getElementById('bloquePaleta').style.opacity = diseno === 'clasico' ? '.35' : '1';
+        document.getElementById('bloquePaleta').style.opacity = ['clasico', 'carta'].includes(diseno) ? '.35' : '1';
         return { diseno: diseno, foto: foto ? '1' : '0', idioma: idioma || sel('idioma', 'es'), paleta: diseno !== 'clasico' ? paleta : '' };
     }
     const qs = o => '?' + new URLSearchParams(Object.entries(o).filter(([k, v]) => v !== '')).toString();

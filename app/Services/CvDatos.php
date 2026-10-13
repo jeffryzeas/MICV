@@ -18,6 +18,7 @@ class CvDatos
         'elegante' => 'Pro Elegante',
         'ejecutivo'=> 'Pro Ejecutivo',
         'creativo' => 'Pro Creativo',
+        'carta' => 'Carta Amarillo y Azul',
     ];
 
     /** Descripción corta para los selectores. */
@@ -28,6 +29,7 @@ class CvDatos
         'elegante' => 'Blanco, letra elegante, minimalista',
         'ejecutivo'=> 'Títulos a la izquierda, sobrio y ordenado',
         'creativo' => 'Columna derecha, etiquetas y barra inclinada',
+        'carta' => 'Diseño Jeffry: columna amarilla y encabezado azul',
     ];
 
     public static function esPro(string $d): bool

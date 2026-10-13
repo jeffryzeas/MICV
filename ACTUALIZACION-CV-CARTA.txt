@@ -1,0 +1,43 @@
+NUEVA PLANTILLA: CARTA AMARILLO Y AZUL
+
+Basada en el HTML y PDF de referencia de Jeffry: carta, columna amarilla al 37%, nombre en dos líneas sobre azul, foto rectangular, educación y otros estudios en la columna izquierda, perfil/datos personales/experiencia/habilidades/idiomas/referencias/cualidades a la derecha. Colores fijos del original. Datos dinámicos de cada cliente; no se precargan ni se sobrescriben los datos de Jeffry.
+
+INSTALACIÓN EN /var/www/micv
+Reemplazar o agregar SOLO estos archivos del ZIP:
+app/Services/CvDatos.php
+app/Services/CvWord.php
+app/Services/ClienteGuardar.php
+app/Models/Cliente.php
+app/Models/ClienteEstudio.php
+app/Models/ClienteExperiencia.php
+app/Models/ClienteReferencia.php
+app/Http/Controllers/AutoservicioController.php
+resources/views/cv/carta.blade.php
+resources/views/components/cv-form-fields.blade.php
+resources/views/autoservicio/formulario.blade.php
+resources/views/partials/generador-cv.blade.php
+resources/cv/cv-word.cjs
+database/migrations/2026_10_22_000001_cv_carta.php
+
+Ejecutar:
+php artisan migrate --force
+php artisan optimize:clear
+
+La migración agrega columnas opcionales, sin borrar registros. No reemplazar .env, storage, base de datos ni fotos del servidor.
+
+USO
+Elegir Carta Amarillo y Azul en el selector del generador.
+En editar datos (también disponible para el usuario y en autoservicio):
+- Autorización laboral y disponibilidad: texto libre.
+- Cualidades: separar con coma (ej. Puntual, Responsable, Activo, Trabajo en equipo).
+- Estudios: nivel académico para Educación; nivel Curso para Otros estudios.
+- Período de estudios: ej. 2021 – 2025. Si se deja vacío se usa el año existente.
+- Detalle de estudios: avance, semestre u observación.
+- Empleo: ubicación, jornada y duración, además de los campos existentes.
+- Referencias: cargo, empresa y ubicación en el campo de detalle.
+El autoservicio permite hasta 30 estudios/cursos y muestra tres referencias.
+
+La plantilla es para vista previa/PDF/envío PDF. Word mantiene el diseño sencillo editable del sistema e incluye los nuevos datos laborales, períodos y detalles. Se conserva la corrección de fotos con Sharp, sin GD.
+
+VERIFICACIÓN
+Se revisó la conexión de los campos con modelos, validación, guardado y formularios, así como las directivas y el JavaScript de ajuste. Se repitió la generación Word con JPG, PNG, WebP y sin foto. No fue posible ejecutar Laravel/migraciones ni verificar visualmente el PDF generado en este entorno (PHP/Chromium no disponibles). Tras actualizar, guardar una ficha con los campos nuevos, abrirla de nuevo y revisar su PDF con y sin foto.

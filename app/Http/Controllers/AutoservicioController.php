@@ -55,8 +55,19 @@ class AutoservicioController extends Controller
             'correo'             => ['nullable', 'email', 'max:150'],
             'direccion'          => ['nullable', 'string', 'max:200'],
             'profesion'          => ['nullable', 'string', 'max:120'],
+            'pais_residencia' => ['required', Rule::in(array_diff(Pais::codigos(), ['OT']))],
+            'nacionalidad' => ['required', 'string', 'max:60'],
+            'autorizacion_laboral' => ['nullable', 'string', 'max:255'],
+            'disponibilidad' => ['nullable', 'string', 'max:255'],
+            'cualidades' => ['nullable', 'string', 'max:255'],
+            'estudios.*.periodo' => ['nullable', 'string', 'max:255'],
+            'estudios.*.detalle' => ['nullable', 'string', 'max:255'],
+            'experiencias.*.ubicacion' => ['nullable', 'string', 'max:255'],
+            'experiencias.*.jornada' => ['nullable', 'string', 'max:255'],
+            'experiencias.*.duracion' => ['nullable', 'string', 'max:255'],
+            'referencias.*.detalle' => ['nullable', 'string', 'max:255'],
             'perfil_profesional' => ['nullable', 'string', 'max:1500'],
-            'estudios'           => ['nullable', 'array', 'max:5'],
+            'estudios'           => ['nullable', 'array', 'max:30'],
             'estudios.*.nivel'   => ['nullable', Rule::in(array_keys(ClienteEstudio::NIVELES))],
             'estudios.*.titulo'  => ['nullable', 'string', 'max:150'],
             'estudios.*.institucion' => ['nullable', 'string', 'max:150'],
@@ -79,6 +90,8 @@ class AutoservicioController extends Controller
             'numero_documento' => 'número de documento', 'primer_nombre' => 'primer nombre', 'primer_apellido' => 'primer apellido',
             'telefono' => 'celular', 'fecha_nacimiento' => 'fecha de nacimiento',
         ]);
+
+        $d = \App\Support\SituacionLaboral::validar($d);
 
         // El documento se revisa con las mismas reglas del país que usa el Cyber.
         $tipos = Pais::de($d['pais'])['documentos'] ?? [];

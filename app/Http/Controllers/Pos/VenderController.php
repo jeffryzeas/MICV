@@ -49,6 +49,7 @@ class VenderController extends PosBase
             return response()->json(['ok' => false, 'mensaje' => 'La caja está cerrada. Ábrala para vender.'], 422);
         }
         $d = $request->validate([
+            'clave_operacion' => ['nullable', 'uuid'],
             'items'                => ['required', 'array', 'min:1', 'max:200'],
             'items.*.producto_id'  => ['nullable', 'integer'],
             'items.*.descripcion'  => ['nullable', 'string', 'max:150'],
@@ -84,7 +85,7 @@ class VenderController extends PosBase
             ],
             'correo' => $venta->cliente?->correo,
             // Existencias nuevas para actualizar la pantalla sin recargar.
-            'stock' => PosProducto::whereIn('id', collect($d['items'])->pluck('producto_id')->filter())->where('controla_stock', true)->pluck('stock', 'id')->map(fn ($s) => (float) $s),
+            'stock' => PosProducto::where('cyber_id', $cfg->cyber_id)->whereIn('id', collect($d['items'])->pluck('producto_id')->filter())->where('controla_stock', true)->pluck('stock', 'id')->map(fn ($s) => (float) $s),
         ]);
     }
 }

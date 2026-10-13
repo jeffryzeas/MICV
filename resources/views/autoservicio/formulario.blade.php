@@ -6,7 +6,7 @@
     $estudios = old('estudios', [['nivel' => '', 'titulo' => '', 'institucion' => '', 'anio' => '']]);
     $experiencias = old('experiencias', [['cargo' => '', 'empresa' => '', 'fecha_inicio' => '', 'fecha_fin' => '', 'descripcion' => '']]);
     $idiomas = old('idiomas', [['idioma' => '', 'nivel' => 'intermedio']]);
-    $referencias = old('referencias', [['nombre' => '', 'telefono' => ''], ['nombre' => '', 'telefono' => '']]);
+    $referencias = old('referencias', [['nombre' => '', 'telefono' => ''], ['nombre' => '', 'telefono' => ''], ['nombre' => '', 'telefono' => '']]);
 @endphp
 <x-publico titulo="Mis datos para el CV" ancho="max-w-xl">
     <div class="text-center mb-5">
@@ -55,7 +55,7 @@
                 <div><label class="{{ $lb }}">Celular *</label><input type="tel" name="telefono" required inputmode="tel" value="{{ old('telefono') }}" class="{{ $in }}"></div>
             </div>
             <label class="inline-flex items-center gap-2 text-sm text-gray-600"><input type="checkbox" name="telefono_whatsapp" value="1" @checked(old('telefono_whatsapp', '1'))> Tiene WhatsApp</label>
-            <div><label class="{{ $lb }}">Correo</label><input type="email" name="correo" inputmode="email" value="{{ old('correo') }}" class="{{ $in }}"></div>
+            <label class="{{ $lb }}">Nacionalidad<select name="nacionalidad" required class="{{ $in }}"><option value="">Seleccione su nacionalidad</option>@foreach(\App\Support\Nacionalidades::lista() as $codigo => [$nombrePais,$masculino,$femenino])<option value="{{ $masculino }}" @selected(old('nacionalidad') === $masculino || old('nacionalidad') === $femenino)>{{ $masculino }}{{ $masculino !== $femenino ? ' / ' . $femenino : '' }}</option>@endforeach</select></label><div><label class="{{ $lb }}">Correo</label><input type="email" name="correo" inputmode="email" value="{{ old('correo') }}" class="{{ $in }}"></div>
             <div><label class="{{ $lb }}">Dirección</label><input type="text" name="direccion" value="{{ old('direccion') }}" placeholder="Ej: Barrio San José, 100 m sur de la iglesia" class="{{ $in }}"></div>
         </fieldset>
 
@@ -66,13 +66,13 @@
             <div><label class="{{ $lb }}">Habilidades (separadas por coma)</label><input type="text" name="habilidades_texto" value="{{ old('habilidades_texto') }}" placeholder="Ej: Excel, manejo de caja, trabajo en equipo" class="{{ $in }}"></div>
         </fieldset>
 
-        <details class="group rounded-xl border border-gray-200 p-3" @if(old('estudios')) open @endif>
+        @include('partials.situacion-laboral')<label class="{{ $lb }}">Disponibilidad<input name="disponibilidad" maxlength="255" value="{{ old('disponibilidad') }}" class="{{ $in }}"></label><label class="{{ $lb }}">Cualidades separadas por coma<input name="cualidades" maxlength="255" value="{{ old('cualidades') }}" class="{{ $in }}"></label><details class="group rounded-xl border border-gray-200 p-3" @if(old('estudios')) open @endif>
             <summary class="font-semibold text-azul-950 flex items-center gap-2 cursor-pointer list-none"><i data-lucide="graduation-cap" class="size-5 text-oro-500"></i> Estudios <span class="text-xs text-gray-400 font-normal ml-auto">tocar para llenar</span></summary>
-            <div class="space-y-3 mt-3" data-lista="estudios" data-max="5">
+            <div class="space-y-3 mt-3" data-lista="estudios" data-max="30">
                 @foreach($estudios as $i => $e)
                     <div class="jz-fila grid grid-cols-2 gap-2 border-t border-gray-100 pt-3 first:border-0 first:pt-0">
                         <div class="col-span-2"><select name="estudios[{{ $i }}][nivel]" class="{{ $in }}"><option value="">Nivel…</option>@foreach(\App\Models\ClienteEstudio::NIVELES as $k => $t)<option value="{{ $k }}" @selected(($e['nivel'] ?? '') === $k)>{{ $t }}</option>@endforeach</select></div>
-                        <input type="text" name="estudios[{{ $i }}][titulo]" value="{{ $e['titulo'] ?? '' }}" placeholder="Título o carrera" class="{{ $in }} col-span-2">
+                        <label class="text-xs">Período de estudios<input name="estudios[{{ $i }}][periodo]" maxlength="255" value="{{ $e['periodo'] ?? '' }}" class="{{ $in }}"></label><label class="text-xs">Detalle<input name="estudios[{{ $i }}][detalle]" maxlength="255" value="{{ $e['detalle'] ?? '' }}" class="{{ $in }}"></label><input type="text" name="estudios[{{ $i }}][titulo]" value="{{ $e['titulo'] ?? '' }}" placeholder="Título o carrera" class="{{ $in }} col-span-2">
                         <input type="text" name="estudios[{{ $i }}][institucion]" value="{{ $e['institucion'] ?? '' }}" placeholder="Colegio / universidad" class="{{ $in }}">
                         <input type="number" name="estudios[{{ $i }}][anio]" value="{{ $e['anio'] ?? '' }}" placeholder="Año" inputmode="numeric" class="{{ $in }}">
                     </div>
@@ -86,7 +86,7 @@
             <div class="space-y-3 mt-3" data-lista="experiencias" data-max="5">
                 @foreach($experiencias as $i => $e)
                     <div class="jz-fila grid grid-cols-2 gap-2 border-t border-gray-100 pt-3 first:border-0 first:pt-0">
-                        <input type="text" name="experiencias[{{ $i }}][cargo]" value="{{ $e['cargo'] ?? '' }}" placeholder="Puesto" class="{{ $in }}">
+                        <label class="text-xs">Ubicación del empleo<input name="experiencias[{{ $i }}][ubicacion]" maxlength="255" value="{{ $e['ubicacion'] ?? '' }}" class="{{ $in }}"></label><label class="text-xs">Jornada<input name="experiencias[{{ $i }}][jornada]" maxlength="255" value="{{ $e['jornada'] ?? '' }}" class="{{ $in }}"></label><label class="text-xs">Duración<input name="experiencias[{{ $i }}][duracion]" maxlength="255" value="{{ $e['duracion'] ?? '' }}" class="{{ $in }}"></label><input type="text" name="experiencias[{{ $i }}][cargo]" value="{{ $e['cargo'] ?? '' }}" placeholder="Puesto" class="{{ $in }}">
                         <input type="text" name="experiencias[{{ $i }}][empresa]" value="{{ $e['empresa'] ?? '' }}" placeholder="Empresa" class="{{ $in }}">
                         <label class="text-[11px] text-gray-500">Desde<input type="date" name="experiencias[{{ $i }}][fecha_inicio]" value="{{ $e['fecha_inicio'] ?? '' }}" class="{{ $in }}"></label>
                         <label class="text-[11px] text-gray-500">Hasta (vacío = actual)<input type="date" name="experiencias[{{ $i }}][fecha_fin]" value="{{ $e['fecha_fin'] ?? '' }}" class="{{ $in }}"></label>
@@ -116,7 +116,7 @@
             <div class="space-y-2 mt-3">
                 @foreach($referencias as $i => $r)
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" name="referencias[{{ $i }}][nombre]" value="{{ $r['nombre'] ?? '' }}" placeholder="Nombre" class="{{ $in }}">
+                        <label class="text-xs">Detalle<input name="referencias[{{ $i }}][detalle]" maxlength="255" value="{{ $r['detalle'] ?? '' }}" class="{{ $in }}"></label><input type="text" name="referencias[{{ $i }}][nombre]" value="{{ $r['nombre'] ?? '' }}" placeholder="Nombre" class="{{ $in }}">
                         <input type="tel" name="referencias[{{ $i }}][telefono]" value="{{ $r['telefono'] ?? '' }}" placeholder="Teléfono" class="{{ $in }}">
                     </div>
                 @endforeach
