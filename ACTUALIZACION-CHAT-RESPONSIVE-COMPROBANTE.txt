@@ -1,0 +1,49 @@
+MI CV · BARRA DE ENVÍO, DISTINTIVOS Y NUEVA HOJA DE CORREO
+Esta guía prevalece sobre la descripción del aviso y del diseño de guías anteriores.
+
+CAMBIOS
+1. Aviso breve: “Los mensajes están cifrados al guardarse.” Se retira la mención
+   adicional del aviso. No se incorpora una promesa de exclusividad o cifrado
+   de extremo a extremo. Los permisos y funciones existentes se conservan.
+2. El historial vuelve a estar contenido en su área de desplazamiento. No crece
+   sobre la barra de escritura. Se fijan los límites de las filas, los mínimos
+   de flex/grid y la altura del área principal.
+3. El chat vuelve a seguir la altura y posición de visualViewport, incluido el
+   desplazamiento del teclado virtual. Reacciona a rotación, foco y cambios de
+   tamaño; respeta el área segura inferior de los teléfonos.
+4. Vista previa del adjunto limitada según la altura disponible para no expulsar
+   la barra cuando el teclado ocupa parte de la pantalla. El historial se puede
+   desplazar sin mover la barra de envío.
+5. Sello azul con marca blanca para los contactos verificados. Tiene ancho propio
+   y no desaparece al recortar nombres largos. Se muestra también en el avatar
+   propio verificado. No se asignan verificaciones falsas a cuentas sin verificar.
+6. Comprobante de correo rediseñado: cabecera con logo y folio, bloque azul con
+   el correo, ficha de titular y recuperación, franja de contraseña, QR vectorial
+   con instrucciones, recomendaciones de seguridad y pie de documento.
+   Sigue en carta. El QR conserva nombre, correo, contraseña y celular; no es
+   un enlace de acceso. Su contenido es legible para quien tenga la hoja.
+   El QR usa un color oscuro fijo para mantener contraste aunque cambie la marca.
+
+INSTALAR
+Este paquete incluye el sistema completo con todos los cambios previos.
+Respaldar y copiar mi-cv/ a la aplicación, conservando .env, APP_KEY y storage.
+En /var/www/micv:
+composer install --no-dev --optimize-autoloader
+npm ci
+php artisan optimize:clear
+php artisan migrate --force
+php artisan optimize
+Si usa trabajadores de cola: php artisan queue:restart
+Conserve ffmpeg/ffprobe y ClamAV para los audios y adjuntos, así como los límites
+PHP/Nginx de subidas indicados en la guía anterior.
+Después de copiar, recargue la página del chat para obtener los estilos nuevos.
+
+VALIDACIÓN
+45 pruebas PHP / 281 aserciones. Navegador con 150 mensajes: 390x844, 320x568,
+360x740, 844x390, 390x360 y 320x300. Posición de viewport desplazada para simular
+el teclado: barra e input dentro de la zona visible, sin historial por encima.
+Sello de verificación visible. Prueba de envío posterior a cambios de tamaño.
+PDF normal y de contenido largo de una sola página carta; QR del nuevo PDF
+escaneado y datos recuperados correctamente. Revisión visual del nuevo diseño.
+La simulación no sustituye una prueba en el teléfono físico del usuario.
+No se ha instalado automáticamente este paquete en el VPS.

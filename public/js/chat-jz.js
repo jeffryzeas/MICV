@@ -32,11 +32,18 @@
         infoVersion = 0;
     const nodes = new Map();
     function fit() {
-        const v = visualViewport;
-        app.style.setProperty("--app-h", (v ? v.height : innerHeight) + "px");
+        const v=window.visualViewport, height=Math.round(v?v.height:innerHeight),top=Math.round(v?v.offsetTop:0);
+        document.documentElement.style.setProperty('--app-h',height+'px');
+        document.documentElement.style.setProperty('--app-top',top+'px');
+        app.style.setProperty('--app-h',height+'px');
+        if(document.activeElement?.id==='jzc-texto')requestAnimationFrame(()=>{const h=document.getElementById('jzc-historial');if(h)h.scrollTop=h.scrollHeight;});
     }
-    window.addEventListener("resize", fit);
-    window.visualViewport?.addEventListener("resize", fit);
+    window.addEventListener('resize',fit);
+    window.visualViewport?.addEventListener('resize',fit);
+    window.visualViewport?.addEventListener('scroll',fit);
+    window.addEventListener('orientationchange',()=>setTimeout(fit,300));
+    document.addEventListener('focusin',()=>{requestAnimationFrame(fit);setTimeout(fit,250);});
+    document.addEventListener('focusout',()=>setTimeout(fit,250));
     fit();
     function status(text, error = false) {
         $("estado").textContent = text;
@@ -113,7 +120,8 @@
         return av;
     }
     function meAvatar() {
-        $("me").replaceChildren(avatar(me, "av-sm"));
+        $('me').replaceChildren(avatar(me,'av-sm'));
+        if(me.verificado){const v=icon('badge-check');v.classList.add('verified','own-verified');v.setAttribute('aria-label','Correo verificado');v.removeAttribute('aria-hidden');$('me').append(v);}
     }
     meAvatar();
     function contact(c, start = false) {
@@ -129,10 +137,12 @@
         const body = element("div", "item-body"),
             top = element("div", "item-top"),
             name = element("span", "item-name");
-        name.append(element("span", "", c.nombre));
+        name.append(element("span", "name-text", p.nombre||c.nombre));
         if (p.verificado) {
             const check = icon("badge-check");
             check.classList.add("verified");
+            check.setAttribute("aria-label","Correo verificado");
+            check.setAttribute("role","img");check.removeAttribute("aria-hidden");
             name.append(check);
         }
         top.append(name);
@@ -228,6 +238,7 @@
         if (other.verificado) {
             const v = icon("badge-check");
             v.setAttribute("aria-label", "Correo verificado");
+            v.setAttribute("role","img");v.removeAttribute("aria-hidden");
             v.classList.add("verified");
             $("nombre").append(v);
         }

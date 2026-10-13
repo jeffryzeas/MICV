@@ -1,0 +1,7 @@
+Cambios de esta actualización:
+
+ACTUALIZACION-CHAT-RESPONSIVE-COMPROBANTE.txt
+public/css/chat-jz.css
+public/js/chat-jz.js
+resources/views/chat/index.blade.php
+resources/views/correos/pdf.blade.php
