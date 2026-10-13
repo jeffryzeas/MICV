@@ -37,7 +37,7 @@ class Verificacion
             return ['enviado' => true, 'error' => null, 'codigo_debug' => null];
         } catch (\Throwable $e) {
             // En modo local (APP_DEBUG=true) se muestra el código para poder probar sin correo.
-            return ['enviado' => false, 'error' => $e->getMessage(), 'codigo_debug' => config('app.debug') ? $codigo : null];
+            return ['enviado' => false, 'error' => $e->getMessage(), 'codigo_debug' => (config('app.debug') && app()->environment('local')) ? $codigo : null];
         }
     }
 

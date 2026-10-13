@@ -10,6 +10,8 @@ class ActividadController extends Controller
 {
     public function index(Request $request)
     {
+        // Por si el cron no está configurado: la limpieza también corre al abrir la auditoría.
+        \App\Support\Limpieza::ejecutar();
         $accion = (string) $request->query('accion', '');
         $usuario = trim((string) $request->query('usuario', ''));
         $desde = $request->query('desde');

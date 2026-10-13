@@ -82,12 +82,12 @@
       }
       if (data.cr) {
         html += data.cr.valida
-          ? '<strong>✓ Formato válido</strong>' + (data.cr.provincia ? ' · Provincia de inscripción: ' + data.cr.provincia : '') + ' · ' + (data.numero_ui || '')
+          ? '<strong>✓ Número válido</strong> · ' + (data.numero_ui || '') + (data.cr.resumen ? ' · ' + data.cr.resumen : '') + (data.cr.aviso ? '<br>⚠ ' + data.cr.aviso : '')
           : '<strong>✗ Número inválido</strong>: ' + (data.cr.errores || []).join(' · ');
       }
       if (data.existe && data.cliente) {
         html += (html ? '<br>' : '') + '<strong>⚠ Ya existe en el sistema:</strong> '
-          + (data.cliente.nombre_completo || '') + ' (ID ' + data.cliente.id + ').';
+          + (data.cliente.nombre_completo || '') + (data.cliente.id ? ' (ID ' + data.cliente.id + ')' : '') + '.';
         status(live, 'warn', html);
       } else if ((data.cedula && !data.cedula.valida) || (data.cr && !data.cr.valida)) {
         status(live, 'err', html);

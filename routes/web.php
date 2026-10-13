@@ -30,36 +30,43 @@ use Illuminate\Support\Facades\Route;
 
 // Primera vez: crear el administrador (se bloquea solo cuando ya hay usuarios)
 Route::get('instalar', [InstaladorController::class, 'mostrar'])->name('instalar.mostrar');
-Route::post('instalar', [InstaladorController::class, 'guardar'])->name('instalar.guardar')->middleware('throttle:10,1,instalar.guardar');
+Route::post('instalar', [InstaladorController::class, 'guardar'])->name('instalar.guardar')->middleware('throttle:registro');
 
 // Logos: públicos a propósito (se ven en el login y en el menú)
 Route::get('marca/logo', [ArchivoController::class, 'logo'])->name('marca.logo');
 Route::get('cybers/{cyber}/logo', [ArchivoController::class, 'logoCyber'])->name('cybers.logo');
 
+// Token nuevo para formularios abiertos mucho tiempo (evita "Página expirada")
+Route::get('csrf-token', fn (\Illuminate\Http\Request $r) => response()->json(['token' => $r->session()->token()])->header('Cache-Control', 'no-store'))->name('csrf.refrescar')->middleware('throttle:token');
+
 // Páginas legales y app (públicas)
 Route::get('legal/{doc}', [LegalController::class, 'ver'])->name('legal.ver');
 Route::get('eliminar-cuenta', [CuentaController::class, 'publicaMostrar'])->name('eliminar.mostrar');
-Route::post('eliminar-cuenta', [CuentaController::class, 'publicaGuardar'])->name('eliminar.guardar')->middleware('throttle:5,1,eliminar.guardar');
+Route::post('eliminar-cuenta', [CuentaController::class, 'publicaGuardar'])->name('eliminar.guardar')->middleware('throttle:eliminar-publico');
 Route::get('manifest.webmanifest', [PwaController::class, 'manifest'])->name('pwa.manifest');
 Route::get('.well-known/assetlinks.json', [PwaController::class, 'assetlinks'])->name('pwa.assetlinks');
 
 Route::middleware('guest')->group(function () {
     Route::get('recuperar', [RecuperarController::class, 'mostrar'])->name('recuperar.mostrar');
-    Route::post('recuperar', [RecuperarController::class, 'enviar'])->name('recuperar.enviar')->middleware('throttle:5,1,recuperar.enviar');
+    Route::post('recuperar', [RecuperarController::class, 'enviar'])->name('recuperar.enviar')->middleware('throttle:recuperar');
     Route::get('recuperar/codigo', [RecuperarController::class, 'codigo'])->name('recuperar.codigo');
-    Route::post('recuperar/codigo', [RecuperarController::class, 'restablecer'])->name('recuperar.restablecer')->middleware('throttle:10,1,recuperar.restablecer');
+    Route::post('recuperar/codigo', [RecuperarController::class, 'restablecer'])->name('recuperar.restablecer')->middleware('throttle:codigo');
     Route::get('/', [LoginController::class, 'mostrar'])->name('login');
-    Route::post('login', [LoginController::class, 'iniciar'])->name('login.iniciar')->middleware('throttle:10,1,login.iniciar');
+    Route::post('login', [LoginController::class, 'iniciar'])->name('login.iniciar')->middleware('throttle:login');
     // Registro abierto para que cualquier persona haga su CV
     Route::get('registro', [RegistroController::class, 'mostrar'])->name('registro.mostrar');
-    Route::post('registro', [RegistroController::class, 'guardar'])->name('registro.guardar')->middleware('throttle:6,1,registro.guardar');
+    Route::post('registro', [RegistroController::class, 'guardar'])->name('registro.guardar')->middleware('throttle:registro');
+    Route::get('registro/codigo', [RegistroController::class, 'codigoMostrar'])->name('registro.codigo');
+    Route::post('registro/codigo', [RegistroController::class, 'codigoGuardar'])->name('registro.codigo.guardar')->middleware('throttle:codigo');
+    Route::post('registro/codigo/reenviar', [RegistroController::class, 'codigoReenviar'])->name('registro.codigo.reenviar')->middleware('throttle:envio-codigo');
+    Route::post('registro/codigo/cancelar', [RegistroController::class, 'codigoCancelar'])->name('registro.codigo.cancelar');
 });
 
 // Verificación del correo con código (después de registrarse)
 Route::middleware(['auth', 'activo'])->group(function () {
     Route::get('verificar', [RegistroController::class, 'verificarMostrar'])->name('verificar.mostrar');
-    Route::post('verificar', [RegistroController::class, 'verificarGuardar'])->name('verificar.guardar')->middleware('throttle:10,1,verificar.guardar');
-    Route::post('verificar/reenviar', [RegistroController::class, 'reenviar'])->name('verificar.reenviar')->middleware('throttle:5,1,verificar.reenviar');
+    Route::post('verificar', [RegistroController::class, 'verificarGuardar'])->name('verificar.guardar')->middleware('throttle:codigo');
+    Route::post('verificar/reenviar', [RegistroController::class, 'reenviar'])->name('verificar.reenviar')->middleware('throttle:envio-codigo');
     Route::get('aceptar-terminos', [LegalController::class, 'aceptarMostrar'])->name('legal.aceptar');
     Route::post('aceptar-terminos', [LegalController::class, 'aceptarGuardar'])->name('legal.aceptar.guardar');
 });
@@ -72,12 +79,12 @@ Route::middleware(['auth', 'activo', 'verificado', 'terminos'])->group(function 
     Route::middleware('rol:cliente')->prefix('mi-cv')->name('mi-cv.')->group(function () {
         Route::get('/', [MiCvController::class, 'panel'])->name('panel');
         Route::get('datos', [MiCvController::class, 'editar'])->name('editar');
-        Route::put('datos', [MiCvController::class, 'actualizar'])->name('actualizar')->middleware('throttle:30,1,actualizar');
+        Route::put('datos', [MiCvController::class, 'actualizar'])->name('actualizar')->middleware('throttle:guardar');
     });
     Route::middleware('rol:cliente')->prefix('mi-cuenta')->name('mi-cuenta.')->group(function () {
         Route::get('/', [CuentaController::class, 'mostrar'])->name('mostrar');
-        Route::get('descargar-datos', [CuentaController::class, 'descargar'])->name('descargar')->middleware('throttle:10,1,descargar');
-        Route::post('eliminar', [CuentaController::class, 'solicitar'])->name('solicitar')->middleware('throttle:5,1,solicitar');
+        Route::get('descargar-datos', [CuentaController::class, 'descargar'])->name('descargar')->middleware('throttle:sensible');
+        Route::post('eliminar', [CuentaController::class, 'solicitar'])->name('solicitar')->middleware('throttle:sensible');
         Route::post('eliminar/cancelar', [CuentaController::class, 'cancelar'])->name('cancelar');
     });
 
@@ -85,14 +92,15 @@ Route::middleware(['auth', 'activo', 'verificado', 'terminos'])->group(function 
     Route::get('cartas', [CartaController::class, 'index'])->name('cartas.index');
     Route::get('cartas/buscar-clientes', [CartaController::class, 'buscarClientes'])->name('cartas.buscar');
     Route::get('cartas/{tipo}', [CartaController::class, 'create'])->name('cartas.create');
-    Route::post('cartas/{tipo}/vista', [CartaController::class, 'previsualizar'])->name('cartas.previsualizar')->middleware('throttle:90,1,cartas.previsualizar');
-    Route::post('cartas/{tipo}', [CartaController::class, 'generar'])->name('cartas.generar')->middleware('throttle:20,1,cartas.generar');
+    Route::post('cartas/{tipo}/vista', [CartaController::class, 'previsualizar'])->name('cartas.previsualizar')->middleware('throttle:vista');
+    Route::post('cartas/{tipo}', [CartaController::class, 'generar'])->name('cartas.generar')->middleware('throttle:pdf');
 
     // ── CV (cada quien solo los clientes que puede ver) y foto
     Route::get('clientes/{cliente}/foto', [ArchivoController::class, 'fotoCliente'])->name('clientes.foto');
-    Route::get('clientes/{cliente}/cv/vista', [CvController::class, 'vista'])->name('cv.vista');
-    Route::get('clientes/{cliente}/cv/pdf', [CvController::class, 'pdf'])->name('cv.pdf')->middleware('throttle:30,1,cv.pdf');
-    Route::post('api/consultar-documento', [DocumentoController::class, 'consultar'])->name('api.consultar-documento')->middleware('throttle:90,1,api.consultar-documento');
+    Route::get('clientes/{cliente}/cv/vista', [CvController::class, 'vista'])->name('cv.vista')->middleware('throttle:vista');
+    Route::get('clientes/{cliente}/cv/pdf', [CvController::class, 'pdf'])->name('cv.pdf')->middleware('throttle:pdf');
+    Route::post('clientes/{cliente}/cv/enviar', [CvController::class, 'enviar'])->name('cv.enviar')->middleware('throttle:cv-correo');
+    Route::post('api/consultar-documento', [DocumentoController::class, 'consultar'])->name('api.consultar-documento')->middleware('throttle:documento');
 
     // ── Mi perfil
     Route::get('perfil', [PerfilController::class, 'editar'])->name('perfil.edit');
@@ -103,10 +111,10 @@ Route::middleware(['auth', 'activo', 'verificado', 'terminos'])->group(function 
     // ── Clientes (admin ve todos; cada cyber ve solo los suyos)
     Route::get('clientes', [ClienteController::class, 'index'])->name('clientes.index');
     Route::get('clientes/nuevo', [ClienteController::class, 'create'])->name('clientes.create');
-    Route::post('clientes', [ClienteController::class, 'store'])->name('clientes.store')->middleware('throttle:40,1,clientes.store');
+    Route::post('clientes', [ClienteController::class, 'store'])->name('clientes.store')->middleware('throttle:guardar');
     Route::get('clientes/{cliente}', [ClienteController::class, 'show'])->name('clientes.show');
     Route::get('clientes/{cliente}/editar', [ClienteController::class, 'edit'])->name('clientes.edit');
-    Route::put('clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update');
+    Route::put('clientes/{cliente}', [ClienteController::class, 'update'])->name('clientes.update')->middleware('throttle:guardar');
     Route::delete('clientes/{cliente}', [ClienteController::class, 'destroy'])->name('clientes.destroy');
   });
 
@@ -143,7 +151,7 @@ Route::middleware(['auth', 'activo', 'verificado', 'terminos'])->group(function 
 
         Route::get('correo', [CorreoController::class, 'editar'])->name('correo.edit');
         Route::put('correo', [CorreoController::class, 'actualizar'])->name('correo.update');
-        Route::post('correo/probar', [CorreoController::class, 'probar'])->name('correo.probar')->middleware('throttle:10,1,correo.probar');
+        Route::post('correo/probar', [CorreoController::class, 'probar'])->name('correo.probar')->middleware('throttle:sensible');
 
         Route::get('recaptcha', [RecaptchaController::class, 'editar'])->name('recaptcha.edit');
         Route::put('recaptcha', [RecaptchaController::class, 'actualizar'])->name('recaptcha.update');

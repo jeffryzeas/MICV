@@ -43,6 +43,17 @@ class Nacionalidades
         'IN' => ['India', 'Indio', 'India'],
     ];
 
+    /** Gentilicio en inglés (para el CV en inglés). */
+    public const EN = [
+        'NI' => 'Nicaraguan', 'CR' => 'Costa Rican', 'HN' => 'Honduran', 'SV' => 'Salvadoran', 'GT' => 'Guatemalan',
+        'PA' => 'Panamanian', 'BZ' => 'Belizean', 'MX' => 'Mexican', 'CU' => 'Cuban', 'DO' => 'Dominican',
+        'PR' => 'Puerto Rican', 'HT' => 'Haitian', 'CO' => 'Colombian', 'VE' => 'Venezuelan', 'EC' => 'Ecuadorian',
+        'PE' => 'Peruvian', 'BO' => 'Bolivian', 'CL' => 'Chilean', 'AR' => 'Argentine', 'UY' => 'Uruguayan',
+        'PY' => 'Paraguayan', 'BR' => 'Brazilian', 'US' => 'American', 'CA' => 'Canadian', 'ES' => 'Spanish',
+        'IT' => 'Italian', 'FR' => 'French', 'DE' => 'German', 'PT' => 'Portuguese', 'GB' => 'British',
+        'CN' => 'Chinese', 'TW' => 'Taiwanese', 'JP' => 'Japanese', 'KR' => 'South Korean', 'IN' => 'Indian',
+    ];
+
     /** Para el JS: [{c, m, f}] */
     public static function paraJs(): array
     {

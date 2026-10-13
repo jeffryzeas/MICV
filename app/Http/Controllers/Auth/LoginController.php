@@ -13,7 +13,8 @@ class LoginController extends Controller
 {
     public function mostrar()
     {
-        return view('auth.login');
+        // Sin caché: así el botón "Atrás" no muestra un login con un token vencido.
+        return response()->view('auth.login')->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     }
 
     public function iniciar(Request $request)
@@ -33,7 +34,10 @@ class LoginController extends Controller
 
         $user = User::where($campo, $valor)->first();
 
-        if (!$user || !Hash::check($datos['password'], $user->password)) {
+        // Se compara siempre una contraseña (aunque el usuario no exista) para que el
+        // tiempo de respuesta no revele qué usuarios existen.
+        $ok = Hash::check($datos['password'], $user?->password ?? '$2y$12$WuZFIKIqG08IyL7wS8ghleu3RnuXKjBxAUrwmJhLCc8icgb4GG04G');
+        if (!$user || !$ok) {
             Actividad::registrar('login_fallido', mb_substr($login, 0, 80));
             return back()->withInput($request->only('usuario'))
                 ->withErrors(['usuario' => 'Usuario o contraseña incorrectos.']);

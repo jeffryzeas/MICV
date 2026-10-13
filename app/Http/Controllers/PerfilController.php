@@ -25,7 +25,9 @@ class PerfilController extends Controller
 
         $nuevoCorreo = mb_strtolower($datos['email']);
         $cambioCorreo = $nuevoCorreo !== $user->email;
-        $user->update(['name' => $datos['name'], 'email' => $nuevoCorreo]);
+        // El nombre de un usuario registrado sale de su CV ("Mis datos"): así siempre coinciden.
+        $nombre = $user->esCliente() && $user->cliente ? ($user->cliente->nombreCompleto() ?: $datos['name']) : $datos['name'];
+        $user->update(['name' => $nombre, 'email' => $nuevoCorreo]);
 
         // Un cliente que cambia su correo debe verificarlo de nuevo con un código.
         if ($cambioCorreo && $user->esCliente()) {

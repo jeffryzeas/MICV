@@ -17,7 +17,7 @@
             <label class="flex items-center gap-2 text-sm text-gray-500"><input type="checkbox" name="recordar" value="1" class="rounded"> Recordarme</label>
             <a href="{{ route('recuperar.mostrar') }}" class="text-sm font-semibold text-[#0B3C74] hover:underline">¿Olvidó su contraseña?</a>
         </div>
-        <button type="submit"
+        <button type="submit" data-cargando="Ingresando…"
                 class="w-full text-white font-semibold uppercase text-sm tracking-wide py-3 rounded-lg transition-colors"
                 style="background-color:#0B3C74;"
                 onmouseover="this.style.backgroundColor='#C9971F'" onmouseout="this.style.backgroundColor='#0B3C74'">

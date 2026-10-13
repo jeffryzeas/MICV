@@ -59,7 +59,7 @@
                 </div>
                 @endif
 
-                @if(in_array($tipo, ['renuncia_inmediata', 'renuncia_15dias', 'solicitud_empleo']))
+                @if(in_array($tipo, ['renuncia_inmediata', 'renuncia_15dias', 'solicitud_empleo', 'presentacion']))
                 <div class="mb-4">
                     <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Empresa</label>
                     <input type="text" name="empresa" placeholder="Nombre de la empresa" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
@@ -74,6 +74,14 @@
                 <div class="mb-4">
                     <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Cargo</label>
                     <input type="text" name="cargo" placeholder="Ej: Vendedor(a)" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
+                </div>
+                @endif
+
+                @if($tipo === 'presentacion')
+                <div class="mb-4">
+                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Puesto al que aplica</label>
+                    <input type="text" name="cargo" placeholder="Si lo deja vacío se usa su profesión u oficio" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
+                    <p class="text-xs text-gray-400 mt-1">La experiencia, los estudios y las habilidades se toman de su CV. Si cambia su CV, la carta se actualiza sola.</p>
                 </div>
                 @endif
 

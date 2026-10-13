@@ -15,6 +15,17 @@ class Legal
         'cookies'    => ['Política de cookies', 'legal_cookies', 'cookie'],
     ];
 
+    /** Nombre oficial del país para los textos legales ("las leyes de …"). */
+    public const NOMBRE_OFICIAL = [
+        'NI' => 'la República de Nicaragua', 'CR' => 'la República de Costa Rica', 'HN' => 'la República de Honduras',
+        'SV' => 'la República de El Salvador', 'GT' => 'la República de Guatemala', 'PA' => 'la República de Panamá',
+        'MX' => 'los Estados Unidos Mexicanos', 'DO' => 'la República Dominicana', 'CU' => 'la República de Cuba',
+        'CO' => 'la República de Colombia', 'VE' => 'la República Bolivariana de Venezuela', 'EC' => 'la República del Ecuador',
+        'PE' => 'la República del Perú', 'BO' => 'el Estado Plurinacional de Bolivia', 'CL' => 'la República de Chile',
+        'AR' => 'la República Argentina', 'UY' => 'la República Oriental del Uruguay', 'PY' => 'la República del Paraguay',
+        'ES' => 'el Reino de España', 'US' => 'los Estados Unidos de América', 'OT' => 'el país del responsable',
+    ];
+
     public static function base(string $doc): string
     {
         $f = resource_path("legal/$doc.md");
@@ -40,6 +51,7 @@ class Legal
     {
         $e = fn ($v) => str_replace(['*', '_', '[', ']', '<', '>'], ['\\*', '\\_', '\\[', '\\]', '&lt;', '&gt;'], (string) $v);
         $pais = Pais::de($cfg->legal_pais ?: 'CR')['nombre'];
+        $oficial = self::NOMBRE_OFICIAL[$cfg->legal_pais ?: 'CR'] ?? 'el país del responsable';
         return [
             '{{marca}}'               => $e($cfg->nombre_negocio ?: 'Mi CV'),
             '{{responsable}}'         => $e($cfg->legal_responsable ?: ($cfg->nombre_negocio ?: 'el titular de la plataforma')),
@@ -47,7 +59,7 @@ class Legal
             '{{direccion}}'           => $e($cfg->marca_direccion ?: $pais),
             '{{correo}}'              => $e($cfg->marca_correo ?: ($cfg->smtp_desde_correo ?: 'el correo de contacto del sitio')),
             '{{telefono}}'            => $e($cfg->marca_telefono ?: '—'),
-            '{{pais}}'                => $pais === 'Otro país' ? 'el país del responsable' : 'la República de ' . $pais,
+            '{{pais}}'                => $oficial,
             '{{version}}'             => $e($cfg->legal_version ?: '1.0'),
             '{{fecha}}'               => ($cfg->legal_actualizado_en ?? $cfg->created_at ?? now())->format('d/m/Y'),
             '{{url_privacidad}}'      => route('legal.ver', 'privacidad'),

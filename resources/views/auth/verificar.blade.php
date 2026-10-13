@@ -14,9 +14,9 @@
 
     <form method="POST" action="{{ route('verificar.guardar') }}" class="space-y-4">
         @csrf
-        <input type="text" name="codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required autofocus placeholder="000000"
+        <input type="text" name="codigo" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required autofocus placeholder="000000" pattern="\d{6}" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6); if(this.value.length===6) this.form.requestSubmit();"
                class="w-full text-center tracking-[0.6em] font-mono text-2xl border-2 border-gray-300 rounded-xl px-3 py-3 focus:outline-none focus:border-[#0B3C74]">
-        <button type="submit" class="w-full text-white font-semibold uppercase text-sm tracking-wide py-3 rounded-lg" style="background-color:#0B3C74;">Verificar y entrar</button>
+        <button type="submit" class="w-full text-white font-semibold uppercase text-sm tracking-wide py-3 rounded-lg" style="background-color:#0B3C74;" data-cargando="Verificando…">Verificar y entrar</button>
     </form>
 
     <div class="flex items-center justify-between mt-5 text-sm">

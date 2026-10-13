@@ -2,7 +2,7 @@
     <h2 class="font-bold text-lg text-[#061a33] mb-1">¿Olvidó su contraseña?</h2>
     <p class="text-sm text-gray-500 mb-5">Escriba el correo de su cuenta y le enviaremos un código de 6 dígitos para crear una nueva.</p>
     <form method="POST" action="{{ route('recuperar.enviar') }}" class="space-y-4">
-        @csrf
+        @csrf @include('partials.antibot')
         <div class="relative">
             <label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Correo</label>
             <i data-lucide="mail" class="absolute left-3 top-[30px] size-4 text-gray-400"></i>

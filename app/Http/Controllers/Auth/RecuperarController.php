@@ -21,6 +21,10 @@ class RecuperarController extends Controller
     public function enviar(Request $request)
     {
         $request->validate(['email' => ['required', 'email']], [], ['email' => 'correo']);
+        if (\App\Support\AntiBot::esRobot($request)) {
+            \App\Models\Actividad::registrar('robot_bloqueado', 'recuperar · ' . $request->ip());
+            return back()->withInput($request->except('password', 'password_confirmation'))->withErrors(['general' => 'No pudimos procesar el formulario. Espere unos segundos e intente de nuevo.']);
+        }
         if ($error = Recaptcha::verificar($request->input('recaptcha_token'), 'recuperar')) {
             return back()->withInput()->withErrors(['general' => $error]);
         }

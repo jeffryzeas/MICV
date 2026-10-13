@@ -7,7 +7,7 @@
     $mTop = 46; $mBot = 44; $mLado = 50;
 @endphp
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ $lang }}">
 <head>
 <meta charset="utf-8">
 <title>CV — {{ $c->nombreCompleto() }}</title>
@@ -102,12 +102,12 @@ body { padding: 24px 0; }
     <div class="contenido">
         <div class="cabecera">
             @if ($cv['mostrar_escudo'] && $escudo)<img class="escudo" src="{{ $escudo }}" alt="">@else<span class="escudo"></span>@endif
-            <div class="titulo">Currículum Vítae</div>
+            <div class="titulo">{{ $lang === 'en' ? 'Curriculum Vitae' : 'Currículum Vítae' }}</div>
             @if ($cv['mostrar_escudo'] && $escudo)<img class="escudo" src="{{ $escudo }}" alt="">@else<span class="escudo"></span>@endif
         </div>
 
         @if (count($personales))
-            <div class="seccion">Datos personales</div>
+            <div class="seccion">{{ $t('Datos personales') }}</div>
             <div class="personales">
                 <table>
                     @foreach ($personales as [$et, $val])
@@ -119,7 +119,7 @@ body { padding: 24px 0; }
         @endif
 
         @if (count($familia))
-            <div class="seccion">Datos familiares</div>
+            <div class="seccion">{{ $t('Datos familiares') }}</div>
             <table>
                 @foreach ($familia as [$et, $val])
                     <tr><td class="et">{{ $et }}:</td><td>{{ $val }}</td></tr>
@@ -128,26 +128,31 @@ body { padding: 24px 0; }
         @endif
 
         @if ($estudios->isNotEmpty())
-            <div class="seccion">Información académica</div>
+            <div class="seccion">{{ $t('Información académica') }}</div>
             <ul>
                 @foreach ($estudios as $e)
-                    <li><span class="nivel">{{ $e->nivelLegible() }}:</span> {{ $e->lineaCv() }}</li>
+                    <li><span class="nivel">{{ $t($e->nivelLegible()) }}:</span> {{ $e->lineaCv($lang) }}</li>
                 @endforeach
             </ul>
         @endif
 
         @if ($experiencias->isNotEmpty())
-            <div class="seccion">Experiencia laboral</div>
-            <ul>@foreach ($experiencias as $e)<li>{{ $e->lineaCv() }}</li>@endforeach</ul>
+            <div class="seccion">{{ $t('Experiencia laboral') }}</div>
+            <ul>@foreach ($experiencias as $e)<li>{{ $e->lineaCv($lang) }}</li>@endforeach</ul>
         @endif
 
         @if ($habilidades->isNotEmpty())
-            <div class="seccion">Habilidades</div>
+            <div class="seccion">{{ $t('Habilidades') }}</div>
             <ul>@foreach ($habilidades as $h)<li>{{ $h->habilidad }}</li>@endforeach</ul>
         @endif
 
+        @if ($idiomas->isNotEmpty())
+            <div class="seccion">{{ $t('Idiomas') }}</div>
+            <ul>@foreach ($idiomas as $x)<li><span class="nivel">{{ $x->nombre($lang) }}:</span> {{ $x->nivelTexto($lang) }}</li>@endforeach</ul>
+        @endif
+
         @if ($referencias->isNotEmpty())
-            <div class="seccion">Referencias personales</div>
+            <div class="seccion">{{ $t('Referencias personales') }}</div>
             <ul>@foreach ($referencias as $r)<li>{{ $r->lineaCv() }}</li>@endforeach</ul>
         @endif
     </div>

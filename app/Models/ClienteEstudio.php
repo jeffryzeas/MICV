@@ -31,16 +31,16 @@ class ClienteEstudio extends Model
     }
 
     /** "Lic. en Contaduría en UCR (2020) — detalle" */
-    public function lineaCv(): string
+    public function lineaCv(string $lang = 'es'): string
     {
         $linea = implode(' ', array_filter([
             $this->titulo,
-            $this->institucion ? 'en ' . $this->institucion : null,
+            $this->institucion ? ($lang === 'en' ? 'at ' : 'en ') . $this->institucion : null,
             $this->anio ? '(' . $this->anio . ')' : null,
         ]));
         if ($this->detalle) {
             $linea .= ($linea ? ' — ' : '') . $this->detalle;
         }
-        return $linea ?: $this->nivelLegible();
+        return $linea ?: \App\Support\CvTexto::t($this->nivelLegible(), $lang);
     }
 }

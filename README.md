@@ -7,6 +7,124 @@ cada Cyber tiene sus usuarios y ve solo a sus clientes. El admin lo ve todo.
 Los PDF se hacen con **Chromium + Node** (Browsershot + Puppeteer). El PDF sale
 igual a la vista previa del navegador: fuentes, colores, foto, marco, todo.
 
+## Novedades de la versión 8
+
+- **Registro:** el país se elige en una lista desplegable con bandera, agrupada por región. Ya no ocupa media pantalla.
+- **Textos legales reescritos.** Son plantillas: **no son asesoría legal**. Antes de publicar, que los revise un abogado del país donde está registrado el negocio.
+  - **Términos:**
+    - Edad mínima (15 años con permiso de la madre o el padre; 18 sin permiso).
+    - Prohibición expresa de falsificar documentos y de hacer recomendaciones a nombre de alguien sin su permiso.
+    - Aviso de que las cartas no son asesoría legal.
+    - Uso de los escudos nacionales.
+    - Límite de responsabilidad que respeta los derechos del consumidor.
+    - Solución de conflictos.
+  - **Privacidad:**
+    - Tabla de datos, finalidades y base legal.
+    - Transferencias a otros países y plazos de conservación.
+    - Seguridad y aviso de incidentes.
+    - Derechos de la persona (respuesta en máximo 10 días hábiles).
+    - Menores de edad.
+    - **Tabla de leyes y autoridades de los 20 países.**
+  - **Contrato para Cybers:**
+    - El Cyber es "encargado del tratamiento", con obligaciones de consentimiento, confidencialidad del personal y seguridad en el local.
+    - Aviso de incidentes en 24 horas y de solicitudes de clientes en 2 días hábiles.
+    - Suspensión y terminación con aviso de 15 días.
+  - **Cookies:** solo las necesarias, con una tabla de cada una.
+  - "Las leyes de…" ahora sale con el nombre oficial de cada país (por ejemplo, "los Estados Unidos Mexicanos" o "el Reino de España").
+  - Si usa los textos de fábrica, la actualización publica una **versión nueva** y todos la aceptan al entrar. Si los personalizó, no se toca nada.
+- **Seguridad:**
+  - **Límites de intentos por tipo de acción:**
+    - Login: 5 por minuto por usuario e IP, y 30 por hora por IP.
+    - Registro: 3 por minuto y 20 por día por IP.
+    - Códigos: además del máximo de 5 intentos por código.
+    - Recuperar contraseña: también 5 por hora por correo, para que no le llenen el buzón a alguien.
+    - Eliminar cuenta, consultar documentos, PDF y envío por correo: cada uno con su propio límite.
+    - Tope general: 240 páginas por minuto.
+    - Al pasarse, se muestra una página clara en español que dice cuánto esperar.
+  - **Trampa para robots** (campo invisible y tiempo mínimo) en el registro, en recuperar contraseña y en eliminar cuenta. Funciona aunque reCAPTCHA no esté activo.
+  - **Login sin pistas:** el tiempo de respuesta es el mismo exista o no el usuario.
+  - **Consulta de documentos sin fugas:**
+    - Un usuario registrado solo sabe si el número ya está en uso.
+    - Un Cyber solo ve el teléfono, el correo y la dirección de sus propios clientes.
+  - **Cabeceras de seguridad:** CSP, protección contra clickjacking, nosniff, Referrer-Policy, Permissions-Policy y HSTS con HTTPS.
+  - **Código de prueba en pantalla:** solo sale con `APP_ENV=local`, nunca en producción.
+  - **Páginas de error propias** (403, 404, 419, 429, 500, 503), en español y con su marca.
+  - **Limpieza automática:**
+    - Auditoría de más de 12 meses.
+    - Códigos vencidos.
+    - Registros que nunca se verificaron.
+
+### Lista de seguridad para el VPS
+
+1. En `.env`: `APP_ENV=production`, `APP_DEBUG=false` y `APP_URL=https://su-dominio`.
+2. HTTPS con Certbot y, ya con HTTPS, `SESSION_SECURE_COOKIE=true` en `.env`.
+3. Cron para la limpieza diaria: `* * * * * cd /var/www/mi-cv && php artisan schedule:run >> /dev/null 2>&1`.
+4. Si usa Cloudflare u otro proxy, ponga `TRUSTED_PROXIES=*` en `.env`, para que los límites vean la IP real de cada persona.
+5. Active reCAPTCHA v3 en Admin → Google reCAPTCHA.
+6. Haga copias de seguridad de la base de datos y de `storage/app/private`.
+7. Permisos: solo `storage/` y `bootstrap/cache/` con escritura para `www-data`.
+
+## Novedades de la versión 7
+
+- **21 opciones de país:** Nicaragua, Costa Rica, Honduras, El Salvador, Guatemala, Panamá, México, República Dominicana, Cuba, Colombia, Venezuela, Ecuador, Perú, Bolivia, Chile, Argentina, Uruguay, Paraguay, España, Estados Unidos y "Otro país".
+- **Verificación nueva por país:**
+  - Chile: RUT con dígito verificador.
+  - Ecuador: cédula con provincia y dígito verificador.
+  - Argentina: DNI, y CUIL con dígito verificador.
+  - Uruguay: cédula con dígito verificador.
+  - Panamá: cédula con provincia, con guiones; acepta PE-, E- y N-.
+  - República Dominicana: cédula con dígito verificador (si no cuadra, solo avisa).
+  - Cuba: carné de identidad; de él salen la fecha de nacimiento y el sexo.
+  - Venezuela, Perú, Bolivia y Paraguay: formato del número.
+- **Escudos en el CV Clásico** para 19 países. Salen del paquete npm `coat-of-arms` (licencia MIT), pasados a PNG; el detalle está en `resources/cv/ESCUDOS-FUENTE.txt`. Cuba no viene en ese paquete, así que su CV sale sin escudo (limpio). En "Otro país" se usa el escudo que suba el admin, si sube uno.
+- **Registro mejorado:**
+  - Países en cuadritos con bandera.
+  - Ver / ocultar la contraseña, medidor de seguridad de la contraseña y aviso "No coinciden".
+  - El botón no se puede tocar dos veces.
+  - El código de 6 dígitos se envía solo al terminar de escribirlo.
+- **Correos rediseñados:**
+  - Encabezado con logo y eslogan, texto de vista previa en la bandeja de entrada, botones que funcionan en Gmail, Outlook y celular, y pie con contacto, redes y enlaces legales.
+  - Correos nuevos: **bienvenida** (al crear la cuenta) y **"su CV"** (con el PDF adjunto y consejos para enviarlo).
+
+Para actualizar: no hay migraciones nuevas. Basta con subir los archivos y correr `php artisan optimize:clear`.
+
+## Novedades de la versión 6
+
+- **Más países:** Nicaragua, Costa Rica, Honduras, El Salvador, Guatemala, México, Colombia, España, Estados Unidos y "Otro país". Cada uno tiene sus propios documentos, su seguro social, sus nombres de municipio/departamento (o estado, provincia, cantón), su código de teléfono y sus compañías de celular.
+- **El número del documento se revisa con las reglas públicas de cada país** (no se consulta ningún registro oficial en línea):
+  - **México:** CURP con dígito verificador. Llena sola la fecha de nacimiento, el sexo y el estado.
+  - **España:** DNI y NIE con su letra de control.
+  - **Honduras:** DNI de 13 dígitos. Saca el departamento.
+  - **Guatemala:** DPI/CUI con departamento y municipio. Si el dígito verificador no cuadra, solo avisa.
+  - **El Salvador:** DUI con dígito verificador. Si no cuadra, solo avisa.
+  - **Colombia:** cédula de 6 a 10 dígitos.
+  - **Estados Unidos:** licencia/State ID o Green Card. A propósito no se pide el número de Seguro Social (SSN), porque no debe ir en un CV.
+- **Idiomas:** sección nueva en "Mis datos" con nivel (nativo, avanzado, intermedio, básico). Sale en los 6 diseños, con puntos de nivel en los diseños Pro.
+- **CV en inglés:** los títulos, los datos personales, la nacionalidad, el estado civil y "Present" se traducen solos. El perfil y el oficio salen en inglés si se escriben en "Mis datos → Perfil → Para el CV en inglés".
+- **Al descargar se pregunta** si lleva foto y en qué idioma sale.
+- **Enviar el CV por correo:** el usuario se lo manda a su correo y el Cyber al correo del cliente. Llega con el PDF adjunto.
+- **Panel nuevo:** saludo con el avance en círculo, el "siguiente paso" que le falta, la lista de lo que tiene y lo que falta (cada punto lleva a su paso) y accesos rápidos.
+- **Carta de renuncia:** fuera de Nicaragua y Costa Rica ya no pone "15 días" fijos; dice "el preaviso que establece" la ley de ese país.
+
+Para actualizar: `php artisan migrate --force` (agrega los idiomas y los campos en inglés, sin borrar datos).
+
+## Novedades de la versión 5
+
+- **"Mis datos" por pasos:** Foto → Documento → Nombre → … → Referencias. Los pasos se pueden saltar tocando cualquier chip de arriba, y los que ya tienen datos llevan un ✓. Con "Ver todo" se ve el formulario completo (queda recordado en ese aparato).
+- **Barra de abajo siempre visible** con Anterior, Siguiente, el avance y **Guardar**. Si falta un dato obligatorio en otro paso, al guardar se abre ese paso. Si la persona intenta salir sin guardar, se le avisa.
+- **Foto:** si no hay foto, la pantalla muestra un ícono de persona en blanco (en el CV no sale nada). Al elegir una foto se abre un recuadro para **encuadrar la cara**, girarla y acercarla antes de guardarla.
+- **Ayudas para escribir:** el botón "Ideas para el perfil" da frases listas según el oficio (cajera, bodeguero, enfermera, chofer… 24 oficios). En Habilidades salen sugerencias del oficio para tocar y agregar.
+- **LinkedIn, sitio web y GitHub**, y la casilla "este número tiene WhatsApp". Salen con su ícono en los CV.
+- **CV Lateral:** el nombre completo va en negrita (antes solo los apellidos). Lo mismo en el Moderno.
+- **Dos plantillas Pro nuevas:** **Pro Ejecutivo** (títulos a la izquierda, sobrio) y **Pro Creativo** (columna derecha, etiquetas y encabezado inclinado). Las dos salen siempre en una hoja.
+- **Carta de presentación** que se arma sola con la experiencia, los estudios y las habilidades del CV.
+- **La cuenta solo se crea cuando se verifica el correo.** Mientras tanto queda "en espera" y, si no se verifica en 24 horas, se borra sola.
+- **Mismo nombre en la cuenta y en el CV:** al cambiar el nombre en "Mis datos", cambia también el de la cuenta.
+- **"Página expirada" resuelto:** el formulario renueva solo su código de seguridad. Si aun así vence, vuelve a la misma página con un aviso y sin perder lo escrito.
+- En el login se quitó el texto "Protegido por reCAPTCHA" (la etiqueta de Google ya lo indica).
+
+Para actualizar: `php artisan migrate --force` (agrega los campos nuevos y la tabla de registros en espera, sin borrar datos).
+
 ## Novedades de la versión 4
 
 - **Nacionalidad por lista:** se elige de una lista (se adapta a Masculino/Femenino). Solo si es de otro país se elige "Otra" y se escribe.

@@ -75,6 +75,10 @@ class CuentaController extends Controller
             'nombre' => ['required', 'string', 'max:150'],
             'motivo' => ['nullable', 'string', 'max:1000'],
         ], [], ['email' => 'correo']);
+        if (\App\Support\AntiBot::esRobot($request)) {
+            \App\Models\Actividad::registrar('robot_bloqueado', 'eliminar · ' . $request->ip());
+            return back()->withInput($request->except('password', 'password_confirmation'))->withErrors(['general' => 'No pudimos procesar el formulario. Espere unos segundos e intente de nuevo.']);
+        }
         if ($error = Recaptcha::verificar($request->input('recaptcha_token'), 'eliminar')) {
             return back()->withInput()->withErrors(['general' => $error]);
         }

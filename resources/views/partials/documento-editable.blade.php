@@ -13,7 +13,7 @@
             <select name="pais" id="fPais" class="{{ $in }}">
                 @foreach(\App\Support\Pais::DATOS as $cod => $p)<option value="{{ $cod }}" @selected($paisActual === $cod)>{{ $p['bandera'] }} {{ $p['nombre'] }}</option>@endforeach
             </select>
-            <p class="text-[11px] text-gray-400 mt-1">Ej.: un nicaragüense con DIMEX elige Costa Rica.</p>
+            <p class="text-[11px] text-gray-400 mt-1">El país que emitió el documento. Ej.: un nicaragüense con DIMEX elige Costa Rica.</p>
         </div>
         <div>
             <label class="{{ $lb }}">Tipo de documento</label>
@@ -26,6 +26,7 @@
             <input type="text" name="numero_documento" id="fNumDoc" value="{{ old('numero_documento', $cliente->documentoFormateado()) }}" required autocomplete="off" class="{{ $in }} uppercase font-mono" data-ignorar="{{ $cliente->id }}">
         </div>
     </div>
+    <p id="ayudaNumDoc" class="text-[11px] text-gray-400 mt-1"></p>
     <div id="estadoDoc" class="live-status"></div>
 </section>
 @push('scripts')
@@ -52,13 +53,15 @@
             const d = await r.json();
             let ok = true, html = '';
             if (d.cedula) { ok = d.cedula.valida; html = ok ? '✓ Cédula válida · ' + (d.cedula.municipio || '') + ' / ' + (d.cedula.departamento || '') + ' · ' + (d.cedula.edad ?? '') + ' años' : '✗ ' + d.cedula.errores.join(' · '); }
-            if (d.cr) { ok = d.cr.valida; html = ok ? '✓ Formato válido' + (d.cr.provincia ? ' · Provincia: ' + d.cr.provincia : '') : '✗ ' + d.cr.errores.join(' · ');
-                const dp = document.getElementById('fDepto'); if (ok && d.cr.provincia && dp && !dp.value) dp.value = d.cr.provincia; }
-            if (d.existe && d.cliente && String(d.cliente.id) !== num.dataset.ignorar) { ok = false; html += (html ? '<br>' : '') + '⚠ Ese documento ya está registrado para otra persona.'; }
+            if (d.cr) { ok = d.cr.valida; html = ok ? '✓ Número válido' + (d.cr.resumen ? ' · ' + d.cr.resumen : '') + (d.cr.aviso ? '<br>⚠ ' + d.cr.aviso : '') : '✗ ' + d.cr.errores.join(' · ');
+                if (ok) window.jzLlenarDesdeDocumento && jzLlenarDesdeDocumento(d.cr); }
+            if (d.existe && (!d.cliente || String(d.cliente.id) !== num.dataset.ignorar)) { ok = false; html += (html ? '<br>' : '') + '⚠ Ese documento ya está registrado para otra persona.'; }
             caja.className = 'live-status show ' + (ok ? 'ok' : 'err'); caja.innerHTML = html || 'Documento disponible.';
         }, 450);
     }
-    num.addEventListener('input', consultar); tipo.addEventListener('change', consultar);
+    const AYUDA = @json(\App\Support\Documentos::AYUDA);
+    function ayuda() { document.getElementById('ayudaNumDoc').textContent = AYUDA[tipo.value] || ''; }
+    num.addEventListener('input', consultar); tipo.addEventListener('change', function () { ayuda(); consultar(); }); pais.addEventListener('change', ayuda); ayuda();
 })();
 </script>
 @endpush

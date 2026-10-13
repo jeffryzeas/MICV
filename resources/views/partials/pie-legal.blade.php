@@ -16,5 +16,23 @@
 </div>
 <script>
 try { if (!localStorage.getItem('jz-cookies')) document.getElementById('jzCookies').style.display = 'block'; } catch (e) {}
+// Mantiene vigente el token de seguridad de los formularios (evita "Página expirada"
+// cuando la página queda abierta mucho tiempo o se vuelve con el botón Atrás).
+(function () {
+    let ultimo = Date.now();
+    function refrescar() {
+        fetch(@json(route('csrf.refrescar')), { credentials: 'same-origin', cache: 'no-store', headers: { 'Accept': 'application/json' } })
+            .then(r => r.ok ? r.json() : null).then(function (d) {
+                if (!d || !d.token) return;
+                ultimo = Date.now();
+                document.querySelectorAll('input[name="_token"]').forEach(i => i.value = d.token);
+                const m = document.querySelector('meta[name="csrf-token"]'); if (m) m.setAttribute('content', d.token);
+            }).catch(function () {});
+    }
+    setInterval(refrescar, 10 * 60 * 1000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && Date.now() - ultimo > 5 * 60 * 1000) refrescar(); });
+    window.addEventListener('pageshow', function (e) { if (e.persisted) refrescar(); });
+    window.jzRefrescarToken = refrescar;
+})();
 if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('{{ asset('sw.js') }}').catch(function () {}); }); }
 </script>

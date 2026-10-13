@@ -10,29 +10,12 @@
         </a>
     </div>
 
-    <div class="bg-white rounded-xl shadow p-6">
-        <form method="POST" action="{{ route('clientes.update', $cliente) }}" enctype="multipart/form-data" onsubmit="return confSave(event)">
+    <form method="POST" action="{{ route('clientes.update', $cliente) }}" enctype="multipart/form-data" onsubmit="return confSave(event)" data-pasos="no">
+    <div class="bg-white rounded-xl shadow p-4 sm:p-6">
             @csrf @method('PUT')
 
-            <div class="flex flex-wrap items-center gap-4 mb-5">
-                @if($cliente->tieneFoto())
-                    <img src="{{ route('clientes.foto', $cliente) }}" class="size-16 rounded-full object-cover border-2 border-oro-500" alt="">
-                @else
-                    <div class="size-16 rounded-full bg-azul-800 text-oro-300 flex items-center justify-center text-xl font-bold">
-                        {{ $cliente->iniciales() }}
-                    </div>
-                @endif
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1 flex items-center gap-1.5">
-                        <i data-lucide="image" class="size-3.5"></i> Foto
-                    </label>
-                    <input type="file" name="foto" accept="image/jpeg,image/png,image/webp,image/gif" class="text-sm">
-                    @if($cliente->tieneFoto())
-                        <label class="flex items-center gap-2 text-sm mt-1 font-normal">
-                            <input type="checkbox" name="quitar_foto" value="1"> Quitar foto
-                        </label>
-                    @endif
-                </div>
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+                <div class="flex-1 min-w-[260px]">@include('partials.foto-campo', ['cliente' => $cliente])</div>
                 <div class="text-right">
                     <label class="block text-xs font-semibold uppercase text-azul-800 mb-1 flex items-center justify-end gap-1.5">
                         <i data-lucide="toggle-right" class="size-3.5"></i> Estado
@@ -61,18 +44,16 @@
                 </div>
             @endif
 
-            <nav data-indice class="sticky top-14 z-10 flex gap-2 overflow-x-auto py-2 mb-4 bg-white/95 backdrop-blur"></nav>
+            <nav data-indice></nav>
             @include('partials.documento-editable', ['cliente' => $cliente])
-            <div class="border-t border-gray-200 pt-5 mt-5"></div>
+            <div class="border-t border-gray-200 pt-5 mt-5 jz-separador"></div>
             @include('partials.campos-registro-cliente', ['cliente' => $cliente])
 
             <x-cv-form-fields :cliente="$cliente" />
 
-            <button type="submit" class="mt-6 inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
-                <i data-lucide="check" class="size-4"></i> Guardar cambios (incluye CV)
-            </button>
-        </form>
+            @include('partials.barra-guardar', ['texto' => 'Guardar cambios'])
     </div>
+    </form>
 
     @push('scripts')
     <script>

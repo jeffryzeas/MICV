@@ -35,7 +35,7 @@
         <div class="w-12 h-1 rounded-full mt-3" style="background-color:{{ $sec }};"></div>
     </div>
 
-    <div class="bg-white rounded-2xl p-8" style="box-shadow:0 10px 30px rgba(0,0,0,.28);">
+    <div class="bg-white rounded-2xl p-5 sm:p-8" style="box-shadow:0 10px 30px rgba(0,0,0,.28);">
         @if (session('aviso'))
             <div class="mb-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 text-sm">{{ session('aviso') }}</div>
         @endif
@@ -53,6 +53,24 @@
 
     @include('partials.pie-legal', ['oscuro' => true])
 </div>
-<script>lucide.createIcons();</script>
+<script>
+// Ver / ocultar la contraseña y evitar el doble envío de los formularios.
+document.querySelectorAll('input[type=password]').forEach(function (inp) {
+    const caja = document.createElement('div'); caja.className = 'relative';
+    inp.parentNode.insertBefore(caja, inp); caja.appendChild(inp); inp.classList.add('pr-11');
+    const b = document.createElement('button'); b.type = 'button'; b.tabIndex = -1; b.setAttribute('aria-label', 'Ver contraseña');
+    b.className = 'absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-700';
+    b.innerHTML = '<i data-lucide="eye" class="size-4"></i>';
+    b.addEventListener('click', function () { const ver = inp.type === 'password'; inp.type = ver ? 'text' : 'password'; b.innerHTML = '<i data-lucide="' + (ver ? 'eye-off' : 'eye') + '" class="size-4"></i>'; lucide.createIcons(); });
+    caja.appendChild(b);
+});
+document.querySelectorAll('form').forEach(function (f) {
+    f.addEventListener('submit', function () {
+        const b = f.querySelector('button[type=submit][data-cargando]');
+        if (b && f.checkValidity()) { setTimeout(function () { b.disabled = true; b.textContent = b.dataset.cargando; }, 0); }
+    });
+});
+lucide.createIcons();
+</script>
 </body>
 </html>

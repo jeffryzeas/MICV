@@ -29,7 +29,7 @@ class ConfiguracionController extends Controller
         $request->validate([
             'escudo'           => ['nullable', 'image', 'max:4096'],
 
-            'cv.diseno_defecto'       => ['required', Rule::in(['clasico', 'pro'])],
+            'cv.diseno_defecto'       => ['required', Rule::in(array_keys(\App\Services\CvDatos::DISENOS))],
             'cv.pro_paleta'           => ['required', Rule::in(array_keys(Configuracion::PALETAS_PRO))],
             'cv.nombre_formato'       => ['required', Rule::in(['mayusculas', 'capital', 'tal_cual'])],
             'cv.fuente_titulo_tam'    => ['required', 'numeric', 'between:20,80'],

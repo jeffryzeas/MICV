@@ -39,8 +39,12 @@
                 <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Tipo de documento</label>
                 <select name="tipo_documento" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
                     <option value="">Todos</option>
-                    @foreach(\App\Models\Cliente::TIPOS_DOCUMENTO as $k => $t)
-                        <option value="{{ $k }}" @selected($tipoDoc === $k)>{{ \Illuminate\Support\Str::before($t, ' (') }}</option>
+                    @foreach(\App\Support\Pais::DATOS as $pc => $pd)
+                        <optgroup label="{{ $pd['bandera'] }} {{ $pd['nombre'] }}">
+                        @foreach($pd['documentos'] as $k => $t)
+                            @if($k !== 'pasaporte' || $pc === 'OT')<option value="{{ $k }}" @selected($tipoDoc === $k)>{{ $t }}</option>@endif
+                        @endforeach
+                        </optgroup>
                     @endforeach
                 </select>
             </div>
@@ -81,7 +85,7 @@
                             @if($c->tieneFoto())
                                 <img src="{{ route('clientes.foto', $c) }}" class="size-8 rounded-full object-cover" alt="">
                             @else
-                                <span class="size-8 rounded-full bg-azul-800 text-oro-300 text-xs font-bold flex items-center justify-center">{{ $c->iniciales() }}</span>
+                                <span class="size-8 rounded-full bg-white border border-dashed border-gray-300 text-gray-400 flex items-center justify-center shrink-0" title="Sin foto"><i data-lucide="user-round" class="size-4"></i></span>
                             @endif
                             <span>{{ $c->nombreCompleto() }}</span>
                             @if($c->user_id)<span class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700" title="Se registró en /registro para hacer su propio CV">Usuario registrado</span>@endif

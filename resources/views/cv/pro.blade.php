@@ -4,17 +4,10 @@
     $apellidos = trim($c->primer_apellido . ' ' . $c->segundo_apellido);
     $I = fn ($k) => \App\Support\Iconos::svg($k);
     $tel = fn ($n) => trim(($c->telefono_codigo_pais ? $c->telefono_codigo_pais . ' ' : '') . $n);
-    $datosLat = array_values(array_filter([
-        ['Nacimiento', trim(($c->fecha_nacimiento?->format('d/m/Y') ?? '') . ($c->edad() !== null ? ' · ' . $c->edad() . ' años' : ''), ' ·')],
-        ['Lugar de nacimiento', $c->lugarNacimiento()],
-        ['Nacionalidad', $c->nacionalidad],
-        ['Estado civil', $c->estado_civil],
-        ['Hijos', $c->numero_hijos !== null ? (string) $c->numero_hijos : null],
-        [$pais['seguro_largo'], $c->inss_nss],
-    ], fn ($f) => filled($f[1])));
+    $datosLat = $datosPro;
 @endphp
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ $lang }}">
 <head>
 <meta charset="utf-8">
 <title>CV — {{ $c->nombreCompleto() }}</title>
@@ -40,7 +33,7 @@
 .habs li { position: relative; padding-left: 15px; margin-bottom: 6px; font-size: 8.8pt; }
 .habs li::before { content: ""; position: absolute; left: 0; top: 5.5px; width: 7px; height: 7px; border-radius: 2px; background: {{ $ac }}; transform: rotate(45deg); }
 .nombre { font-size: 27pt; line-height: 1.05; color: {{ $lat }}; text-transform: uppercase; letter-spacing: .02em; }
-.nombre .n { font-weight: 400; display: block; } .nombre .a { font-weight: 800; display: block; }
+.nombre .n, .nombre .a { font-weight: 800; display: block; }
 .puesto { margin-top: 9px; display: inline-block; font-size: 9.5pt; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #fff; background: {{ $ac }}; padding: 4px 12px; border-radius: 3px; }
 .linea { height: 3px; width: 70px; background: {{ $ac }}; margin: 16px 0 4px; border-radius: 2px; }
 .sec { margin-top: 0.22in; }
@@ -70,38 +63,41 @@
     <aside class="lat">
         <div class="foto-wrap">@if ($foto)<img src="{{ $foto }}" alt="">@else<div class="ini">{{ $c->iniciales() }}</div>@endif</div>
 
-        <h3>Contacto</h3>
+        <h3>{{ $t('Contacto') }}</h3>
         <ul class="contacto">
-            @if ($c->telefono)<li><span class="i">{!! $I('tel') !!}</span><span>{{ $tel($c->telefono) }}@if ($c->telefono_secundario)<br>{{ $tel($c->telefono_secundario) }}@endif</span></li>@endif
-            @if ($c->correo)<li><span class="i">{!! $I('mail') !!}</span><span>{{ $c->correo }}</span></li>@endif
-            @if ($c->direccion)<li><span class="i">{!! $I('casa') !!}</span><span>{{ $c->direccion }}</span></li>@endif
-            @if ($c->numero_documento)<li><span class="i">{!! $I('id') !!}</span><span>{{ $c->tipoDocumentoLegible() }}: {{ $c->documentoFormateado() }}</span></li>@endif
+            @foreach ($contactos as [$ico, $txt])<li><span class="i">{!! $I($ico) !!}</span><span>{{ $txt }}</span></li>@endforeach
+            @foreach ($enlaces as [$ico, $txt])<li><span class="i">{!! $I($ico) !!}</span><span>{{ $txt }}</span></li>@endforeach
         </ul>
 
         @if (count($datosLat))
-            <h3>Datos personales</h3>
+            <h3>{{ $t('Datos personales') }}</h3>
             @foreach ($datosLat as [$k, $v])<div class="dato"><div class="k">{{ $k }}</div><div class="v">{{ $v }}</div></div>@endforeach
         @endif
 
         @if ($habilidades->isNotEmpty())
-            <h3>Habilidades</h3>
+            <h3>{{ $t('Habilidades') }}</h3>
             <ul class="habs">@foreach ($habilidades as $h)<li>{{ $h->habilidad }}</li>@endforeach</ul>
+        @endif
+
+        @if ($idiomas->isNotEmpty())
+            <h3>{{ $t('Idiomas') }}</h3>
+            @include('cv._idiomas', ['on' => $ac, 'off' => 'rgba(255,255,255,.22)', 'texto' => '#fff', 'nivel' => '#c9d2e0'])
         @endif
     </aside>
 
     <main class="cont">
         <div class="nombre"><span class="n">{{ $nombres }}</span><span class="a">{{ $apellidos }}</span></div>
-        @if ($c->profesion)<div class="puesto">{{ $c->profesion }}</div>@else<div class="linea"></div>@endif
+        @if ($vt['profesion'])<div class="puesto">{{ $vt['profesion'] }}</div>@else<div class="linea"></div>@endif
 
-        @if ($c->perfil_profesional)
-            <div class="sec"><h2><span class="bola"></span>Perfil profesional</h2><div class="perfil">{{ $c->perfil_profesional }}</div></div>
+        @if ($vt['perfil'])
+            <div class="sec"><h2><span class="bola"></span>{{ $t('Perfil profesional') }}</h2><div class="perfil">{{ $vt['perfil'] }}</div></div>
         @endif
 
         @if ($experiencias->isNotEmpty())
-            <div class="sec"><h2><span class="bola"></span>Experiencia laboral</h2><div class="tl">
+            <div class="sec"><h2><span class="bola"></span>{{ $t('Experiencia laboral') }}</h2><div class="tl">
                 @foreach ($experiencias as $e)
                     <div class="item">
-                        <div class="t">{{ $e->cargo ?: 'Experiencia' }}@if ($e->periodoTexto())<span class="fecha">{{ $e->periodoTexto() }}</span>@endif</div>
+                        <div class="t">{{ $e->cargo ?: $t('Experiencia') }}@if ($e->periodoTexto($lang))<span class="fecha">{{ $e->periodoTexto($lang) }}</span>@endif</div>
                         @if ($e->empresa)<div class="s"><b>{{ $e->empresa }}</b></div>@endif
                         @if ($e->descripcion)<div class="d">{{ $e->descripcion }}</div>@endif
                     </div>
@@ -110,11 +106,11 @@
         @endif
 
         @if ($estudios->isNotEmpty())
-            <div class="sec"><h2><span class="bola"></span>Formación académica</h2><div class="tl">
+            <div class="sec"><h2><span class="bola"></span>{{ $t('Formación académica') }}</h2><div class="tl">
                 @foreach ($estudios as $e)
                     <div class="item">
-                        <div class="t">{{ $e->titulo ?: $e->nivelLegible() }}@if ($e->anio)<span class="fecha">{{ $e->anio }}</span>@endif</div>
-                        <div class="s"><b>{{ $e->nivelLegible() }}</b>@if ($e->institucion) · {{ $e->institucion }}@endif</div>
+                        <div class="t">{{ $e->titulo ?: $t($e->nivelLegible()) }}@if ($e->anio)<span class="fecha">{{ $e->anio }}</span>@endif</div>
+                        <div class="s"><b>{{ $t($e->nivelLegible()) }}</b>@if ($e->institucion) · {{ $e->institucion }}@endif</div>
                         @if ($e->detalle)<div class="d">{{ $e->detalle }}</div>@endif
                     </div>
                 @endforeach
@@ -122,17 +118,17 @@
         @endif
 
         @if ($referencias->isNotEmpty())
-            <div class="sec"><h2><span class="bola"></span>Referencias</h2><div class="refs">
+            <div class="sec"><h2><span class="bola"></span>{{ $t('Referencias') }}</h2><div class="refs">
                 @foreach ($referencias as $r)
                     <div class="ref"><div class="t">{{ $r->nombreConTratamiento() }}</div>
-                        @if ($r->telefono)<div class="s">Tel. {{ $r->telefono }}</div>@endif
+                        @if ($r->telefono)<div class="s">{{ $t('Tel.') }} {{ $r->telefono }}</div>@endif
                         @if ($r->correo)<div class="s">{{ $r->correo }}</div>@endif</div>
                 @endforeach
             </div></div>
         @endif
 
         @if (count($familia))
-            <div class="sec"><h2><span class="bola"></span>Datos familiares</h2>
+            <div class="sec"><h2><span class="bola"></span>{{ $t('Datos familiares') }}</h2>
                 <div class="fam">@foreach ($familia as [$k, $v])<div><b>{{ $k }}:</b> {{ $v }}</div>@endforeach</div></div>
         @endif
     </main>

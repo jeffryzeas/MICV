@@ -52,6 +52,7 @@ class CartaController extends Controller
                 if ($limpio !== '') {
                     $w->orWhere('numero_documento', 'like', "%$limpio%");
                 }
+                $w->orWhere('numero_documento', 'like', '%' . strtoupper($q) . '%');
             })->limit(15)->get();
 
         return response()->json($clientes->map(fn ($c) => ['id' => $c->id, 'texto' => $c->nombreCompleto() . ' · ' . ($c->documentoFormateado() ?: 'sin documento')]));

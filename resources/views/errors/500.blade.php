@@ -1,0 +1,1 @@
+@include('errors._base', ['codigo' => 500, 'icono' => '🛠️', 'titulo' => 'Algo salió mal', 'mensaje' => 'Tuvimos un problema al procesar su solicitud. Ya quedó registrado para revisarlo. Intente de nuevo en unos minutos.'])

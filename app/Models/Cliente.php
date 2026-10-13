@@ -21,6 +21,7 @@ class Cliente extends Model
         'cedula_cr'          => 'Cédula de identidad (CR)',
         'dimex'              => 'DIMEX (CR)',
         'otro'               => 'Documento de identidad',
+        // Los demás países (HN, SV, GT, MX, CO, ES, US) están en App\Support\Pais.
     ];
 
     protected $fillable = [
@@ -31,6 +32,7 @@ class Cliente extends Model
         'correo', 'telefono_codigo_pais', 'telefono', 'telefono_red',
         'telefono_secundario', 'telefono_secundario_red', 'direccion',
         'nombre_padre', 'nombre_madre', 'notas', 'foto', 'activo', 'creado_por',
+        'linkedin', 'sitio_web', 'github', 'telefono_whatsapp', 'profesion_en', 'perfil_en',
     ];
 
     protected function casts(): array
@@ -40,6 +42,7 @@ class Cliente extends Model
             'numero_hijos'     => 'integer',
             'edad_calculada'   => 'integer',
             'activo'           => 'boolean',
+            'telefono_whatsapp' => 'boolean',
         ];
     }
 
@@ -101,6 +104,11 @@ class Cliente extends Model
         return $this->hasMany(ClienteExperiencia::class)->orderBy('orden');
     }
 
+    public function idiomas(): HasMany
+    {
+        return $this->hasMany(ClienteIdioma::class)->orderBy('orden');
+    }
+
     public function habilidades(): HasMany
     {
         return $this->hasMany(ClienteHabilidad::class)->orderBy('orden');
@@ -138,11 +146,30 @@ class Cliente extends Model
     public function tipoDocumentoLegible(): string
     {
         return match ($this->tipo_documento) {
-            'cedula', 'cedula_cr' => 'Cédula',
+            'cedula', 'cedula_cr', 'cedula_co' => 'Cédula',
             'pasaporte'          => 'Pasaporte',
             'residencia'         => 'Cédula de residencia',
             'partida_nacimiento' => 'Código de persona',
             'dimex'              => 'DIMEX',
+            'dni_hn', 'dni_es'   => 'DNI',
+            'dui_sv'             => 'DUI',
+            'dpi_gt'             => 'DPI',
+            'curp_mx'            => 'CURP',
+            'ine_mx'             => 'INE',
+            'ce_co'              => 'Cédula de extranjería',
+            'ppt_co'             => 'PPT',
+            'nie_es'             => 'NIE',
+            'licencia_us'        => 'Licencia / State ID',
+            'green_us'           => 'Green Card',
+            'cedula_pa', 'cedula_ec' => 'Cédula',
+            'cedula_do'          => 'Cédula',
+            'ci_cu', 'ci_ve', 'ci_bo', 'ci_uy', 'ci_py' => 'Cédula de identidad',
+            'dni_pe', 'dni_ar'   => 'DNI',
+            'ce_pe'              => 'Carné de extranjería',
+            'rut_cl'             => 'RUT',
+            'cuil_ar'            => 'CUIL',
+            'residencia_pa', 'residencia_do' => 'Residencia',
+            'residencia_hn', 'residencia_sv', 'residencia_gt', 'residencia_mx' => 'Residencia',
             default              => 'Documento',
         };
     }
@@ -150,12 +177,16 @@ class Cliente extends Model
     /** Documento con guiones solo para mostrar (en BD va sin guiones). */
     public function documentoFormateado(): string
     {
+        if ($this->tipo_documento === 'cedula_pa') {
+            return (string) $this->numero_documento;
+        }
         $n = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $this->numero_documento));
         if ($this->tipo_documento === 'cedula' && strlen($n) === 14) {
             return substr($n, 0, 3) . '-' . substr($n, 3, 6) . '-' . substr($n, 9, 5);
         }
-        if ($this->tipo_documento === 'cedula_cr' && strlen($n) === 9) {
-            return $n[0] . '-' . substr($n, 1, 4) . '-' . substr($n, 5, 4);
+        if ($this->tipo_documento && $n !== '' && $this->tipo_documento !== 'cedula') {
+            $v = \App\Support\Documentos::validar($this->tipo_documento, $n);
+            return $v['valida'] ? $v['formateado'] : $n;
         }
         return $n;
     }
@@ -193,16 +224,65 @@ class Cliente extends Model
     }
 
     /** Qué tan completo está el CV (0-100), para el panel del cliente. */
+    /** Lo que tiene y lo que le falta al CV: [clave => [texto, hecho, ancla en "Mis datos"]]. */
+    public function pendientesCv(): array
+    {
+        return [
+            'foto'        => ['Foto', $this->tieneFoto(), 'sec-foto'],
+            'documento'   => ['Documento', filled($this->numero_documento), 'sec-documento'],
+            'nacimiento'  => ['Fecha de nacimiento', filled($this->fecha_nacimiento), 'sec-nacimiento'],
+            'contacto'    => ['Celular y dirección', filled($this->telefono) && filled($this->direccion), 'sec-contacto'],
+            'profesion'   => ['Profesión u oficio', filled($this->profesion), 'sec-trabajo'],
+            'perfil'      => ['Perfil profesional', filled($this->perfil_profesional), 'sec-perfil'],
+            'estudios'    => ['Estudios', $this->estudios()->exists(), 'bloque-estudios'],
+            'experiencia' => ['Experiencia', $this->experiencias()->exists(), 'bloque-experiencias'],
+            'idiomas'     => ['Idiomas', $this->idiomas()->exists(), 'bloque-idiomas'],
+            'habilidades' => ['Habilidades', $this->habilidades()->exists(), 'bloque-habilidades'],
+            'referencias' => ['Referencias', $this->referencias()->exists(), 'bloque-referencias'],
+        ];
+    }
+
     public function porcentajeCompleto(): int
     {
-        $checks = [
-            filled($this->numero_documento), filled($this->fecha_nacimiento), filled($this->telefono),
-            filled($this->correo), filled($this->direccion), filled($this->profesion),
-            filled($this->perfil_profesional), $this->tieneFoto(),
-            $this->estudios()->exists(), $this->experiencias()->exists(),
-            $this->habilidades()->exists(), $this->referencias()->exists(),
-        ];
-        return (int) round(count(array_filter($checks)) / count($checks) * 100);
+        $p = $this->pendientesCv();
+        $p['correo'] = ['Correo', filled($this->correo), 'sec-contacto'];
+        return (int) round(count(array_filter($p, fn ($x) => $x[1])) / count($p) * 100);
+    }
+
+    /**
+     * Enlaces profesionales para el CV: [ícono, texto que se ve].
+     * Se guardan ya limpios (sin https:// ni www.).
+     */
+    public function enlaces(): array
+    {
+        return array_values(array_filter([
+            $this->linkedin ? ['linkedin', $this->linkedin] : null,
+            $this->github ? ['github', $this->github] : null,
+            $this->sitio_web ? ['web', $this->sitio_web] : null,
+        ]));
+    }
+
+    /** Deja "linkedin.com/in/usuario", "github.com/usuario" o "misitio.com". */
+    public static function limpiarEnlace(?string $valor, string $tipo): ?string
+    {
+        $v = trim((string) $valor);
+        if ($v === '') {
+            return null;
+        }
+        $v = preg_replace('#^https?://#i', '', $v);
+        $v = preg_replace('#^www\.#i', '', $v);
+        $v = rtrim($v, '/');
+        if ($tipo === 'linkedin') {
+            if (!preg_match('#^([a-z]{2,3}\.)?linkedin\.com/#i', $v)) {
+                $v = 'linkedin.com/in/' . ltrim(preg_replace('#^(in/|@)#i', '', $v), '/');
+            }
+            $v = preg_replace('#^[a-z]{2,3}\.linkedin#i', 'linkedin', $v);
+        } elseif ($tipo === 'github') {
+            if (!preg_match('#^github\.com/#i', $v)) {
+                $v = 'github.com/' . ltrim($v, '@/');
+            }
+        }
+        return mb_substr($v, 0, 200);
     }
 
     public function tieneFoto(): bool

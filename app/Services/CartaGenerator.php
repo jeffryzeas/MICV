@@ -27,6 +27,7 @@ class CartaGenerator
         'solicitud_empleo'       => 'Carta de solicitud de empleo',
         'recomendacion_laboral'  => 'Carta de recomendación laboral',
         'recomendacion_personal' => 'Carta de recomendación personal',
+        'presentacion'           => 'Carta de presentación (con los datos de su CV)',
     ];
 
     /** Cuántos modelos de redacción distintos hay para CADA tipo (todos tienen 4). */
@@ -44,11 +45,12 @@ class CartaGenerator
         'solicitud_empleo'       => 'Para entregar junto al CV en una empresa.',
         'recomendacion_laboral'  => 'La firma un jefe o patrono anterior.',
         'recomendacion_personal' => 'La firma un vecino, amigo o conocido.',
+        'presentacion'           => 'Acompaña su CV: resume su experiencia, estudios y habilidades.',
     ];
 
     public const ICONOS = [
         'renuncia_inmediata' => 'door-open', 'renuncia_15dias' => 'calendar-clock', 'solicitud_empleo' => 'briefcase',
-        'recomendacion_laboral' => 'award', 'recomendacion_personal' => 'handshake',
+        'recomendacion_laboral' => 'award', 'recomendacion_personal' => 'handshake', 'presentacion' => 'file-user',
     ];
 
     protected string $docNombre;
@@ -60,6 +62,24 @@ class CartaGenerator
         $this->docNombre = match ($cliente->tipo_documento) {
             'pasaporte' => 'pasaporte',
             'dimex'     => 'documento DIMEX',
+            'dni_hn', 'dni_es' => 'DNI',
+            'dui_sv'    => 'Documento Único de Identidad (DUI)',
+            'dpi_gt'    => 'Documento Personal de Identificación (DPI)',
+            'curp_mx'   => 'CURP',
+            'ine_mx'    => 'credencial para votar',
+            'cedula_co' => 'cédula de ciudadanía',
+            'ce_co'     => 'cédula de extranjería',
+            'nie_es'    => 'NIE',
+            'licencia_us' => 'licencia de conducir',
+            'green_us'  => 'tarjeta de residente permanente',
+            'cedula_pa', 'cedula_ec' => 'cédula de identidad',
+            'cedula_do' => 'cédula de identidad y electoral',
+            'ci_cu'     => 'carné de identidad',
+            'ci_ve', 'ci_bo', 'ci_uy', 'ci_py' => 'cédula de identidad',
+            'dni_pe', 'dni_ar' => 'DNI',
+            'ce_pe'     => 'carné de extranjería',
+            'rut_cl'    => 'RUT',
+            'cuil_ar'   => 'CUIL',
             'residencia'=> 'cédula de residencia',
             'partida_nacimiento' => 'código de persona',
             'otro'      => 'documento de identidad',
@@ -130,7 +150,7 @@ class CartaGenerator
             'fechaTexto'   => $fechaTexto,
             'cuerpo'       => $cuerpo,
             'modelo'       => $modelo,
-            'firmaCliente' => in_array($this->tipo, ['renuncia_inmediata', 'renuncia_15dias', 'solicitud_empleo'], true),
+            'firmaCliente' => in_array($this->tipo, ['renuncia_inmediata', 'renuncia_15dias', 'solicitud_empleo', 'presentacion'], true),
             'firmante'     => $this->datosFirmante(),
         ];
     }
@@ -150,6 +170,7 @@ class CartaGenerator
             'solicitud_empleo'       => $this->cuerpoSolicitudEmpleo($g, $modelo),
             'recomendacion_laboral'  => $this->cuerpoRecomendacionLaboral($g, $modelo),
             'recomendacion_personal' => $this->cuerpoRecomendacionPersonal($g, $modelo),
+            'presentacion'           => $this->cuerpoPresentacion($g, $modelo),
             default                  => '<p>Tipo de carta no reconocido.</p>',
         };
     }
@@ -161,6 +182,7 @@ class CartaGenerator
             'renuncia_inmediata' => 'CARTA DE RENUNCIA INMEDIATA',
             'renuncia_15dias'    => 'CARTA DE RENUNCIA',
             'solicitud_empleo'   => 'CARTA DE SOLICITUD DE EMPLEO',
+            'presentacion'       => 'CARTA DE PRESENTACIÓN',
             'recomendacion_laboral', 'recomendacion_personal' => 'CARTA DE RECOMENDACIÓN',
             default => 'CARTA',
         };
@@ -280,12 +302,19 @@ class CartaGenerator
                        <strong>preaviso</strong> que establece el artículo 28 del Código de Trabajo de la República de Costa Rica"
                     : "respetando el <strong>preaviso</strong> que establece el artículo 28 del Código de Trabajo de la
                        República de Costa Rica, contado a partir de la fecha de la presente";
-            } else {
+            } elseif (in_array($this->cliente->pais, ['NI', null, ''], true)) {
                 $frasePlazo = $fechaEfectiva
                     ? "haciendo efectiva mi salida el día <strong>{$fechaEfectiva}</strong>, respetando el plazo de
                        <strong>quince (15) días calendario</strong> {$leyNica}"
                     : "haciendo efectiva mi salida en un plazo de <strong>quince (15) días calendario</strong> a partir de
                        la fecha de la presente, {$leyNica}";
+            } else {
+                // Otros países: el plazo cambia según la ley y el contrato, así que no se pone un número fijo.
+                $leyTexto = $this->pais['ley'] ? 'establece ' . $this->pais['ley'] : 'establece la legislación laboral vigente';
+                $frasePlazo = $fechaEfectiva
+                    ? "haciendo efectiva mi salida el día <strong>{$fechaEfectiva}</strong>, respetando el
+                       <strong>preaviso</strong> que {$leyTexto}"
+                    : "respetando el <strong>preaviso</strong> que {$leyTexto}, contado a partir de la fecha de la presente";
             }
 
             $parrafos = match ($modelo) {
@@ -400,7 +429,7 @@ class CartaGenerator
                 asignadas, por lo cual {$g['lo_la']} recomiendo sin ninguna reserva.</p>
                 <p>Extiendo la presente a solicitud de la parte interesada.</p>",
             3 => "<p>A quien interese:</p>
-                <p>Por medio de la presente certifico que {$c->nombreCompleto()} formó parte del personal de
+                <p>Por medio de la presente certifico que <strong>{$nombre}</strong> formó parte del personal de
                 <strong>{$empresa}</strong>, desempeñando el cargo de <strong>{$cargo}</strong> por un período de
                 <strong>{$tiempo}</strong>.</p>
                 <p>Su desempeño fue satisfactorio, cumpliendo con sus responsabilidades de forma puntual y
@@ -456,6 +485,89 @@ class CartaGenerator
                 <p>Durante el tiempo que {$g['lo_la']} conozco, ha demostrado ser una persona honesta, responsable y
                 de buenas costumbres, por lo que {$g['lo_la']} recomiendo sin ninguna reserva.</p>
                 <p>Extiendo la presente a solicitud de la parte interesada, para los fines que estime convenientes.</p>",
+        };
+    }
+
+    // =========================================================
+    //  CARTA DE PRESENTACIÓN — se arma con los datos del CV
+    // =========================================================
+    private function cuerpoPresentacion(array $g, int $modelo): string
+    {
+        $c = $this->cliente->loadMissing(['experiencias', 'estudios', 'habilidades']);
+        $nombre = e($c->nombreCompleto());
+        $empresa = e($this->datos['empresa'] ?? '__________________________');
+        $encargado = trim($this->datos['encargado_nombre'] ?? '');
+        $puestoTxt = trim($this->datos['cargo'] ?? '') ?: trim((string) $c->profesion);
+        $puesto = $puestoTxt !== '' ? 'el puesto de <strong>' . e($puestoTxt) . '</strong>' : 'el puesto que tengan disponible';
+        $alPuesto = 'a' . substr($puesto, 1); // "al puesto de…"
+
+        $destinatario = $encargado
+            ? "Señor(a) <strong>" . e($encargado) . "</strong><br><strong>{$empresa}</strong><br>Su despacho."
+            : "Señores<br><strong>{$empresa}</strong><br>Su despacho.";
+        $saludo = $encargado ? 'Estimado(a) señor(a):' : 'Estimados señores:';
+
+        // Experiencia: años desde el primer trabajo y el trabajo más reciente.
+        $exps = $c->experiencias->filter(fn ($e) => filled($e->cargo) || filled($e->empresa));
+        $inicio = $exps->pluck('fecha_inicio')->filter()->min();
+        $anios = $inicio ? (int) floor($inicio->diffInMonths(now()) / 12) : 0;
+        $ultima = $exps->sortByDesc(fn ($e) => $e->fecha_fin ? $e->fecha_fin->timestamp : PHP_INT_MAX)->first();
+        $fraseExp = '';
+        if ($ultima) {
+            $donde = trim(($ultima->cargo ? 'como <strong>' . e($ultima->cargo) . '</strong>' : '') . ($ultima->empresa ? ' en ' . e($ultima->empresa) : ''));
+            $tiempo = $anios >= 2 ? "más de {$anios} años de experiencia laboral" : ($anios === 1 ? 'más de un año de experiencia laboral' : 'experiencia laboral');
+            $actual = $ultima->fecha_fin === null && $ultima->fecha_inicio !== null;
+            $fraseExp = "Cuento con {$tiempo}; " . ($actual ? 'actualmente me desempeño' : 'mi experiencia más reciente fue') . ' ' . rtrim($donde, '.') . '.';
+        }
+
+        // Estudio más alto.
+        $orden = array_flip(array_keys(\App\Models\ClienteEstudio::NIVELES));
+        $est = $c->estudios->sortBy(fn ($e) => $orden[$e->nivel] ?? 99)->first();
+        $fraseEst = $est ? 'En cuanto a mi formación, ' . ($est->titulo ? 'tengo <strong>' . e($est->titulo) . '</strong>' : 'curso estudios de ' . e(mb_strtolower($est->nivelLegible())))
+            . ($est->institucion ? ' (' . e($est->institucion) . ')' : '') . '.' : '';
+
+        // Habilidades (hasta 5) en una lista natural: "a, b y c".
+        $habs = $c->habilidades->pluck('habilidad')->filter()->take(5)->map(function ($h) {
+            $h = trim($h);
+            // "Contabilidad general" → "contabilidad general"; "Microsoft Excel" se deja igual.
+            return e(preg_match('/\p{Lu}/u', mb_substr($h, 1)) ? $h : mb_strtolower(mb_substr($h, 0, 1)) . mb_substr($h, 1));
+        })->values()->all();
+        $listaHabs = count($habs) > 1 ? implode(', ', array_slice($habs, 0, -1)) . ' y ' . end($habs) : ($habs[0] ?? '');
+        $fraseHabs = $listaHabs ? "Entre mis principales habilidades están: {$listaHabs}." : '';
+
+        $datosCv = trim(implode(' ', array_filter([$fraseExp, $fraseEst, $fraseHabs])));
+        $parrafoCv = $datosCv !== '' ? "<p>{$datosCv}</p>" : '';
+
+        return match ($modelo) {
+            2 => "<p>{$destinatario}</p>
+                <p>{$saludo}</p>
+                <p>Mi nombre es <strong>{$nombre}</strong> y me presento ante ustedes con mucho interés en formar
+                parte de su equipo de trabajo en {$puesto}.</p>
+                {$parrafoCv}
+                <p>Me considero {$g['un_una']} persona {$g['responsable']}, puntual y con muchas ganas de aprender. Estoy
+                {$g['comprometido']} a dar lo mejor de mí para contribuir al crecimiento de la empresa.</p>
+                <p>Adjunto mi currículum con el detalle de mi experiencia. Agradezco de antemano la oportunidad de una entrevista.</p>",
+            3 => "<p>{$destinatario}</p>
+                <p>{$saludo}</p>
+                <p>Por medio de la presente les hago llegar mi currículum para ser considerad{$g['o_a']} en sus procesos
+                de selección para {$puesto}.</p>
+                {$parrafoCv}
+                <p>Sé trabajar en equipo, cumplir metas y adaptarme con rapidez a nuevas tareas. Estaré {$g['atento']}
+                a su llamada para ampliar cualquier información.</p>",
+            4 => "<p>{$destinatario}</p>
+                <p>{$saludo}</p>
+                <p>Con el debido respeto me dirijo a ustedes para presentar mi candidatura {$alPuesto} en
+                <strong>{$empresa}</strong>, empresa que admiro por su trayectoria.</p>
+                {$parrafoCv}
+                <p>Estoy convencid{$g['o_a']} de que puedo aportar responsabilidad, compromiso y buena actitud a su equipo.
+                Quedo a su disposición para una entrevista en el momento que lo consideren oportuno.</p>",
+            default => "<p>{$destinatario}</p>
+                <p>{$saludo}</p>
+                <p>{$g['suscrito']}, <strong>{$nombre}</strong>, me dirijo a ustedes para presentarme como
+                {$g['candidato']} para {$puesto}, con el deseo de formar parte de su distinguida empresa.</p>
+                {$parrafoCv}
+                <p>Me caracterizo por ser {$g['un_una']} persona {$g['responsable']}, honesta y con buena disposición para el
+                trabajo en equipo. Adjunto mi currículum vitae para su consideración.</p>
+                <p>Agradezco de antemano su atención y quedo en espera de una respuesta favorable.</p>",
         };
     }
 

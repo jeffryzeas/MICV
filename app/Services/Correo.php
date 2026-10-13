@@ -21,7 +21,8 @@ class Correo
     }
 
     /** @throws RuntimeException si no hay correo configurado o Google lo rechaza. */
-    public static function enviar(string $para, string $asunto, string $vista, array $datos = [], ?Configuracion $cfg = null): void
+    /** @param array<int, array{0: string, 1: string, 2: string}> $adjuntos  [contenido, nombre, tipo] */
+    public static function enviar(string $para, string $asunto, string $vista, array $datos = [], ?Configuracion $cfg = null, array $adjuntos = []): void
     {
         $cfg ??= Configuracion::actual();
         if (!$cfg->smtp_host || !$cfg->smtp_desde_correo) {
@@ -50,9 +51,12 @@ class Correo
         ])->render();
 
         try {
-            Mail::mailer(self::MAILER)->html($html, function ($m) use ($para, $asunto, $cfg) {
+            Mail::mailer(self::MAILER)->html($html, function ($m) use ($para, $asunto, $cfg, $adjuntos) {
                 $m->to($para)->subject($asunto)
                   ->from($cfg->smtp_desde_correo, $cfg->smtp_desde_nombre ?: $cfg->nombre_negocio);
+                foreach ($adjuntos as [$contenido, $nombre, $tipo]) {
+                    $m->attachData($contenido, $nombre, ['mime' => $tipo]);
+                }
             });
         } catch (\Throwable $e) {
             report($e);

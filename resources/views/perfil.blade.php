@@ -7,7 +7,14 @@
                 <div><label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Usuario</label>
                     <input type="text" value="{{ $user->usuario }}" disabled class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2.5 font-mono"></div>
                 <div><label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Nombre completo</label>
-                    <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2.5"></div>
+                    @if($user->esCliente() && $user->cliente)
+                        <input type="hidden" name="name" value="{{ $user->cliente->nombreCompleto() }}">
+                        <input type="text" value="{{ $user->cliente->nombreCompleto() }}" disabled class="w-full border border-gray-200 bg-gray-50 rounded-lg px-3 py-2.5">
+                        <p class="text-[11px] text-gray-500 mt-1">Es el mismo nombre de su CV. Para cambiarlo vaya a <a href="{{ route('mi-cv.editar') }}#sec-nombre" class="underline font-semibold">Mis datos</a>.</p>
+                    @else
+                    <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
+                    @endif
+                </div>
                 <div><label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Correo</label>
                     <input type="email" name="email" value="{{ old('email', $user->email) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2.5"></div>
                 <p class="text-xs text-gray-500">{{ $user->rolLegible() }}@if($user->cyber) · {{ $user->cyber->nombre }}@endif</p>

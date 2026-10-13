@@ -1,0 +1,1 @@
+@include('errors._base', ['codigo' => 419, 'icono' => '⏳', 'titulo' => 'La página se venció', 'mensaje' => 'Estuvo abierta mucho tiempo y se venció por seguridad. Vuelva a la página e intente de nuevo.'])

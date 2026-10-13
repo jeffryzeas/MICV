@@ -28,12 +28,13 @@ class MiCvController extends Controller
 
     public function panel(Request $request)
     {
-        $c = $this->miCliente($request)->load(['estudios', 'experiencias', 'habilidades', 'referencias']);
+        $c = $this->miCliente($request)->load(['estudios', 'experiencias', 'idiomas', 'habilidades', 'referencias']);
         $cfg = Configuracion::actual();
 
         return view('mi-cv.panel', [
             'cliente'  => $c,
             'avance'   => $c->porcentajeCompleto(),
+            'pendientes' => $c->pendientesCv(),
             'cv'       => $cfg->cv(),
             'paletas'  => Configuracion::PALETAS_PRO,
         ]);
@@ -41,7 +42,7 @@ class MiCvController extends Controller
 
     public function editar(Request $request)
     {
-        $c = $this->miCliente($request)->load(['estudios', 'experiencias', 'habilidades', 'referencias']);
+        $c = $this->miCliente($request)->load(['estudios', 'experiencias', 'idiomas', 'habilidades', 'referencias']);
         return view('mi-cv.datos', ['cliente' => $c]);
     }
 

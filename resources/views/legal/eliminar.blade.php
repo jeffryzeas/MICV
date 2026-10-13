@@ -7,7 +7,7 @@
         <p class="text-xs text-gray-400">Se conserva solo un registro mínimo de la solicitud, sin sus datos personales, para demostrar que cumplimos la ley.</p>
     </div>
     <form method="POST" action="{{ route('eliminar.guardar') }}" class="space-y-4">
-        @csrf
+        @csrf @include('partials.antibot')
         <div><label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Nombre completo</label>
             <input type="text" name="nombre" value="{{ old('nombre') }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2.5"></div>
         <div><label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Correo de la cuenta</label>

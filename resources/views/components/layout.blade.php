@@ -296,21 +296,124 @@
         Swal.fire({ icon: 'error', title: 'Error', text: @json($errors->first('general')) });
     @endif
 </script>
+<script>window.jzCamposConError = @json(isset($errors) ? $errors->keys() : []);</script>
 <script>
-// Índice de secciones de los formularios largos: chips fijos arriba para saltar.
+// Formularios largos por PASOS (Foto → Documento → Nombre → …) que se pueden saltar:
+// los chips de arriba llevan a cualquier paso y la barra de abajo tiene
+// Anterior / Siguiente / Guardar siempre a la mano. "Ver todo" muestra el formulario completo.
 (function () {
-    document.querySelectorAll('[data-indice]').forEach(function (nav) {
-        const form = nav.closest('form') || document;
-        const secs = form.querySelectorAll('.jz-seccion[data-titulo]');
+    document.querySelectorAll('form').forEach(function (form) {
+        const nav = form.querySelector('[data-indice]');
+        if (!nav) return;
+        const secs = Array.from(form.querySelectorAll('.jz-seccion[data-titulo]'));
         if (secs.length < 3) { nav.remove(); return; }
-        nav.innerHTML = Array.from(secs).map((s, i) => '<a href="#' + s.id + '" class="jz-chip shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-300 bg-white text-azul-800 hover:border-azul-800">' + (i + 1) + '. ' + s.dataset.titulo + '</a>').join('');
-        nav.addEventListener('click', function (e) {
-            const a = e.target.closest('a'); if (!a) return; e.preventDefault();
-            const t = document.querySelector(a.getAttribute('href')); if (t) window.scrollTo({ top: t.getBoundingClientRect().top + window.scrollY - 130, behavior: 'smooth' });
+        const barra = form.querySelector('[data-barra]');
+        const clave = 'jz-modo:' + location.pathname.replace(/\d+/g, '#');
+        let modo = form.dataset.pasos === 'no' ? 'todo' : 'pasos';
+        try { modo = localStorage.getItem(clave) || modo; } catch (e) {}
+        let actual = 0, sucio = false, enviando = false;
+
+        const textoLleno = el => !el.disabled && el.type !== 'hidden' && ['text', 'tel', 'email', 'date', 'number', 'url', 'textarea', 'search'].includes(el.type || el.tagName.toLowerCase()) && el.value.trim() !== '';
+        const lleno = s => !!s.querySelector('[data-foto-lista]') || Array.from(s.querySelectorAll('input, textarea')).some(textoLleno);
+
+        nav.className = 'sticky top-14 z-20 flex gap-2 overflow-x-auto py-2 mb-4 -mx-1 px-1 bg-white/95 dark:bg-gray-900/95 backdrop-blur';
+        nav.innerHTML = secs.map((s, i) => '<button type="button" data-i="' + i + '" class="jz-chip shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-300 bg-white text-azul-800 hover:border-azul-800"><span class="jz-num inline-flex items-center justify-center size-4 rounded-full bg-gray-200 text-[10px]">' + (i + 1) + '</span>' + s.dataset.titulo + '</button>').join('');
+        const chips = Array.from(nav.querySelectorAll('.jz-chip'));
+
+        function pintar() {
+            chips.forEach(function (c, i) {
+                const hecho = lleno(secs[i]), activo = modo === 'pasos' && i === actual;
+                c.classList.toggle('bg-azul-800', activo); c.classList.toggle('text-white', activo); c.classList.toggle('border-azul-800', activo);
+                c.classList.toggle('bg-white', !activo); c.classList.toggle('text-azul-800', !activo);
+                const n = c.querySelector('.jz-num');
+                n.textContent = hecho && !activo ? '✓' : (i + 1);
+                n.className = 'jz-num inline-flex items-center justify-center size-4 rounded-full text-[10px] ' + (activo ? 'bg-white/25' : hecho ? 'bg-emerald-500 text-white' : 'bg-gray-200');
+            });
+            if (barra) {
+                const hechos = secs.filter(lleno).length;
+                barra.querySelector('[data-paso-texto]').textContent = modo === 'pasos'
+                    ? (actual + 1) + '/' + secs.length + ' · ' + secs[actual].dataset.titulo
+                    : hechos + ' de ' + secs.length + ' secciones con datos';
+                barra.querySelector('[data-progreso]').style.width = Math.round(hechos / secs.length * 100) + '%';
+                barra.querySelector('[data-modo]').textContent = modo === 'pasos' ? 'Ver todo' : 'Por pasos';
+                barra.querySelector('[data-ant]').disabled = modo === 'pasos' && actual === 0;
+                barra.querySelector('[data-sig]').disabled = modo === 'pasos' && actual === secs.length - 1;
+                barra.querySelector('[data-ant]').classList.toggle('hidden', modo !== 'pasos');
+                barra.querySelector('[data-sig]').classList.toggle('hidden', modo !== 'pasos');
+            }
+        }
+        function arriba() {
+            const y = form.getBoundingClientRect().top + window.scrollY - 70;
+            if (window.scrollY > y) window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+        function ir(i, desplazar) {
+            actual = Math.max(0, Math.min(secs.length - 1, i));
+            form.classList.toggle('jz-modo-pasos', modo === 'pasos');
+            if (modo === 'pasos') {
+                secs.forEach((s, j) => { s.hidden = j !== actual; s.classList.toggle('jz-paso-solo', true); });
+                if (desplazar !== false) arriba();
+            } else {
+                secs.forEach(s => { s.hidden = false; s.classList.remove('jz-paso-solo'); });
+                if (desplazar !== false) window.scrollTo({ top: secs[actual].getBoundingClientRect().top + window.scrollY - 130, behavior: 'smooth' });
+            }
+            chips[actual].scrollIntoView({ block: 'nearest', inline: 'center' });
+            pintar();
+            if (window.lucide) lucide.createIcons();
+            secs[actual].dispatchEvent(new CustomEvent('jz-paso', { bubbles: true }));
+        }
+        function cambiarModo() {
+            modo = modo === 'pasos' ? 'todo' : 'pasos';
+            try { localStorage.setItem(clave, modo); } catch (e) {}
+            ir(actual, true);
+        }
+        function seccionDe(el) { return secs.findIndex(s => s.contains(el)); }
+
+        nav.addEventListener('click', e => { const b = e.target.closest('.jz-chip'); if (b) ir(+b.dataset.i); });
+        if (barra) {
+            barra.querySelector('[data-ant]').addEventListener('click', () => ir(actual - 1));
+            barra.querySelector('[data-sig]').addEventListener('click', () => ir(actual + 1));
+            barra.querySelector('[data-modo]').addEventListener('click', cambiarModo);
+        }
+        form.addEventListener('input', () => { sucio = true; pintar(); });
+        form.addEventListener('change', () => { sucio = true; pintar(); });
+
+        // Si un campo obligatorio está en otro paso, se abre ese paso antes de avisar.
+        form.querySelectorAll('button[type=submit], button:not([type])').forEach(function (b) {
+            b.addEventListener('click', function (e) {
+                if (form.noValidate || form.checkValidity()) { return; }
+                e.preventDefault();
+                const malo = form.querySelector(':invalid');
+                const i = seccionDe(malo);
+                if (i >= 0 && modo === 'pasos') ir(i, false);
+                setTimeout(() => form.reportValidity(), 50);
+            });
         });
+        form.addEventListener('submit', () => { enviando = true; });
+        window.addEventListener('beforeunload', function (e) {
+            if (sucio && !enviando) { e.preventDefault(); e.returnValue = ''; }
+        });
+
+        // Al volver con errores del servidor, abrir el paso del primer campo con error.
+        let inicio = 0;
+        const errs = window.jzCamposConError || [];
+        for (const k of errs) {
+            const base = k.split('.')[0];
+            const el = form.querySelector('[name="' + k + '"], [name^="' + base + '["], [name="' + base + '"]');
+            if (el && seccionDe(el) >= 0) { inicio = seccionDe(el); break; }
+        }
+        if (!errs.length && location.hash) {
+            const t = form.querySelector(location.hash.replace(/[^#\w-]/g, ''));
+            if (t) inicio = Math.max(0, seccionDe(t));
+        }
+        ir(inicio, false);
     });
 })();
 </script>
+<style>
+.jz-seccion.jz-paso-solo { border-top: 0 !important; padding-top: 0 !important; margin-top: 0 !important; }
+.jz-seccion[hidden] { display: none !important; }
+.jz-modo-pasos .jz-separador { display: none !important; }
+</style>
 @stack('scripts')
 
 <div id="jzCargando" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(6,26,51,.42); backdrop-filter:blur(3px);">

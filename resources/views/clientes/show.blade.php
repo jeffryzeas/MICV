@@ -13,8 +13,8 @@
             @if($cliente->tieneFoto())
                 <img src="{{ route('clientes.foto', $cliente) }}" class="size-32 rounded-lg object-cover border-4 border-oro-500 shrink-0" alt="">
             @else
-                <div class="size-32 rounded-lg bg-gradient-to-br from-azul-800 to-azul-400 text-oro-300 flex items-center justify-center text-4xl font-bold shrink-0">
-                    {{ $cliente->iniciales() }}
+                <div class="size-32 rounded-lg bg-white border-2 border-dashed border-gray-300 text-gray-400 flex flex-col items-center justify-center shrink-0" title="Sin foto">
+                    <i data-lucide="user-round" class="size-12"></i><span class="text-[10px] font-semibold uppercase mt-1">Sin foto</span>
                 </div>
             @endif
 

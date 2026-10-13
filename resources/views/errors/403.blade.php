@@ -1,0 +1,1 @@
+@include('errors._base', ['codigo' => 403, 'icono' => '🔒', 'titulo' => 'No tiene permiso', 'mensaje' => e($exception?->getMessage() && $exception->getMessage() !== 'This action is unauthorized.' ? $exception->getMessage() : 'Esta página no está disponible para su usuario.')])

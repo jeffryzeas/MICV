@@ -118,6 +118,8 @@
                     @foreach($redes as $r)<option value="{{ $r }}" @selected($val('telefono_red') === $r)>{{ $r }}</option>@endforeach
                 </select>
             </div>
+            <input type="hidden" name="telefono_whatsapp" value="0">
+            <label class="inline-flex items-center gap-2 text-sm text-gray-600 mt-2"><input type="checkbox" name="telefono_whatsapp" value="1" @checked($val('telefono_whatsapp'))> <i data-lucide="message-circle" class="size-4 text-emerald-600"></i> Este número tiene WhatsApp</label>
         </div>
         <div>
             <label class="{{ $lb }}">Celular secundario (opcional)</label>
@@ -143,6 +145,24 @@
             <input type="text" name="direccion" placeholder="Ej: Del parque central, 200 m norte" value="{{ $val('direccion') }}" class="{{ $in }}">
         </div>
     </div>
+    <h4 class="text-xs font-bold uppercase text-gray-500 mt-5 mb-2 flex items-center gap-2"><i data-lucide="link" class="size-3.5"></i> Perfiles en internet <span class="font-normal normal-case">(opcional, salen con su ícono en el CV)</span></h4>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="jz-campo">
+            <label class="{{ $lb }}">LinkedIn</label>
+            <i data-lucide="linkedin" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <input type="text" name="linkedin" autocapitalize="off" placeholder="Su usuario o el enlace" value="{{ $val('linkedin') }}" class="{{ $in }}">
+        </div>
+        <div class="jz-campo">
+            <label class="{{ $lb }}">Sitio web o portafolio</label>
+            <i data-lucide="globe" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <input type="text" name="sitio_web" autocapitalize="off" inputmode="url" placeholder="Ej: miportafolio.com" value="{{ $val('sitio_web') }}" class="{{ $in }}">
+        </div>
+        <div class="jz-campo">
+            <label class="{{ $lb }}">GitHub (programadores)</label>
+            <i data-lucide="github" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
+            <input type="text" name="github" autocapitalize="off" placeholder="Su usuario" value="{{ $val('github') }}" class="{{ $in }}">
+        </div>
+    </div>
 </section>
 
 {{-- ── Trabajo y seguro social ── --}}
@@ -154,7 +174,7 @@
             <i data-lucide="briefcase" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
             <input type="text" name="profesion" placeholder="Ej: Técnico en contabilidad" value="{{ $val('profesion') }}" class="{{ $in }}">
         </div>
-        <div class="jz-campo">
+        <div class="jz-campo {{ $P['seguro_largo'] ? '' : 'hidden' }}" id="campoSeguro">
             <label class="{{ $lb }}" data-etq="seguro_largo">{{ $P['seguro_largo'] }}</label>
             <i data-lucide="badge-check" class="jz-icono size-4"></i><i data-lucide="check-circle-2" class="jz-check size-4"></i>
             <input type="text" name="inss_nss" placeholder="Opcional" value="{{ $val('inss_nss') }}" class="{{ $in }}">
@@ -260,12 +280,19 @@ document.addEventListener('DOMContentLoaded', function () {
     estados(); nacionalidades();
 
     // País del documento → etiquetas, código telefónico, compañías y nacionalidad sugerida
+    // Lo que se puede leer del número de documento (departamento, fecha, sexo) se llena solo si está vacío.
+    window.jzLlenarDesdeDocumento = function (v) {
+        const poner = (id, valor, ev) => { const el = document.getElementById(id); if (el && valor && !el.value) { el.value = valor; el.dispatchEvent(new Event(ev || 'input', { bubbles: true })); } };
+        poner('fDepto', v.departamento); poner('fFN', v.fecha_nacimiento); poner('fSexo', v.sexo, 'change');
+    };
+
     window.jzAplicarPais = function (cod, cambiarValores) {
         const p = PAISES[cod] || PAISES.NI;
-        document.querySelectorAll('[data-etq]').forEach(el => { const k = el.getAttribute('data-etq'); if (p[k] !== undefined) el.textContent = p[k]; });
+        const cs = document.getElementById('campoSeguro'); if (cs) cs.classList.toggle('hidden', !p.seguro_largo);
+        document.querySelectorAll('[data-etq]').forEach(el => { const k = el.getAttribute('data-etq'); if (p[k]) el.textContent = p[k]; });
         if (cambiarValores) {
             const tel = document.getElementById('fCodTel'); if (tel && p.telefono) tel.value = p.telefono;
-            if (selNac && (cod === 'NI' || cod === 'CR') && !selNac.value) nacionalidades(cod);
+            if (selNac && NAC.some(n => n.c === cod) && !selNac.value) nacionalidades(cod);
         }
         document.querySelectorAll('select.jz-redes').forEach(function (sel) {
             const actual = sel.value || sel.dataset.actual || '';

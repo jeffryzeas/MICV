@@ -21,28 +21,28 @@ class ClienteExperiencia extends Model
         return $this->belongsTo(Cliente::class);
     }
 
-    public function periodoTexto(): ?string
+    public function periodoTexto(string $lang = 'es'): ?string
     {
         if (!$this->fecha_inicio && !$this->fecha_fin) {
             return null;
         }
         $ini = $this->fecha_inicio?->format('m/Y') ?? '?';
-        $fin = $this->fecha_fin?->format('m/Y') ?? 'Actualidad';
+        $fin = $this->fecha_fin?->format('m/Y') ?? ($lang === 'en' ? 'Present' : 'Actualidad');
         return "$ini – $fin";
     }
 
-    public function lineaCv(): string
+    public function lineaCv(string $lang = 'es'): string
     {
         $linea = implode(' ', array_filter([
             $this->cargo,
-            $this->empresa ? 'en ' . $this->empresa : null,
+            $this->empresa ? ($lang === 'en' ? 'at ' : 'en ') . $this->empresa : null,
         ]));
-        if ($p = $this->periodoTexto()) {
+        if ($p = $this->periodoTexto($lang)) {
             $linea .= ($linea ? ' · ' : '') . $p;
         }
         if ($this->descripcion) {
             $linea .= ($linea ? ' — ' : '') . $this->descripcion;
         }
-        return $linea ?: 'Experiencia laboral';
+        return $linea ?: ($lang === 'en' ? 'Work experience' : 'Experiencia laboral');
     }
 }

@@ -1,23 +1,12 @@
 @php
     $lat = $paleta['lateral']; $ac = $paleta['acento'];
     $tel = fn ($n) => trim(($c->telefono_codigo_pais ? $c->telefono_codigo_pais . ' ' : '') . $n);
-    $contacto = array_filter([
-        $c->telefono ? $tel($c->telefono) : null, $c->telefono_secundario ? $tel($c->telefono_secundario) : null,
-        $c->correo, $c->direccion,
-    ]);
-    $datos = array_values(array_filter([
-        [$c->tipoDocumentoLegible(), $c->numero_documento ? $c->documentoFormateado() : null],
-        ['Fecha de nacimiento', $c->fecha_nacimiento?->format('d/m/Y')],
-        ['Edad', $c->edad() !== null ? $c->edad() . ' años' : null],
-        ['Lugar de nacimiento', $c->lugarNacimiento()],
-        ['Nacionalidad', $c->nacionalidad],
-        ['Estado civil', $c->estado_civil],
-        ['Hijos', $c->numero_hijos !== null ? (string) $c->numero_hijos : null],
-        [$pais['seguro_largo'], $c->inss_nss],
-    ], fn ($f) => filled($f[1])));
+    $I = fn ($k) => \App\Support\Iconos::svg($k);
+    $contacto = array_merge($contactos, $enlaces);
+    $datos = $datosPro;
 @endphp
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ $lang }}">
 <head>
 <meta charset="utf-8">
 <title>CV — {{ $c->nombreCompleto() }}</title>
@@ -31,6 +20,8 @@
 .cab .nombre { font-family: 'CvSerif', Georgia, serif; font-size: 30pt; line-height: 1.05; color: {{ $lat }}; font-weight: 700; }
 .cab .puesto { margin-top: 6px; font-size: 9.5pt; letter-spacing: .34em; text-transform: uppercase; color: #6b7280; font-weight: 600; }
 .cab .contacto { margin-top: 10px; font-size: 8.8pt; color: #4b5563; }
+.cab .contacto span { display: inline; }
+.cab .contacto svg { width: 11px; height: 11px; color: {{ $ac }}; vertical-align: -1.5px; margin-right: 4px; }
 .cab .contacto span + span::before { content: "•"; color: {{ $ac }}; margin: 0 9px; }
 .orn { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px 0 4px; }
 .orn i { display: block; height: 1px; width: 1.6in; background: {{ $ac }}; } .orn b { width: 7px; height: 7px; background: {{ $ac }}; transform: rotate(45deg); }
@@ -53,42 +44,44 @@
     <header class="cab">
         @if ($foto)<img class="foto" src="{{ $foto }}" alt="">@endif
         <div class="nombre">{{ $c->nombreCompleto() }}</div>
-        @if ($c->profesion)<div class="puesto">{{ $c->profesion }}</div>@endif
-        @if ($contacto)<div class="contacto">@foreach ($contacto as $x)<span>{{ $x }}</span>@endforeach</div>@endif
+        @if ($vt['profesion'])<div class="puesto">{{ $vt['profesion'] }}</div>@endif
+        @if ($contacto)<div class="contacto">@foreach ($contacto as [$ico, $x])<span>{!! $I($ico) !!}{{ $x }}</span>@endforeach</div>@endif
         <div class="orn"><i></i><b></b><i></i></div>
     </header>
 
-    @if ($c->perfil_profesional)<div class="sec"><h2>Perfil</h2><p class="perfil">{{ $c->perfil_profesional }}</p></div>@endif
+    @if ($vt['perfil'])<div class="sec"><h2>{{ $t('Perfil') }}</h2><p class="perfil">{{ $vt['perfil'] }}</p></div>@endif
 
     @if ($experiencias->isNotEmpty())
-        <div class="sec"><h2>Experiencia laboral</h2>
+        <div class="sec"><h2>{{ $t('Experiencia laboral') }}</h2>
             @foreach ($experiencias as $e)
-                <div class="fila"><div class="f">{{ $e->periodoTexto() }}</div><div><div class="t">{{ $e->cargo ?: 'Experiencia' }}</div>
+                <div class="fila"><div class="f">{{ $e->periodoTexto($lang) }}</div><div><div class="t">{{ $e->cargo ?: $t('Experiencia') }}</div>
                     @if ($e->empresa)<div class="s">{{ $e->empresa }}</div>@endif @if ($e->descripcion)<div class="d">{{ $e->descripcion }}</div>@endif</div></div>
             @endforeach
         </div>
     @endif
 
     @if ($estudios->isNotEmpty())
-        <div class="sec"><h2>Formación académica</h2>
+        <div class="sec"><h2>{{ $t('Formación académica') }}</h2>
             @foreach ($estudios as $e)
-                <div class="fila"><div class="f">{{ $e->anio }}</div><div><div class="t">{{ $e->titulo ?: $e->nivelLegible() }}</div>
-                    <div class="s">{{ $e->nivelLegible() }}@if ($e->institucion) · {{ $e->institucion }}@endif</div>@if ($e->detalle)<div class="d">{{ $e->detalle }}</div>@endif</div></div>
+                <div class="fila"><div class="f">{{ $e->anio }}</div><div><div class="t">{{ $e->titulo ?: $t($e->nivelLegible()) }}</div>
+                    <div class="s">{{ $t($e->nivelLegible()) }}@if ($e->institucion) · {{ $e->institucion }}@endif</div>@if ($e->detalle)<div class="d">{{ $e->detalle }}</div>@endif</div></div>
             @endforeach
         </div>
     @endif
 
-    @if ($habilidades->isNotEmpty())<div class="sec"><h2>Habilidades</h2><div class="habs">@foreach ($habilidades as $h)<div>{{ $h->habilidad }}</div>@endforeach</div></div>@endif
+    @if ($idiomas->isNotEmpty())<div class="sec"><h2>{{ $t('Idiomas') }}</h2><div class="grid3">@foreach ($idiomas as $x)<div><div class="k">{{ $x->nombre($lang) }}</div><div class="v">{{ $x->nivelTexto($lang) }}</div></div>@endforeach</div></div>@endif
 
-    @if (count($datos))<div class="sec"><h2>Datos personales</h2><div class="grid3">@foreach ($datos as [$k, $v])<div><div class="k">{{ $k }}</div><div class="v">{{ $v }}</div></div>@endforeach</div></div>@endif
+    @if ($habilidades->isNotEmpty())<div class="sec"><h2>{{ $t('Habilidades') }}</h2><div class="habs">@foreach ($habilidades as $h)<div>{{ $h->habilidad }}</div>@endforeach</div></div>@endif
+
+    @if (count($datos))<div class="sec"><h2>{{ $t('Datos personales') }}</h2><div class="grid3">@foreach ($datos as [$k, $v])<div><div class="k">{{ $k }}</div><div class="v">{{ $v }}</div></div>@endforeach</div></div>@endif
 
     @if ($referencias->isNotEmpty())
-        <div class="sec"><h2>Referencias</h2><div class="refs">
-            @foreach ($referencias as $r)<div><div class="t">{{ $r->nombreConTratamiento() }}</div><div class="s">{{ collect([$r->telefono ? 'Tel. ' . $r->telefono : null, $r->correo])->filter()->implode(' · ') }}</div></div>@endforeach
+        <div class="sec"><h2>{{ $t('Referencias') }}</h2><div class="refs">
+            @foreach ($referencias as $r)<div><div class="t">{{ $r->nombreConTratamiento() }}</div><div class="s">{{ collect([$r->telefono ? $t('Tel.') . ' ' . $r->telefono : null, $r->correo])->filter()->implode(' · ') }}</div></div>@endforeach
         </div></div>
     @endif
 
-    @if (count($familia))<div class="sec"><h2>Datos familiares</h2><div class="grid3">@foreach ($familia as [$k, $v])<div><div class="k">{{ $k }}</div><div class="v">{{ $v }}</div></div>@endforeach</div></div>@endif
+    @if (count($familia))<div class="sec"><h2>{{ $t('Datos familiares') }}</h2><div class="grid3">@foreach ($familia as [$k, $v])<div><div class="k">{{ $k }}</div><div class="v">{{ $v }}</div></div>@endforeach</div></div>@endif
 </div>
 </div>
 @include('cv._una-hoja')

@@ -30,6 +30,7 @@ class ClienteGuardar
         'correo', 'telefono_codigo_pais', 'telefono', 'telefono_red',
         'telefono_secundario', 'telefono_secundario_red', 'direccion',
         'nombre_padre', 'nombre_madre', 'notas',
+        'linkedin', 'sitio_web', 'github', 'telefono_whatsapp', 'profesion_en', 'perfil_en',
     ];
 
     /**
@@ -37,7 +38,7 @@ class ClienteGuardar
      */
     public function registrar(Request $request): array
     {
-        $request->merge(['numero_documento' => self::limpiar($request->input('numero_documento'))]);
+        $request->merge(['numero_documento' => \App\Support\Documentos::limpiar($request->input('tipo_documento'), $request->input('numero_documento'))]);
         $datos = $request->validate($this->reglas(true), $this->mensajes(), $this->atributos());
         $datos = $this->completarSegunDocumento($datos);
         $cyberId = $this->cyberDestino($request);
@@ -69,6 +70,7 @@ class ClienteGuardar
             }
 
             $this->guardarFoto($request, $cliente);
+            self::sincronizarNombreCuenta($cliente);
 
             if ($cyberId) {
                 $cliente->cybers()->syncWithoutDetaching([$cyberId => ['registrado_por' => $request->user()?->id]]);
@@ -94,7 +96,7 @@ class ClienteGuardar
     /** Edición completa de la ficha, incluidos el documento y el país. */
     public function actualizarPropio(Request $request, Cliente $cliente, bool $desdePanel = false): Cliente
     {
-        $request->merge(['numero_documento' => self::limpiar($request->input('numero_documento'))]);
+        $request->merge(['numero_documento' => \App\Support\Documentos::limpiar($request->input('tipo_documento'), $request->input('numero_documento'))]);
         $datos = $request->validate($this->reglas(true), $this->mensajes(), $this->atributos());
         $datos = $this->completarSegunDocumento($datos);
 
@@ -119,6 +121,7 @@ class ClienteGuardar
             $cliente->update($campos);
             $this->sincronizarCv($cliente, $datos, soloSiVienenDatos: false);
             $this->guardarFoto($request, $cliente);
+            self::sincronizarNombreCuenta($cliente);
             return $cliente->fresh();
         });
     }
@@ -130,17 +133,24 @@ class ClienteGuardar
         if (!array_key_exists($d['tipo_documento'], $pais['documentos'])) {
             throw ValidationException::withMessages(['tipo_documento' => 'Ese tipo de documento no corresponde a ' . $pais['nombre'] . '.']);
         }
+        foreach (['linkedin', 'github', 'sitio_web'] as $red) {
+            $d[$red] = Cliente::limpiarEnlace($d[$red] ?? null, $red);
+        }
+        $d['telefono_whatsapp'] = (bool) ($d['telefono_whatsapp'] ?? false);
         if (blank($d['nacionalidad'] ?? null) && $pais['gentilicio']) {
-            $d['nacionalidad'] = $pais['gentilicio'];
+            $d['nacionalidad'] = \App\Support\Nacionalidades::de($d['pais'], $d['sexo'] ?? null) ?: $pais['gentilicio'];
         }
 
-        if (in_array($d['tipo_documento'], ['cedula_cr', 'dimex'], true)) {
-            $cr = Pais::validarCostaRica($d['tipo_documento'], $d['numero_documento']);
-            if (!$cr['valida']) {
-                throw ValidationException::withMessages(['numero_documento' => $cr['errores'][0]]);
+        if ($d['tipo_documento'] !== 'cedula') {
+            // Reglas del documento de cada país; lo que se puede leer del número se completa solo.
+            $v = \App\Support\Documentos::validar($d['tipo_documento'], $d['numero_documento']);
+            if (!$v['valida']) {
+                throw ValidationException::withMessages(['numero_documento' => $v['errores'][0]]);
             }
-            if ($cr['provincia'] && blank($d['departamento_nacimiento'] ?? null)) {
-                $d['departamento_nacimiento'] = $cr['provincia'];
+            foreach (['departamento' => 'departamento_nacimiento', 'fecha_nacimiento' => 'fecha_nacimiento', 'sexo' => 'sexo'] as $de => $a) {
+                if ($v[$de] && blank($d[$a] ?? null)) {
+                    $d[$a] = $v[$de];
+                }
             }
         }
 
@@ -193,7 +203,7 @@ class ClienteGuardar
         }
     }
 
-    /** Reemplaza estudios, experiencia, habilidades y referencias. */
+    /** Reemplaza estudios, experiencia, idiomas, habilidades y referencias. */
     protected function sincronizarCv(Cliente $c, array $d, bool $soloSiVienenDatos): void
     {
         $estudios = array_values(array_filter($d['estudios'] ?? [], fn ($e) => filled($e['nivel'] ?? null) || filled($e['titulo'] ?? null) || filled($e['institucion'] ?? null)));
@@ -222,6 +232,14 @@ class ClienteGuardar
                 ]);
             }
         }
+        $idiomas = array_values(array_filter($d['idiomas'] ?? [], fn ($x) => filled(trim((string) ($x['idioma'] ?? '')))));
+        if (!$soloSiVienenDatos || $idiomas) {
+            $c->idiomas()->delete();
+            foreach ($idiomas as $i => $x) {
+                $c->idiomas()->create(['idioma' => mb_substr(trim($x['idioma']), 0, 60), 'nivel' => ($x['nivel'] ?? null) ?: 'intermedio', 'orden' => $i]);
+            }
+        }
+
         if (!$soloSiVienenDatos || $habilidades) {
             $c->habilidades()->delete();
             foreach ($habilidades as $i => $h) {
@@ -236,6 +254,18 @@ class ClienteGuardar
                     'telefono' => $r['telefono'] ?? null, 'correo' => $r['correo'] ?? null, 'orden' => $i,
                 ]);
             }
+        }
+    }
+
+    /** La cuenta del usuario registrado lleva siempre el mismo nombre que su CV. */
+    public static function sincronizarNombreCuenta(Cliente $c): void
+    {
+        if (!$c->user_id) {
+            return;
+        }
+        $nombre = mb_substr($c->fresh()->nombreCompleto(), 0, 150);
+        if ($nombre !== '') {
+            \App\Models\User::whereKey($c->user_id)->where('rol', 'cliente')->update(['name' => $nombre]);
         }
     }
 
@@ -272,6 +302,10 @@ class ClienteGuardar
             'telefono_secundario'     => ['nullable', 'string', 'max:40'],
             'telefono_secundario_red' => ['nullable', 'string', 'max:30'],
             'direccion'        => ['nullable', 'string', 'max:255'],
+            'linkedin'         => ['nullable', 'string', 'max:200'],
+            'sitio_web'        => ['nullable', 'string', 'max:200'],
+            'github'           => ['nullable', 'string', 'max:200'],
+            'telefono_whatsapp'=> ['nullable', 'boolean'],
             'nombre_padre'     => ['nullable', 'string', 'max:150'],
             'nombre_madre'     => ['nullable', 'string', 'max:150'],
             'notas'            => ['nullable', 'string', 'max:2000'],
@@ -289,6 +323,11 @@ class ClienteGuardar
             'experiencias.*.descripcion'  => ['nullable', 'string', 'max:1000'],
             'experiencias.*.fecha_inicio' => ['nullable', 'date'],
             'experiencias.*.fecha_fin'    => ['nullable', 'date'],
+            'profesion_en'     => ['nullable', 'string', 'max:120'],
+            'perfil_en'        => ['nullable', 'string', 'max:1500'],
+            'idiomas'          => ['nullable', 'array', 'max:12'],
+            'idiomas.*.idioma' => ['nullable', 'string', 'max:60'],
+            'idiomas.*.nivel'  => ['nullable', Rule::in(array_keys(\App\Models\ClienteIdioma::NIVELES))],
             'habilidades'   => ['nullable', 'array', 'max:40'],
             'habilidades.*' => ['nullable', 'string', 'max:150'],
             'referencias'               => ['nullable', 'array', 'max:15'],

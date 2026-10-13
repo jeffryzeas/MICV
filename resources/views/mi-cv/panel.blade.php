@@ -1,44 +1,77 @@
-@php $p = $cliente->datosPais(); @endphp
+@php
+    $p = $cliente->datosPais();
+    $faltan = array_filter($pendientes, fn ($x) => !$x[1]);
+    $siguiente = $faltan ? reset($faltan) : null;
+    $radio = 34; $circ = 2 * M_PI * $radio; $dash = $circ * $avance / 100;
+@endphp
 <x-layout titulo="Mi panel" activo="mi-panel">
-    <div class="bg-white rounded-xl shadow p-6 mb-5">
-        <div class="flex flex-col sm:flex-row items-center gap-5">
+    {{-- Bienvenida + avance --}}
+    <section class="relative overflow-hidden rounded-2xl shadow mb-5 text-white" style="background: linear-gradient(135deg, rgb(var(--jz-azul-800)) 0%, #06264a 100%);">
+        <div class="absolute -right-16 -top-16 size-56 rounded-full opacity-10" style="background: rgb(var(--jz-oro-500));"></div>
+        <div class="absolute right-24 -bottom-20 size-40 rounded-full opacity-10" style="background: rgb(var(--jz-oro-500));"></div>
+        <div class="relative p-5 sm:p-7 flex flex-col sm:flex-row items-center gap-5">
             @if($cliente->tieneFoto())
-                <img src="{{ route('clientes.foto', $cliente) }}" class="size-24 rounded-full object-cover border-4 border-oro-500" alt="">
+                <img src="{{ route('clientes.foto', $cliente) }}" class="size-24 rounded-full object-cover ring-4 ring-white/80 shrink-0" alt="Mi foto">
             @else
-                <div class="size-24 rounded-full bg-gradient-to-br from-azul-800 to-azul-400 text-oro-300 flex items-center justify-center text-3xl font-bold">{{ $cliente->iniciales() }}</div>
+                <a href="{{ route('mi-cv.editar') }}#sec-foto" title="Agregar foto" class="size-24 shrink-0 rounded-full bg-white/10 border-2 border-dashed border-white/50 text-white/80 hover:bg-white/20 flex flex-col items-center justify-center">
+                    <i data-lucide="user-round" class="size-10"></i><span class="text-[10px] font-semibold uppercase">Sin foto</span>
+                </a>
             @endif
-            <div class="flex-1 text-center sm:text-left">
-                <h1 class="text-2xl font-bold text-azul-950">Hola, {{ $cliente->primer_nombre }} 👋</h1>
-                <p class="text-gray-500">{{ $p['bandera'] }} {{ $cliente->nacionalidad ?: $p['nombre'] }} · {{ $cliente->profesion ?: 'Complete su profesión u oficio' }}</p>
-                <div class="mt-3">
-                    <div class="flex justify-between text-xs font-semibold text-azul-800 mb-1"><span>Su CV está completo al</span><span>{{ $avance }}%</span></div>
-                    <div class="h-3 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-oro-500" style="width: {{ $avance }}%"></div></div>
-                </div>
+            <div class="flex-1 min-w-0 text-center sm:text-left">
+                <p class="text-white/70 text-sm">{{ $p['bandera'] }} {{ $cliente->nacionalidad ?: $p['nombre'] }}</p>
+                <h1 class="text-2xl sm:text-3xl font-bold leading-tight">Hola, {{ $cliente->primer_nombre }} 👋</h1>
+                <p class="text-white/80 mt-0.5">{{ $cliente->profesion ?: 'Agregue su profesión u oficio para que su CV destaque' }}</p>
+                @if($siguiente)
+                    <a href="{{ route('mi-cv.editar') }}#{{ $siguiente[2] }}" class="mt-4 inline-flex items-center gap-2 bg-white text-azul-800 hover:bg-oro-500 hover:text-white font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors">
+                        <i data-lucide="arrow-right-circle" class="size-4"></i> Siguiente paso: {{ mb_strtolower($siguiente[0]) }}
+                    </a>
+                @else
+                    <a href="#generar-cv" class="mt-4 inline-flex items-center gap-2 bg-oro-500 text-white hover:bg-white hover:text-azul-800 font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors">
+                        <i data-lucide="party-popper" class="size-4"></i> ¡Su CV está completo! Descárguelo
+                    </a>
+                @endif
+            </div>
+            <div class="relative shrink-0" title="Su CV está completo al {{ $avance }}%">
+                <svg width="92" height="92" viewBox="0 0 92 92" class="-rotate-90">
+                    <circle cx="46" cy="46" r="{{ $radio }}" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="9"/>
+                    <circle cx="46" cy="46" r="{{ $radio }}" fill="none" stroke="rgb(var(--jz-oro-500))" stroke-width="9" stroke-linecap="round"
+                            stroke-dasharray="{{ round($dash, 1) }} {{ round($circ, 1) }}"/>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="text-xl font-bold">{{ $avance }}%</span><span class="text-[10px] text-white/70 -mt-0.5">completo</span></div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
-        <a href="{{ route('mi-cv.editar') }}" class="group bg-white rounded-xl shadow p-5 border-l-4 border-oro-500 hover:shadow-lg">
-            <div class="flex items-center gap-3"><span class="size-11 rounded-lg bg-azul-800 text-oro-300 flex items-center justify-center group-hover:bg-oro-500 group-hover:text-white"><i data-lucide="user-round-pen" class="size-5"></i></span>
-            <div><div class="font-semibold text-azul-950">1. Mis datos</div><div class="text-xs text-gray-500">Documento, foto, estudios, experiencia…</div></div></div>
-        </a>
-        <a href="#generar-cv" class="group bg-white rounded-xl shadow p-5 border-l-4 border-emerald-500 hover:shadow-lg">
-            <div class="flex items-center gap-3"><span class="size-11 rounded-lg bg-azul-800 text-oro-300 flex items-center justify-center group-hover:bg-oro-500 group-hover:text-white"><i data-lucide="file-text" class="size-5"></i></span>
-            <div><div class="font-semibold text-azul-950">2. Mi CV en PDF</div><div class="text-xs text-gray-500">4 diseños, el Pro en una hoja</div></div></div>
-        </a>
-        <a href="{{ route('cartas.index') }}" class="group bg-white rounded-xl shadow p-5 border-l-4 border-blue-400 hover:shadow-lg">
-            <div class="flex items-center gap-3"><span class="size-11 rounded-lg bg-azul-800 text-oro-300 flex items-center justify-center group-hover:bg-oro-500 group-hover:text-white"><i data-lucide="mail" class="size-5"></i></span>
-            <div><div class="font-semibold text-azul-950">3. Mis cartas</div><div class="text-xs text-gray-500">Solicitud de empleo, renuncia…</div></div></div>
-        </a>
-    </div>
-
-    @if(!$cliente->numero_documento || $avance < 60)
-        <div class="mb-5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm flex items-center gap-3">
-            <i data-lucide="lightbulb" class="size-5 shrink-0"></i>
-            <span>Le falta información para un CV completo{{ !$cliente->numero_documento ? ' (por ejemplo, su número de documento)' : '' }}. <a href="{{ route('mi-cv.editar') }}" class="font-semibold underline">Complétela aquí</a>.</span>
+    {{-- Lo que tiene y lo que falta --}}
+    <section class="bg-white rounded-xl shadow p-4 sm:p-5 mb-5">
+        <div class="flex items-center justify-between gap-2 mb-3">
+            <h2 class="font-semibold text-azul-950 flex items-center gap-2"><i data-lucide="list-checks" class="size-[18px] text-oro-500"></i> Su CV paso a paso</h2>
+            <span class="text-xs text-gray-500">{{ count($pendientes) - count($faltan) }} de {{ count($pendientes) }} listos</span>
         </div>
-    @endif
+        <div class="flex flex-wrap gap-2">
+            @foreach($pendientes as [$texto, $hecho, $ancla])
+                <a href="{{ route('mi-cv.editar') }}#{{ $ancla }}" class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors {{ $hecho ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-gray-300 text-gray-600 hover:border-azul-800 hover:text-azul-800' }}">
+                    <i data-lucide="{{ $hecho ? 'check-circle-2' : 'circle-dashed' }}" class="size-3.5"></i> {{ $texto }}
+                </a>
+            @endforeach
+        </div>
+    </section>
+
+    {{-- Accesos rápidos --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
+        @foreach([
+            [route('mi-cv.editar'), 'user-round-pen', 'Mis datos', 'Foto, documento, estudios…', 'bg-blue-50 text-azul-800'],
+            ['#generar-cv', 'file-text', 'Mi CV en PDF', count(\App\Services\CvDatos::DISENOS) . ' diseños · ES / EN', 'bg-amber-50 text-amber-700'],
+            [route('cartas.index'), 'mail', 'Mis cartas', 'Presentación, solicitud…', 'bg-emerald-50 text-emerald-700'],
+            [route('mi-cuenta.mostrar'), 'shield-check', 'Mi cuenta', 'Privacidad y datos', 'bg-gray-100 text-gray-700'],
+        ] as [$url, $icono, $titulo, $sub, $color])
+            <a href="{{ $url }}" class="group bg-white rounded-xl shadow p-4 hover:shadow-lg hover:-translate-y-0.5 transition">
+                <span class="size-11 rounded-xl {{ $color }} flex items-center justify-center mb-3 group-hover:scale-105 transition"><i data-lucide="{{ $icono }}" class="size-5"></i></span>
+                <div class="font-semibold text-azul-950 leading-tight">{{ $titulo }}</div>
+                <div class="text-xs text-gray-500 mt-0.5">{{ $sub }}</div>
+            </a>
+        @endforeach
+    </div>
 
     @include('partials.generador-cv', ['cliente' => $cliente, 'cv' => $cv, 'paletas' => $paletas, 'cyberColores' => null])
 </x-layout>

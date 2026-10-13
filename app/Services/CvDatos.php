@@ -6,6 +6,7 @@ use App\Models\Cliente;
 use App\Models\Configuracion;
 use App\Models\User;
 use App\Support\Archivos;
+use App\Support\CvTexto;
 
 /** Arma todos los datos que necesitan las plantillas del CV. */
 class CvDatos
@@ -15,6 +16,8 @@ class CvDatos
         'pro'      => 'Pro Lateral',
         'moderno'  => 'Pro Moderno',
         'elegante' => 'Pro Elegante',
+        'ejecutivo'=> 'Pro Ejecutivo',
+        'creativo' => 'Pro Creativo',
     ];
 
     /** Descripción corta para los selectores. */
@@ -23,6 +26,8 @@ class CvDatos
         'pro'      => 'Barra lateral de color',
         'moderno'  => 'Encabezado de color y 2 columnas',
         'elegante' => 'Blanco, letra elegante, minimalista',
+        'ejecutivo'=> 'Títulos a la izquierda, sobrio y ordenado',
+        'creativo' => 'Columna derecha, etiquetas y barra inclinada',
     ];
 
     public static function esPro(string $d): bool
@@ -30,9 +35,11 @@ class CvDatos
         return $d !== 'clasico';
     }
 
-    public static function armar(Cliente $c, string $diseno, ?string $paleta = null, bool $conFoto = true, ?User $u = null): array
+    public static function armar(Cliente $c, string $diseno, ?string $paleta = null, bool $conFoto = true, ?User $u = null, string $lang = 'es'): array
     {
-        $c->loadMissing(['estudios', 'experiencias', 'habilidades', 'referencias', 'cybers']);
+        $lang = $lang === 'en' ? 'en' : 'es';
+        $t = fn (string $texto) => CvTexto::t($texto, $lang);
+        $c->loadMissing(['estudios', 'experiencias', 'idiomas', 'habilidades', 'referencias', 'cybers']);
         $cfg = Configuracion::actual();
         $cv = $cfg->cv();
 
@@ -48,26 +55,64 @@ class CvDatos
             : Configuracion::paleta($clavePaleta);
 
         $pais = $c->datosPais();
+        // Valores ya traducidos (si el CV es en inglés) para que las plantillas solo los pinten.
+        $v = [
+            'profesion'    => $lang === 'en' && filled($c->profesion_en) ? $c->profesion_en : $c->profesion,
+            'perfil'       => $lang === 'en' && filled($c->perfil_en) ? $c->perfil_en : $c->perfil_profesional,
+            'nacionalidad' => CvTexto::nacionalidad($c->nacionalidad, $lang),
+            'estado_civil' => $c->estado_civil ? $t($c->estado_civil) : null,
+            'sexo'         => $c->sexoLegible() ? $t($c->sexoLegible()) : null,
+            'edad'         => $c->edad() !== null ? $c->edad() . ' ' . $t('años') : null,
+            'doc'          => $t($c->tipoDocumentoLegible()),
+            'seguro'       => $lang === 'en' ? (CvTexto::SEGURO_EN[$c->pais ?: 'NI'] ?? 'Social security number') : $pais['seguro_largo'],
+            'pais'         => $t($pais['nombre']),
+            'nacimiento'   => trim(($c->fecha_nacimiento?->format('d/m/Y') ?? '') . ($c->edad() !== null ? ' · ' . $c->edad() . ' ' . $t('años') : ''), ' ·'),
+        ];
+        $v['lugar'] = $c->lugarNacimiento() ? $c->lugarNacimiento() . ($c->pais !== 'OT' ? ', ' . $v['pais'] : '') : null;
+
         $personales = array_values(array_filter([
-            ['Nombre y apellidos', self::nombreConFormato($c->nombreCompleto(), $cv['nombre_formato'])],
-            [$c->tipoDocumentoLegible(), $c->numero_documento ? $c->documentoFormateado() : null],
-            [$pais['seguro_largo'], $c->inss_nss],
-            ['Fecha de nacimiento', $c->fecha_nacimiento?->format('d/m/Y')],
-            ['Edad', $c->edad() !== null ? $c->edad() . ' años' : null],
-            ['Sexo', $c->sexoLegible()],
-            ['Nacionalidad', $c->nacionalidad],
-            ['Lugar de nacimiento', $c->lugarNacimiento() ? $c->lugarNacimiento() . ($c->pais !== 'OT' ? ', ' . $pais['nombre'] : '') : null],
-            ['Dirección', $c->direccion],
-            ['Celular', $c->celulares()],
-            ['Número de hijos', $c->numero_hijos !== null ? (string) $c->numero_hijos : null],
-            ['Estado civil', $c->estado_civil],
-            ['Profesión u oficio', $c->profesion],
-            ['Correo electrónico', $c->correo],
+            [$t('Nombre y apellidos'), self::nombreConFormato($c->nombreCompleto(), $cv['nombre_formato'])],
+            [$v['doc'], $c->numero_documento ? $c->documentoFormateado() : null],
+            [$v['seguro'] ?: '', $c->inss_nss],
+            [$t('Fecha de nacimiento'), $c->fecha_nacimiento?->format('d/m/Y')],
+            [$t('Edad'), $v['edad']],
+            [$t('Sexo'), $v['sexo']],
+            [$t('Nacionalidad'), $v['nacionalidad']],
+            [$t('Lugar de nacimiento'), $v['lugar']],
+            [$t('Dirección'), $c->direccion],
+            [$t('Celular'), $c->celulares()],
+            [$t('Número de hijos'), $c->numero_hijos !== null ? (string) $c->numero_hijos : null],
+            [$t('Estado civil'), $v['estado_civil']],
+            [$t('Profesión u oficio'), $v['profesion']],
+            [$t('Correo electrónico'), $c->correo],
+            ['LinkedIn', $c->linkedin],
+            [$t('Sitio web'), $c->sitio_web],
+            ['GitHub', $c->github],
         ], fn ($f) => filled($f[1])));
 
+        // Datos personales cortos para las plantillas Pro (sin nombre ni contacto).
+        $datosPro = array_values(array_filter([
+            [$v['doc'], $c->numero_documento ? $c->documentoFormateado() : null],
+            [$t('Nacimiento'), $v['nacimiento']],
+            [$t('Lugar de nacimiento'), $c->lugarNacimiento()],
+            [$t('Nacionalidad'), $v['nacionalidad']],
+            [$t('Estado civil'), $v['estado_civil']],
+            [$t('Hijos'), $c->numero_hijos !== null ? (string) $c->numero_hijos : null],
+            [$v['seguro'] ?: '', $c->inss_nss],
+        ], fn ($f) => filled($f[1]) && filled($f[0])));
+
+        // Contacto con íconos para las plantillas Pro: [ícono, texto].
+        $tel = fn ($n) => trim(($c->telefono_codigo_pais ? $c->telefono_codigo_pais . ' ' : '') . $n);
+        $contactos = array_values(array_filter([
+            $c->telefono ? [$c->telefono_whatsapp ? 'whatsapp' : 'tel', $tel($c->telefono)] : null,
+            $c->telefono_secundario ? ['tel', $tel($c->telefono_secundario)] : null,
+            $c->correo ? ['mail', $c->correo] : null,
+            $c->direccion ? ['casa', $c->direccion] : null,
+        ]));
+
         $familia = array_values(array_filter([
-            ['Nombre del padre', $c->nombre_padre],
-            ['Nombre de la madre', $c->nombre_madre],
+            [$t('Nombre del padre'), $c->nombre_padre],
+            [$t('Nombre de la madre'), $c->nombre_madre],
         ], fn ($f) => filled($f[1])));
 
         // Estudios ordenados por nivel (universidad primero) y luego por año desc.
@@ -83,7 +128,7 @@ class CvDatos
         if ($cv['mostrar_escudo'] || $cv['marca_agua_activa']) {
             $escudo = $pais['escudo']
                 ? Archivos::dataUriLocal(resource_path('cv/' . $pais['escudo']))
-                : Archivos::dataUri($cfg->escudo);
+                : ($c->pais === 'OT' ? Archivos::dataUri($cfg->escudo) : null); // país sin escudo: el CV va limpio
         }
 
         return [
@@ -104,6 +149,13 @@ class CvDatos
             'escudo'       => $escudo,
             'fuentesCss'   => self::fuentesCss($diseno),
             'pais'         => $pais,
+            'contactos'    => $contactos,
+            'datosPro'     => $datosPro,
+            'idiomas'      => $c->idiomas,
+            'lang'         => $lang,
+            't'            => $t,
+            'vt'           => $v,
+            'enlaces'      => $c->enlaces(),
         ];
     }
 

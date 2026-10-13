@@ -13,7 +13,7 @@ class Cuenta
     /** Todos los datos de la persona en un arreglo (para descargarlos en JSON). */
     public static function exportar(User $u): array
     {
-        $c = $u->cliente?->load(['estudios', 'experiencias', 'habilidades', 'referencias', 'cybers']);
+        $c = $u->cliente?->load(['estudios', 'experiencias', 'idiomas', 'habilidades', 'referencias', 'cybers']);
         $limpiar = fn ($m) => collect($m?->toArray() ?? [])->except(['id', 'user_id', 'cliente_id', 'creado_por', 'foto', 'pivot'])->all();
 
         return [
@@ -23,10 +23,11 @@ class Cuenta
                 'creada_en' => $u->created_at?->toIso8601String(), 'correo_verificado_en' => $u->email_verified_at?->toIso8601String(),
                 'terminos_version' => $u->terminos_version, 'terminos_aceptados_en' => $u->terminos_aceptados_en?->toIso8601String(),
             ],
-            'datos_personales' => $c ? collect($limpiar($c))->except(['estudios', 'experiencias', 'habilidades', 'referencias', 'cybers'])->all() : null,
+            'datos_personales' => $c ? collect($limpiar($c))->except(['estudios', 'experiencias', 'idiomas', 'habilidades', 'referencias', 'cybers'])->all() : null,
             'estudios'     => $c?->estudios->map($limpiar)->all() ?? [],
             'experiencias' => $c?->experiencias->map($limpiar)->all() ?? [],
             'habilidades'  => $c?->habilidades->pluck('habilidad')->all() ?? [],
+            'idiomas'      => $c?->idiomas->map(fn ($x) => ['idioma' => $x->idioma, 'nivel' => $x->nivelTexto()])->all() ?? [],
             'referencias'  => $c?->referencias->map($limpiar)->all() ?? [],
             'cybers'       => $c?->cybers->pluck('nombre')->all() ?? [],
             'tiene_foto'   => (bool) $c?->tieneFoto(),

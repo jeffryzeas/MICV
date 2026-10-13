@@ -36,6 +36,7 @@ class ClienteController extends Controller
                     if ($limpio !== '') {
                         $x->orWhere('numero_documento', 'like', "%$limpio%");
                     }
+                    $x->orWhere('numero_documento', 'like', '%' . strtoupper($q) . '%'); // con guiones (Panamá)
                     $x->orWhere('correo', 'like', "%$q%")->orWhere('telefono', 'like', "%$q%");
                 });
             })
@@ -83,7 +84,7 @@ class ClienteController extends Controller
     public function show(Request $request, Cliente $cliente)
     {
         $this->autorizar($request, $cliente);
-        $cliente->load(['estudios', 'experiencias', 'habilidades', 'referencias', 'creador', 'cybers']);
+        $cliente->load(['estudios', 'experiencias', 'idiomas', 'habilidades', 'referencias', 'creador', 'cybers']);
         $cfg = Configuracion::actual();
 
         return view('clientes.show', [
@@ -96,7 +97,7 @@ class ClienteController extends Controller
     public function edit(Request $request, Cliente $cliente)
     {
         $this->autorizar($request, $cliente);
-        $cliente->load(['estudios', 'experiencias', 'habilidades', 'referencias', 'cybers']);
+        $cliente->load(['estudios', 'experiencias', 'idiomas', 'habilidades', 'referencias', 'cybers']);
 
         return view('clientes.edit', [
             'cliente' => $cliente,

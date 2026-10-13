@@ -19,5 +19,4 @@
     });
 })();
 </script>
-<p class="text-[11px] text-gray-400 mt-3 text-center">Protegido por reCAPTCHA de Google.</p>
 @endif

@@ -13,7 +13,7 @@ class DocumentoController extends Controller
     public function consultar(Request $request)
     {
         $tipo = (string) $request->input('tipo_documento', 'cedula');
-        $numero = ClienteGuardar::limpiar($request->input('numero_documento', ''));
+        $numero = \App\Support\Documentos::limpiar($tipo, $request->input('numero_documento', ''));
 
         if ($numero === '') {
             return response()->json(['ok' => true, 'vacio' => true]);
@@ -38,8 +38,9 @@ class DocumentoController extends Controller
             ];
         }
 
-        if (in_array($tipo, ['cedula_cr', 'dimex'], true)) {
-            $r['cr'] = \App\Support\Pais::validarCostaRica($tipo, $numero);
+        if ($tipo !== 'cedula') {
+            // Reglas de cada país (formato, dígito verificador, departamento, fecha…)
+            $r['cr'] = \App\Support\Documentos::validar($tipo, $numero);
             $r['numero_ui'] = $r['cr']['formateado'];
         }
 
@@ -48,13 +49,20 @@ class DocumentoController extends Controller
             $u = $request->user();
             $r['existe'] = true;
             $r['en_mi_cyber'] = $c->esVisiblePara($u);
-            $r['cliente'] = [
-                'id' => $c->id, 'nombre_completo' => $c->nombreCompleto(),
-                'url' => $r['en_mi_cyber'] ? route('clientes.show', $c) : null,
-                'primer_nombre' => $c->primer_nombre, 'segundo_nombre' => $c->segundo_nombre,
-                'primer_apellido' => $c->primer_apellido, 'segundo_apellido' => $c->segundo_apellido,
-                'correo' => $c->correo, 'telefono' => $c->telefono, 'direccion' => $c->direccion,
-            ];
+            // Privacidad: un usuario registrado solo sabe que el número ya está en uso;
+            // un Cyber solo ve el nombre de quien no es su cliente (para confirmar que es la misma persona)
+            // y los datos de contacto únicamente de sus propios clientes.
+            if (!$u->esCliente()) {
+                $r['cliente'] = [
+                    'id' => $r['en_mi_cyber'] ? $c->id : null,
+                    'nombre_completo' => $c->nombreCompleto(),
+                    'url' => $r['en_mi_cyber'] ? route('clientes.show', $c) : null,
+                    'primer_nombre' => $c->primer_nombre, 'segundo_nombre' => $c->segundo_nombre,
+                    'primer_apellido' => $c->primer_apellido, 'segundo_apellido' => $c->segundo_apellido,
+                ] + ($r['en_mi_cyber'] ? ['correo' => $c->correo, 'telefono' => $c->telefono, 'direccion' => $c->direccion] : []);
+            } elseif ($u->cliente && $u->cliente->id === $c->id) {
+                $r['existe'] = false; // es su propio documento
+            }
         }
 
         return response()->json($r);

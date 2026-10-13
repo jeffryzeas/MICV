@@ -1,6 +1,6 @@
 <x-layout titulo="Registrar cliente" activo="clientes-nuevo">
 
-    <p class="text-gray-500 mb-5">Primero elija la nacionalidad: el formulario se adapta al país (documentos, INSS o CCSS, municipio o cantón, código telefónico). Con cédula nicaragüense la fecha, el lugar de nacimiento y la edad se llenan solos.</p>
+    <p class="text-gray-500 mb-5">Primero elija el país del documento: el formulario se adapta (documentos, seguro social, municipio o cantón, código telefónico). El número se revisa con las reglas de cada país, y lo que se puede leer de él (fecha, departamento…) se llena solo.</p>
 
     <div class="bg-white rounded-xl shadow p-6" id="boxConsulta">
         <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-4">
@@ -42,16 +42,16 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow p-6 mt-5" id="formRegistro" style="display:none;">
+    <div class="bg-white rounded-xl shadow p-4 sm:p-6 mt-5" id="formRegistro" style="display:none;">
         <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-4">
             <i data-lucide="user-plus" class="size-[18px] text-oro-500"></i> Completar datos
         </h2>
-        <form method="POST" action="{{ route('clientes.store') }}" enctype="multipart/form-data" onsubmit="return confirmarGuardar(event)">
+        <form method="POST" action="{{ route('clientes.store') }}" enctype="multipart/form-data" onsubmit="return confirmarGuardar(event)" data-pasos="no">
             @csrf
             <input type="hidden" name="tipo_documento" id="fTipo" value="cedula">
             <input type="hidden" name="pais" id="fPais" value="NI">
             <input type="hidden" name="numero_documento" id="fNumero">
-            <nav data-indice class="sticky top-14 z-10 flex gap-2 overflow-x-auto py-2 mb-3 bg-white/95 backdrop-blur"></nav>
+            <nav data-indice></nav>
             <p id="docResumen" class="font-semibold text-azul-800 mb-2"></p>
             <div id="datosCedulaAuto" class="mb-4 p-3 bg-blue-50 rounded-lg text-sm" style="display:none;">
                 <div id="autoInfo"></div>
@@ -59,13 +59,12 @@
             @include('partials.campos-registro-cliente', ['cybers' => $cybers])
 
             <section class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Foto" id="sec-foto">
-                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Foto (opcional, tipo carné)</label>
-                <input type="file" name="foto" accept="image/jpeg,image/png,image/webp,image/gif" class="text-sm">
+                @include('partials.foto-campo', ['cliente' => null])
             </section>
 
             <x-cv-form-fields :cliente="$clienteNuevo" />
 
-            <button type="submit" class="mt-5 inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"><i data-lucide="check" class="size-4"></i> Guardar cliente completo (incluye CV)</button>
+            @include('partials.barra-guardar', ['texto' => 'Guardar cliente'])
         </form>
     </div>
 
@@ -94,7 +93,7 @@
 
     (function () {
         const PAISES = @json(\App\Support\Pais::paraJs());
-        const AYUDA = { cedula_cr: '9 dígitos, ej. 1-0234-0567 (la provincia sale del primer número).', dimex: '11 o 12 dígitos, sin guiones.', pasaporte: 'Tal como aparece en el pasaporte.', residencia: 'Número de la cédula de residencia.', partida_nacimiento: 'Código de persona del certificado de nacimiento.', otro: 'Número del documento.' };
+        const AYUDA = @json(\App\Support\Documentos::AYUDA);
         const pais = document.getElementById('paisDoc'), tipo = document.getElementById('tipoDoc');
         function ayuda() { const a = document.getElementById('ayudaDoc'); if (a) a.textContent = AYUDA[tipo.value] || ''; }
         pais.addEventListener('change', function () {
@@ -178,10 +177,7 @@
             document.getElementById('docResumen').textContent = (nombresTipo[tipo] || tipo) + ': ' + (data.numero_limpio||'');
             document.getElementById('camposExtra').classList.remove('hidden');
             document.getElementById('datosCedulaAuto').style.display = 'none';
-            if (data.cr && data.cr.provincia) {
-                const dp = document.getElementById('fDepto');
-                if (dp && !dp.value) { dp.value = data.cr.provincia; dp.dispatchEvent(new Event('input', {bubbles: true})); }
-            }
+            if (data.cr && data.cr.valida && window.jzLlenarDesdeDocumento) jzLlenarDesdeDocumento(data.cr);
         }
         document.getElementById('formRegistro').scrollIntoView({behavior:'smooth'});
         lucide.createIcons();

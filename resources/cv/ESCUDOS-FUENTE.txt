@@ -1,0 +1,1 @@
+Escudos (excepto Nicaragua y Costa Rica) convertidos a PNG desde el paquete npm coat-of-arms 6.4.0 (licencia MIT).
