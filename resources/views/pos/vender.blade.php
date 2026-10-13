@@ -24,12 +24,12 @@
 
         {{-- Carrito --}}
         <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5 flex flex-col min-h-0" id="carritoCaja">
-            <div class="p-3 border-b border-gray-100 relative">
+            <div class="p-3 border-b border-gray-100 relative" style="flex-shrink:0;z-index:30;background:#f0f7ff;border-radius:16px 16px 0 0"><label for="cliente" style="display:block;color:#173e62;font-size:12px;font-weight:700;margin-bottom:6px">Cliente de la venta · opcional</label>
                 <div class="flex items-center gap-2">
                     <i data-lucide="user-round" class="size-5 text-gray-400 shrink-0"></i>
-                    <input id="cliente" type="text" autocomplete="off" placeholder="Cliente general (buscar por nombre o documento)" class="flex-1 min-w-0 border-0 focus:ring-0 text-sm px-0">
+                    <input id="cliente" type="text" autocomplete="off" placeholder="Buscar nombre o documento" style="display:block;width:100%;min-height:44px;background:white;color:#172d43;border:1px solid #9bb5cd;border-radius:8px;padding:10px" class="flex-1 min-w-0 border-0 focus:ring-0 text-sm px-0">
                     <button type="button" id="quitarCliente" class="hidden text-gray-400 hover:text-red-600"><i data-lucide="x" class="size-4"></i></button>
-                </div>
+                </div><p style="font-size:11px;color:#536b80;margin-top:5px">Sin seleccionar: Cliente general</p>
                 <div id="clientesRes" class="hidden absolute left-2 right-2 top-full z-20 bg-white rounded-xl shadow-lg ring-1 ring-gray-200 max-h-64 overflow-y-auto"></div>
             </div>
             <ul id="lineas" class="flex-1 overflow-y-auto divide-y divide-gray-100 min-h-[160px]"></ul>

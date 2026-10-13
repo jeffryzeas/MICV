@@ -173,19 +173,22 @@
 
     <div class="flex-1 flex flex-col min-w-0">
         <header class="bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between sticky top-0 z-20">
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
                 <button type="button" onclick="toggleSidebar()" class="lg:hidden text-gray-500">
                     <i data-lucide="menu" class="size-5"></i>
                 </button>
-                <h1 class="text-lg font-semibold text-azul-950">{{ $titulo ?? '' }}</h1>
+                <h1 class="text-lg font-semibold text-azul-950 truncate" title="{{ $titulo }}">{{ $titulo ?? '' }}</h1>
             </div>
-            <div class="flex items-center gap-3 text-sm">
+            <div class="flex items-center gap-2 text-sm shrink-0">
                 <span class="px-2 py-0.5 rounded-full bg-oro-500/15 text-oro-700 text-xs font-bold uppercase">{{ $rolBadge ?? '' }}</span>
                 <span class="text-gray-600 hidden sm:inline-flex items-center gap-1">{{ $usuarioNombre ?? '' }}@if($yo?->verificado())@include('partials.verificado', ['tam' => 16])@endif</span>
                 <button type="button" onclick="jzAlternarModoOscuro()" title="Modo oscuro" class="text-gray-500 hover:text-azul-800 border border-gray-200 rounded-lg p-2 transition-colors">
                     <i data-lucide="moon" id="jzIconoOscuro" class="size-4"></i>
                     <i data-lucide="sun" id="jzIconoClaro" class="size-4 hidden"></i>
                 </button>
+                @if($yo && (\App\Services\ChatAcceso::habilitado($yo)))
+                <a href="{{ route('chat.index') }}" id="jz-chat-notificacion" data-url="{{ route('chat.lista') }}" aria-label="Mensajes y notificaciones" style="position:relative;display:inline-flex;align-items:center;gap:5px;padding:8px;color:#087c58"><i data-lucide="bell" class="size-5"></i><span id="jz-chat-contador" hidden style="font-size:11px;border-radius:20px;background:#b42318;color:#fff;padding:2px 6px"></span></a>
+                @endif
                 <form method="POST" action="{{ $logoutUrl ?? '#' }}" class="m-0">
                     @csrf
                     <button type="submit" title="Cerrar sesión" class="flex items-center gap-1.5 text-gray-500 hover:text-red-600 border border-gray-200 hover:border-red-300 rounded-lg px-2.5 py-1.5 transition-colors">
@@ -593,5 +596,6 @@
 })();
 </script>
 
+<script src="{{ asset('js/chat-notificaciones.js') }}" defer></script>
 </body>
 </html>

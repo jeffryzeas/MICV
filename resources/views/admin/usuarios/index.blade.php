@@ -44,11 +44,11 @@
                         @if($u->esAdmin())
                             <span class="px-2 py-0.5 rounded-full bg-oro-500/15 text-oro-700 text-xs font-bold uppercase">Admin</span>
                         @elseif($u->esCliente())
-                            <span class="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold">Usuario registrado</span>
+                            <span class="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold">Cliente con cuenta</span><small class="block text-gray-500">{{ $u->cliente?->cybers->pluck('nombre')->implode(', ') }}</small>
                             @if($u->verificado())<span class="px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold">✓ verificado</span>
                             @else<span class="px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-semibold">sin verificar</span>@endif
                         @else
-                            <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">{{ $u->cyber?->nombre ?? 'Sin cyber' }}</span>
+                            <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">{{ $u->cyber?->nombre ?? 'Sin cyber' }}</span><small class="block text-gray-500">{{ $u->encargado ? 'Cajero de '.$u->encargado->name : 'Encargado' }}</small>
                         @endif
                     </td>
                     <td class="py-2.5 pr-3"><span class="px-2 py-0.5 rounded-full text-xs font-semibold {{ $u->activo ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700' }}">{{ $u->activo ? 'Activo' : 'Inactivo' }}</span></td>

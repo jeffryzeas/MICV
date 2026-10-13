@@ -12,18 +12,21 @@
     @else
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <section class="{{ $card }} p-5 text-center">
-            <div class="mx-auto w-52 rounded-2xl ring-4 p-3 {{ $cyber->autoservicio ? 'ring-oro-500' : 'ring-gray-200 opacity-40' }}" id="qrPanel"></div>
+            <div class="mx-auto w-52 rounded-2xl ring-4 p-3 {{ $cyber->qrAbierto() ? 'ring-oro-500' : 'ring-gray-200 opacity-40' }}" id="qrPanel"></div>
             <p class="text-xs text-gray-500 mt-3 break-all" id="enlace">{{ $enlace }}</p>
             <div class="mt-3 flex flex-wrap gap-2 justify-center">
                 <button type="button" id="copiar" class="inline-flex items-center gap-1.5 text-sm font-semibold border border-gray-300 hover:border-azul-800 text-azul-800 px-3 py-2 rounded-lg"><i data-lucide="copy" class="size-4"></i> Copiar enlace</button>
                 <a href="{{ route('autoservicio.afiche', $yo->esAdmin() ? ['cyber' => $cyber->id] : []) }}" target="_blank" class="inline-flex items-center gap-1.5 text-sm font-semibold bg-azul-800 hover:bg-oro-500 text-white px-3 py-2 rounded-lg"><i data-lucide="printer" class="size-4"></i> Afiche para imprimir</a>
             </div>
-            <form method="POST" action="{{ route('autoservicio.alternar', $yo->esAdmin() ? ['cyber' => $cyber->id] : []) }}" class="mt-4">@csrf
-                <button class="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-full {{ $cyber->autoservicio ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">
-                    <span class="size-2.5 rounded-full {{ $cyber->autoservicio ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400' }}"></span>
-                    {{ $cyber->autoservicio ? 'Recibiendo datos · tocar para pausar' : 'En pausa · tocar para activar' }}
-                </button>
-            </form>
+            <div style="padding:16px;margin-top:18px;border:2px solid {{ $cyber->qrAbierto() ? '#1d9664' : '#b54a38' }};border-radius:14px;background:#f6faf8">
+            <h3 id="qr-estado" style="font-weight:800;font-size:18px;color:#173e62">{{ $cyber->qrAbierto() ? '● QR ABIERTO' : '● QR CERRADO' }}</h3>
+            <p style="font-size:12px;margin:8px 0">@if($cyber->qrAbierto())Cierre automático: <time id="qr-vence" datetime="{{ $cyber->autoservicio_hasta->toIso8601String() }}">{{ $cyber->autoservicio_hasta->format('d/m H:i') }}</time><span id="qr-cuenta"></span>@elseActive el QR durante su jornada. Se cerrará aunque cierre esta pantalla.@endif</p>
+            <form method="POST" action="{{ route('autoservicio.alternar', $yo->esAdmin() ? ['cyber'=>$cyber->id] : []) }}">@csrf
+            <input type="hidden" name="activar" value="{{ $cyber->qrAbierto() ? '0' : '1' }}">
+            @if(!$cyber->qrAbierto())<label style="display:block;font-size:13px;margin-bottom:10px">Abrir durante <select name="horas" style="padding:8px;border:1px solid #b9cbd1;border-radius:8px"><option value="1">1 hora</option><option value="2">2 horas</option><option value="4" selected>4 horas</option><option value="8">8 horas</option></select></label>@endif
+            <button style="display:block;width:100%;padding:16px;border-radius:10px;font-weight:800;color:white;background:{{ $cyber->qrAbierto() ? '#b83632' : '#087c58' }}">{{ $cyber->qrAbierto() ? 'CERRAR QR AHORA' : 'ACTIVAR QR' }}</button>
+            </form></div>
+            @unless(\App\Services\Recaptcha::activo())<p style="color:#b42318;font-size:12px;margin-top:10px">El administrador debe configurar reCAPTCHA para recibir formularios.</p>@endunless
             <p class="text-[11px] text-gray-400 mt-3">Los datos que nadie atiende se borran solos a los {{ \App\Models\AutoservicioSolicitud::DIAS_GUARDADO }} días.</p>
         </section>
 
@@ -42,6 +45,7 @@
     <script src="{{ asset('vendor/qr-code-styling.min.js') }}"></script>
     <script>
     (function () {
+        const QR_ABIERTO=@json($cyber->qrAbierto());
         const ES_ADMIN = @json($yo->esAdmin()), enlace = @json($enlace), token = document.querySelector('meta[name=csrf-token]').content;
         const urlLista = @json(route('autoservicio.lista', $yo->esAdmin() ? ['cyber' => $cyber->id] : []));
         const urlDescartar = @json(route('autoservicio.descartar', '__ID__'));
@@ -56,7 +60,7 @@
         async function cargar() {
             try {
                 const r = await fetch(urlLista, { headers: { 'Accept': 'application/json' } }); if (!r.ok) return;
-                const j = await r.json(), ul = document.getElementById('turnos');
+                const j = await r.json(); if(typeof j.qr_abierto==='boolean'&&j.qr_abierto!==QR_ABIERTO){location.reload();return;} const ul = document.getElementById('turnos');
                 const ids = new Set(j.filas.filter(f => f.estado === 'pendiente').map(f => f.id));
                 if (conocidos && [...ids].some(id => !conocidos.has(id))) sonar();
                 conocidos = ids;
@@ -82,6 +86,7 @@
             await fetch(urlDescartar.replace('__ID__', b.dataset.descartar), { method: 'POST', headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' } });
             cargar();
         });
+        const vence=document.getElementById('qr-vence');if(vence){const tick=()=>{const ms=new Date(vence.dateTime)-Date.now();document.getElementById('qr-cuenta').textContent=' · faltan '+Math.max(0,Math.ceil(ms/60000))+' min';if(ms<=0)location.reload();};tick();setInterval(tick,1000);}
         cargar(); setInterval(cargar, 8000);
     })();
     </script>

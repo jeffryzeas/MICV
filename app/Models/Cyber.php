@@ -10,16 +10,37 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** Cada Cyber (negocio) tiene sus propios usuarios y ve solo sus clientes. */
 class Cyber extends Model
 {
-    protected $table = 'cybers';
+    protected $table = "cybers";
 
     protected $fillable = [
-        'codigo', 'nombre', 'logo', 'color_primario', 'color_secundario',
-        'direccion', 'telefono', 'correo', 'activo', 'autoservicio',
+        "codigo",
+        "nombre",
+        "logo",
+        "color_primario",
+        "color_secundario",
+        "direccion",
+        "telefono",
+        "correo",
+        "activo",
+        "autoservicio",
+        "autoservicio_hasta",
     ];
 
     protected function casts(): array
     {
-        return ['activo' => 'boolean', 'autoservicio' => 'boolean'];
+        return [
+            "autoservicio_hasta" => "datetime",
+            "activo" => "boolean",
+            "autoservicio" => "boolean",
+        ];
+    }
+
+    public function qrAbierto(): bool
+    {
+        return $this->activo &&
+            $this->autoservicio &&
+            $this->autoservicio_hasta &&
+            $this->autoservicio_hasta->isFuture();
     }
 
     public function usuarios(): HasMany
@@ -29,11 +50,17 @@ class Cyber extends Model
 
     public function clientes(): BelongsToMany
     {
-        return $this->belongsToMany(Cliente::class, 'cliente_cyber')->withPivot('registrado_por')->withTimestamps();
+        return $this->belongsToMany(Cliente::class, "cliente_cyber")
+            ->withPivot("registrado_por")
+            ->withTimestamps();
     }
 
     public function logoUrl(): ?string
     {
-        return Archivos::existe($this->logo) ? route('cybers.logo', $this) . '?v=' . $this->updated_at?->timestamp : null;
+        return Archivos::existe($this->logo)
+            ? route("cybers.logo", $this) .
+                    "?v=" .
+                    $this->updated_at?->timestamp
+            : null;
     }
 }

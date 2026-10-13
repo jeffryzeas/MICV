@@ -22,48 +22,95 @@ class Recaptcha
     public static function siteKey(): ?string
     {
         $c = Configuracion::actualSegura();
+
         return $c && $c->recaptchaListo() ? $c->recaptcha_site_key : null;
     }
 
     /** @return string|null null = pasó; texto = motivo del rechazo */
-    public static function verificar(?string $token, string $accion): ?string
-    {
+    public static function verificar(
+        ?string $token,
+        string $accion,
+        bool $estricto = false,
+    ): ?string {
         $cfg = Configuracion::actualSegura();
         if (!$cfg || !$cfg->recaptchaListo()) {
-            return null;
+            return $estricto
+                ? "El formulario está temporalmente cerrado: el administrador debe configurar reCAPTCHA."
+                : null;
         }
         if (blank($token)) {
-            return 'No se recibió la verificación de seguridad (reCAPTCHA). Recargue la página e intente de nuevo.';
+            return "No se recibió la verificación de seguridad (reCAPTCHA). Recargue la página e intente de nuevo.";
         }
 
         try {
-            $d = Http::asForm()->timeout(8)->post('https://www.google.com/recaptcha/api/siteverify', [
-                'secret' => $cfg->secretoRecaptcha(), 'response' => $token, 'remoteip' => request()->ip(),
-            ])->json();
+            $d = Http::asForm()
+                ->timeout(8)
+                ->post("https://www.google.com/recaptcha/api/siteverify", [
+                    "secret" => $cfg->secretoRecaptcha(),
+                    "response" => $token,
+                    "remoteip" => request()->ip(),
+                ])
+                ->json();
         } catch (\Throwable $e) {
-            Log::warning('reCAPTCHA: no se pudo contactar a Google; se permitió el acceso.', ['error' => $e->getMessage()]);
-            return null;
+            Log::warning("reCAPTCHA: no se pudo contactar a Google.", [
+                "error" => $e->getMessage(),
+                "bloqueado" => $estricto,
+            ]);
+
+            return $estricto
+                ? "No se pudo verificar reCAPTCHA. Intente nuevamente."
+                : null;
         }
 
         if (!is_array($d)) {
-            return null;
+            return $estricto
+                ? "La verificación de seguridad no respondió."
+                : null;
         }
-        if (empty($d['success'])) {
-            $codigos = $d['error-codes'] ?? [];
-            if (array_intersect(['invalid-input-secret', 'missing-input-secret', 'bad-request'], $codigos)) {
-                Log::error('reCAPTCHA mal configurado (revise las llaves).', ['error-codes' => $codigos]);
-                return null;
+        if (empty($d["success"])) {
+            $codigos = $d["error-codes"] ?? [];
+            if (
+                array_intersect(
+                    [
+                        "invalid-input-secret",
+                        "missing-input-secret",
+                        "bad-request",
+                    ],
+                    $codigos,
+                )
+            ) {
+                Log::error("reCAPTCHA mal configurado (revise las llaves).", [
+                    "error-codes" => $codigos,
+                ]);
+
+                return $estricto
+                    ? "La verificación de seguridad requiere revisión del administrador."
+                    : null;
             }
-            return 'No se pudo comprobar que usted es una persona. Intente de nuevo.';
+
+            return "No se pudo comprobar que usted es una persona. Intente de nuevo.";
         }
-        if (($d['action'] ?? $accion) !== $accion) {
-            return 'La verificación de seguridad no corresponde a esta pantalla.';
+        if (($d["action"] ?? "") !== $accion) {
+            return "La verificación de seguridad no corresponde a esta pantalla.";
         }
-        $score = (float) ($d['score'] ?? 1);
+        if (
+            $estricto &&
+            strtolower((string) ($d["hostname"] ?? "")) !==
+                strtolower((string) parse_url(config("app.url"), PHP_URL_HOST))
+        ) {
+            return "La verificación no corresponde a este sitio.";
+        }
+        $score = (float) ($d["score"] ?? ($estricto ? 0 : 1));
         if ($score < (float) ($cfg->recaptcha_umbral ?? 0.5)) {
-            Log::info('reCAPTCHA rechazó un intento por puntaje bajo.', ['score' => $score, 'accion' => $accion, 'ip' => request()->ip()]);
-            return 'Su navegador se comportó de forma sospechosa. Intente de nuevo o use otro navegador.';
+            Log::info("reCAPTCHA rechazó un intento por puntaje bajo.", [
+                "score" => $score,
+                "accion" => $accion,
+                "ip" => request()->ip(),
+            ]);
+
+            return "Su navegador se comportó de forma sospechosa. Intente de nuevo o use otro navegador.";
         }
+
         return null;
     }
 }

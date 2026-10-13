@@ -18,6 +18,7 @@
     <form method="POST" action="{{ route('autoservicio.guardar', $cyber->codigo) }}" class="space-y-5" id="fAuto" novalidate>
         @csrf
         @include('partials.antibot')
+@include('partials.recaptcha', ['accion'=>'autoservicio'])
 
         <fieldset class="space-y-3">
             <legend class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><i data-lucide="id-card" class="size-5 text-oro-500"></i> Documento</legend>

@@ -12,7 +12,11 @@
         "php": "^8.2",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "spatie/browsershot": "^5.0"
+        "spatie/browsershot": "^5.0",
+        "lbuchs/webauthn": "^2.2",
+        "ext-zip": "*",
+        "ext-fileinfo": "*",
+        "ext-openssl": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

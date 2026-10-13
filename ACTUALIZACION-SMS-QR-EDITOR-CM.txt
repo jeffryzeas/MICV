@@ -1,0 +1,144 @@
+ACTUALIZACIÓN MI CV · SMS JZ, QR y editor en centímetros
+22 de octubre de 2026
+
+INCLUYE LAS CORRECCIONES Y MÓDULOS DE LAS VERSIONES ANTERIORES.
+
+INSTALACIÓN EN SU VPS
+1. Respalde la base de datos, el proyecto, composer.lock, .env y storage.
+2. Copie el contenido de mi-cv/ sobre el proyecto. Conserve su .env, APP_KEY,
+   archivos de clientes, storage y configuración del servidor. No ejecute key:generate.
+3. Desde /var/www/micv ejecute:
+
+   composer install --no-dev --optimize-autoloader
+   npm ci --omit=dev
+   php artisan migrate --force
+   php artisan optimize:clear
+
+   Se incluye composer.lock para instalar las dependencias verificadas.
+   PHP 8.2+ con fileinfo, openssl, zip, mbstring, XML y el controlador de su BD.
+   Node y Chromium: conserve la configuración que ya usa para los PDF.
+   Se incluye el CSS compilado; no necesita compilar la interfaz en producción.
+
+4. Configure estas tres funciones antes de probar con personas:
+
+   A) ANTIVIRUS PARA ADJUNTOS
+      El chat exige un resultado limpio del antivirus. Si falta, está caído o detecta
+      un archivo, bloquea el adjunto y permite continuar enviando texto.
+      En Debian/Ubuntu puede instalar clamav y clamav-freshclam con apt y mantener
+      activa la actualización de firmas. Compruebe que el usuario de PHP puede
+      ejecutar /usr/bin/clamscan y leer los temporales de sus subidas.
+      En .env, si usa otra ruta:
+        CHAT_ANTIVIRUS=/usr/bin/clamscan
+      Ejemplo de comprobación: clamscan --no-summary /ruta/a/un-documento-de-prueba.pdf
+      No sustituya el antivirus por un comando que siempre devuelve éxito.
+      No hay una garantía absoluta de seguridad por extensión: el antivirus debe
+      permanecer actualizado y los documentos deben abrirse en software actualizado.
+
+   B) RECAPTCHA DEL QR
+      En Admin > Seguridad > Google reCAPTCHA v3 active las llaves del dominio.
+      El formulario QR bloquea envíos sin configuración, sin token válido, con otra
+      acción o dominio, puntaje bajo y cuando Google no permite verificarlo.
+      Mantiene la trampa para robots y límites de envío anteriores.
+
+   C) HUELLA / ROSTRO / PIN CON LLAVE DE ACCESO
+      APP_URL debe ser la URL real completa con HTTPS, sin barra final.
+      PASSKEY_RP_ID es solo el dominio, sin https, puerto ni ruta. Ejemplo:
+        APP_URL=https://micv.sudominio.com
+        PASSKEY_RP_ID=micv.sudominio.com
+      Tras modificar .env: php artisan optimize:clear
+      Cada persona entra primero con contraseña, abre Perfil > Llaves de acceso,
+      confirma su contraseña actual y registra su dispositivo personal.
+      Luego puede usar el botón del login para entrar con la llave del dispositivo.
+      El celular decide si utiliza huella, rostro o PIN; no se guarda una huella.
+      Se exige verificación del usuario, reto de un solo uso de 120 segundos,
+      comprobación del origen, firma y contador, y cuenta/Cyber activos.
+      Recuperar la contraseña por correo revoca llaves anteriores y sesiones en BD.
+      No registre las llaves del administrador en un teléfono de un cliente.
+
+5. Para archivos hasta 20 MB, ajuste la versión de PHP que realmente atiende la web:
+      upload_max_filesize = 20M
+      post_max_size = 25M
+   En Nginx, si corresponde: client_max_body_size 25M;
+   Recargue PHP-FPM/Nginx después de cambiar su configuración. Estos ajustes no
+   se aplican automáticamente por copiar este ZIP. Conserve permisos de escritura
+   en storage y bootstrap/cache. No exponga storage/app/private por una URL pública.
+
+USO DEL CHAT SMS JZ
+- Menú > SMS JZ: conversaciones privadas con búsqueda, lectura y actualización
+  cada 3 segundos mientras la pantalla está visible. La campana cuenta sin leer.
+- El cliente contacta al personal autorizado de los Cybers vinculados a su ficha
+  y al administrador. Un Cyber no puede abrir chats de clientes de otro Cyber.
+- Ni siquiera un administrador puede abrir el historial de un chat del que no
+  sea participante. Sí puede iniciar su propia conversación y publicar avisos.
+- El encargado administra acceso de sus clientes desde la ficha > Cuenta personal
+  y acceso del cliente. El correo no puede estar asociado a otra cuenta.
+- Se genera un enlace privado, de un uso, válido por 24 horas. La persona elige su
+  contraseña, pide/verifica el código de correo y acepta los términos del sistema.
+  Si el enlace vence, recupera el acceso mediante su correo. No se cambia una
+  cuenta que ya esté vinculada ni se entregan contraseñas compartidas.
+- Puede consultar su propio CV y tarjeta, y los trabajos entregados en el chat.
+  El operador adjunta allí el PDF, foto, Word, Excel o PowerPoint terminado.
+- Admite JPG, PNG, WebP, PDF, DOCX, XLSX y PPTX de hasta 20 MB. Bloquea código,
+  ejecutables, SVG/HTML, ZIP sueltos, formatos con macros y Office antiguo.
+  Los Office modernos también se inspeccionan para bloquear macros, incrustaciones
+  activas y vínculos externos. Convierta DOC/XLS/PPT a DOCX/XLSX/PPTX o PDF.
+- Las fotos tienen miniatura propia y tamaño fijo en la conversación. Al tocar
+  se abre el visor y se ofrece descargar el original. No agrandan las burbujas.
+- Archivos privados con comprobación de permisos en cada descarga. Textos cifrados
+  en BD con APP_KEY. Esto no implementa cifrado de extremo a extremo como WhatsApp.
+- Los reintentos conservan una clave para evitar mensajes duplicados.
+- Admin > SMS JZ > Publicar notificación permite avisar a todos, a un Cyber o tipo
+  de usuario (máximo 1000 por publicación). Cada aviso llega a su conversación
+  privada con la etiqueta Sistema JZ y aumenta el contador sin leer.
+- SMS JZ es mensajería interna por internet. No envía SMS de telefonía, mensajes a
+  WhatsApp ni notificaciones push cuando la aplicación está cerrada. El proyecto
+  SMSJZ adjunto se adaptó al acceso de Mi CV; no se instala como otro sistema.
+- En Mi equipo se pueden asignar los permisos nuevos de mensajes y generar acceso.
+  Generar acceso está reservado al encargado o administrador. Las cuentas con una
+  lista explícita de permisos deben recibir los nuevos permisos desde Admin.
+- Admin > Usuarios conserva el filtro por Cyber e incluye sus clientes con cuenta,
+  encargados y cajeros; muestra el encargado de cada cajero.
+
+QR DE ATENCIÓN
+- Botón grande ACTIVAR QR / CERRAR QR AHORA, estado y cuenta regresiva.
+- Apertura durante 1, 2, 4 u 8 horas. El servidor verifica el vencimiento en cada
+  solicitud: no necesita cron, pestaña abierta ni el reloj del celular.
+- El formulario abierto antes del cierre tampoco podrá enviar después del cierre.
+- La migración deja en pausa los QR anteriores; ábralos expresamente al empezar.
+- El panel actualiza turnos y estado del QR. El permiso Autoservicio QR permite
+  gestionar esta apertura y cierre al personal autorizado.
+
+EDITOR DE DOCUMENTOS
+- Todas las entradas están en cm. Ejemplo ancho 8.5, alto 5.4; decimales permitidos.
+- Tarjeta de referencia 8.56 x 5.4 cm, pasaporte 12.5 x 8.8 cm, media hoja y medida
+  personalizada. Confirme el tamaño real del documento que está copiando.
+- Arrastrar esquinas, girar, filtros y cambiar tamaño actualiza la vista sin tener
+  que pulsar recortar. La vista rápida usa menor resolución para responder mejor;
+  exportar vuelve a procesar la imagen a la resolución de salida.
+- Deshacer/rehacer hasta 20 cambios de recorte, giro o filtros por cara; intercambiar
+  caras, quitar una foto y limpiar la sesión. Las fotos siguen procesándose localmente.
+- Dos caras en carta o A4, márgenes/separación en cm, filtro color, grises, blanco
+  y negro, aclarado de sombras, brillo, contraste y umbral, JPG/PNG y PDF.
+- Para conservar 8.5 cm en papel: imprimir PDF a 100% / tamaño real. Desactivar
+  “Ajustar a página” en el diálogo de la impresora.
+
+OTROS CAMBIOS
+- Campo cliente del POS visible, con rótulo, borde y altura de toque; indica
+  Cliente general cuando no hay selección.
+- Tarjetas de presentación tiene su propio módulo del menú y buscador de clientes.
+- Se conservan Excel real, fotos de productos, caja, inventario y permisos anteriores.
+
+VERIFICACIÓN Y ALCANCE
+- 30 pruebas PHPUnit de Laravel con SQLite, 120 aserciones: permisos, POS, situación laboral,
+  chat entre Cybers, descarga privada, cifrado, reintentos, bajas de permisos,
+  invitaciones, caducidad del QR, reCAPTCHA, avisos y render de pantallas nuevas.
+- Pruebas de navegador de escritorio/celular para editor, centímetros y PDF,
+  deshacer/rehacer, chat, miniaturas, visor, descargas y texto de usuario seguro.
+- Aplicación Laravel real en navegador: registro de llave, logout, login con llave,
+  intercambio de mensajes entre dos sesiones y pantalla móvil de 390 px.
+- WebAuthn probado con autenticador virtual de Chromium y verificación PHP real:
+  registro residente, firma correcta y rechazo de reto/firma/origen incorrectos.
+- Las pruebas de archivo limpio simulan el resultado del escáner; también se probó
+  que la ausencia del antivirus bloquea los adjuntos. Verifique ClamAV en su VPS.
+- No se ha instalado esta actualización en su VPS desde aquí. Haga una prueba
+  final con HTTPS, su motor de BD, correo, reCAPTCHA, antivirus, celular e impresora.

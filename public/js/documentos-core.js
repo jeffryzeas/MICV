@@ -31,7 +31,7 @@ function filtrar(src,{modo='color',brillo=100,contraste=100,umbral=150}={}){
 }
 function medidas({papel='carta',ancho=85.6,alto=54,margen=20,separacion=12,cantidad=2,ajustar=false}){
  const pw=papel==='a4'?210:215.9,ph=papel==='a4'?297:279.4;
- if(![ancho,alto,margen,separacion].every(Number.isFinite)||ancho<10||alto<10||ancho>500||alto>500||margen<0||margen>50||separacion<0||separacion>60||![1,2].includes(cantidad))throw Error('Revise las medidas en milímetros.');
+ if(![ancho,alto,margen,separacion].every(Number.isFinite)||ancho<10||alto<10||ancho>500||alto>500||margen<0||margen>50||separacion<0||separacion>60||![1,2].includes(cantidad))throw Error('Revise el ancho, alto, márgenes y separación.');
  let escala=1;if(ajustar)escala=Math.min(1,(pw-2*margen)/ancho,(ph-2*margen-(cantidad-1)*separacion)/(alto*cantidad));
  const aw=ancho*escala,ah=alto*escala;if(aw>pw-2*margen+.001||ah*cantidad+(cantidad-1)*separacion>ph-2*margen+.001)throw Error('Con estas medidas no caben las fotos. Reduzca el tamaño o active Ajustar a la hoja.');
  return {pw,ph,ancho:aw,alto:ah,escala,posiciones:Array.from({length:cantidad},(_,i)=>({x:(pw-aw)/2,y:margen+i*(ah+separacion)}))};

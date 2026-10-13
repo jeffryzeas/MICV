@@ -9,6 +9,7 @@
     const form = campo.closest('form');
     form.addEventListener('submit', function (e) {
         if (campo.value) return;
+        if (!form.checkValidity()) { e.preventDefault(); form.reportValidity(); return; }
         e.preventDefault();
         if (!window.grecaptcha) { form.submit(); return; }
         grecaptcha.ready(function () {
