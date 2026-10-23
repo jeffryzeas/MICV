@@ -1,0 +1,1542 @@
+[
+  {
+    "codigo": "001",
+    "municipio": "Managua",
+    "departamento": "Managua",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "002",
+    "municipio": "San Rafael del Sur",
+    "departamento": "Managua",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "003",
+    "municipio": "Tipitapa",
+    "departamento": "Managua",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "004",
+    "municipio": "Villa El Carmen",
+    "departamento": "Managua",
+    "alias": "Villa Carlos Fonseca",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "005",
+    "municipio": "San Francisco Libre",
+    "departamento": "Managua",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "006",
+    "municipio": "Mateare",
+    "departamento": "Managua",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "007",
+    "municipio": "Ticuantepe",
+    "departamento": "Managua",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "008",
+    "municipio": "Ciudad Sandino",
+    "departamento": "Managua",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "009",
+    "municipio": "El Crucero",
+    "departamento": "Managua",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "041",
+    "municipio": "Jinotepe",
+    "departamento": "Carazo",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "042",
+    "municipio": "Diriamba",
+    "departamento": "Carazo",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "043",
+    "municipio": "San Marcos",
+    "departamento": "Carazo",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "044",
+    "municipio": "Santa Teresa",
+    "departamento": "Carazo",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "045",
+    "municipio": "Dolores",
+    "departamento": "Carazo",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "046",
+    "municipio": "La Paz de Carazo",
+    "departamento": "Carazo",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "047",
+    "municipio": "El Rosario",
+    "departamento": "Carazo",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "048",
+    "municipio": "La Conquista",
+    "departamento": "Carazo",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "081",
+    "municipio": "Chinandega",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "082",
+    "municipio": "Corinto",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "083",
+    "municipio": "El Realejo",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "084",
+    "municipio": "Chichigalpa",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "085",
+    "municipio": "Posoltega",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "086",
+    "municipio": "El Viejo",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "087",
+    "municipio": "Puerto Morazán",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "088",
+    "municipio": "Somotillo",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "089",
+    "municipio": "Villa Nueva",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "090",
+    "municipio": "Santo Tomás del Norte",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "091",
+    "municipio": "Cinco Pinos",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "092",
+    "municipio": "San Francisco del Norte",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "093",
+    "municipio": "San Pedro del Norte",
+    "departamento": "Chinandega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "121",
+    "municipio": "Juigalpa",
+    "departamento": "Chontales",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "122",
+    "municipio": "Acoyapa",
+    "departamento": "Chontales",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "123",
+    "municipio": "Santo Tomás",
+    "departamento": "Chontales",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "124",
+    "municipio": "Villa Sandino",
+    "departamento": "Chontales",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "125",
+    "municipio": "San Pedro de Lóvago",
+    "departamento": "Chontales",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "126",
+    "municipio": "La Libertad",
+    "departamento": "Chontales",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "127",
+    "municipio": "Santo Domingo",
+    "departamento": "Chontales",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "128",
+    "municipio": "Comalapa",
+    "departamento": "Chontales",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "129",
+    "municipio": "San Francisco de Cuapa",
+    "departamento": "Chontales",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "130",
+    "municipio": "El Coral",
+    "departamento": "Chontales",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "161",
+    "municipio": "Estelí",
+    "departamento": "Estelí",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "162",
+    "municipio": "Pueblo Nuevo",
+    "departamento": "Estelí",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "163",
+    "municipio": "Condega",
+    "departamento": "Estelí",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "164",
+    "municipio": "San Juan de Limay",
+    "departamento": "Estelí",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "165",
+    "municipio": "La Trinidad",
+    "departamento": "Estelí",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "166",
+    "municipio": "San Nicolás",
+    "departamento": "Estelí",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "201",
+    "municipio": "Granada",
+    "departamento": "Granada",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "202",
+    "municipio": "Nandaime",
+    "departamento": "Granada",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "203",
+    "municipio": "Diriomo",
+    "departamento": "Granada",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "204",
+    "municipio": "Diriá",
+    "departamento": "Granada",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "241",
+    "municipio": "Jinotega",
+    "departamento": "Jinotega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "242",
+    "municipio": "San Rafael del Norte",
+    "departamento": "Jinotega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "243",
+    "municipio": "San Sebastián de Yalí",
+    "departamento": "Jinotega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "244",
+    "municipio": "La Concordia",
+    "departamento": "Jinotega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "246",
+    "municipio": "El Cuá",
+    "departamento": "Jinotega",
+    "alias": "El Cuá Bocay",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "247",
+    "municipio": "Santa María de Pantasma",
+    "departamento": "Jinotega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "248",
+    "municipio": "San José de Bocay",
+    "departamento": "Jinotega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "281",
+    "municipio": "León",
+    "departamento": "León",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "283",
+    "municipio": "El Jicaral",
+    "departamento": "León",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "284",
+    "municipio": "La Paz Centro",
+    "departamento": "León",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "285",
+    "municipio": "Santa Rosa del Peñón",
+    "departamento": "León",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "286",
+    "municipio": "Quezalguaque",
+    "departamento": "León",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "287",
+    "municipio": "Nagarote",
+    "departamento": "León",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "288",
+    "municipio": "El Sauce",
+    "departamento": "León",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "289",
+    "municipio": "Achuapa",
+    "departamento": "León",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "290",
+    "municipio": "Telica",
+    "departamento": "León",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "291",
+    "municipio": "Larreynaga",
+    "departamento": "León",
+    "alias": "Larreynaga; Malpaisillo",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "321",
+    "municipio": "Somoto",
+    "departamento": "Madriz",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "322",
+    "municipio": "Telpaneca",
+    "departamento": "Madriz",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "323",
+    "municipio": "San Juan del Río Coco",
+    "departamento": "Madriz",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "324",
+    "municipio": "Palacagüina",
+    "departamento": "Madriz",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "325",
+    "municipio": "Yalagüina",
+    "departamento": "Madriz",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "326",
+    "municipio": "Totogalpa",
+    "departamento": "Madriz",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "327",
+    "municipio": "San Lucas",
+    "departamento": "Madriz",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "328",
+    "municipio": "Las Sabanas",
+    "departamento": "Madriz",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "329",
+    "municipio": "San José de Cusmapa",
+    "departamento": "Madriz",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "361",
+    "municipio": "Boaco",
+    "departamento": "Boaco",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "362",
+    "municipio": "Camoapa",
+    "departamento": "Boaco",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "363",
+    "municipio": "Santa Lucía",
+    "departamento": "Boaco",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "364",
+    "municipio": "San José de los Remates",
+    "departamento": "Boaco",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "365",
+    "municipio": "San Lorenzo",
+    "departamento": "Boaco",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "366",
+    "municipio": "Teustepe",
+    "departamento": "Boaco",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "401",
+    "municipio": "Masaya",
+    "departamento": "Masaya",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "402",
+    "municipio": "Nindirí",
+    "departamento": "Masaya",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "403",
+    "municipio": "Tisma",
+    "departamento": "Masaya",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "404",
+    "municipio": "Catarina",
+    "departamento": "Masaya",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "405",
+    "municipio": "San Juan de Oriente",
+    "departamento": "Masaya",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "406",
+    "municipio": "Niquinohomo",
+    "departamento": "Masaya",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "407",
+    "municipio": "Nandasmo",
+    "departamento": "Masaya",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "408",
+    "municipio": "Masatepe",
+    "departamento": "Masaya",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "409",
+    "municipio": "La Concepción",
+    "departamento": "Masaya",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "441",
+    "municipio": "Matagalpa",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "442",
+    "municipio": "San Ramón",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "443",
+    "municipio": "Matiguás",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "444",
+    "municipio": "Muy Muy",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "445",
+    "municipio": "Esquipulas",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "446",
+    "municipio": "San Dionisio",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "447",
+    "municipio": "San Isidro",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "448",
+    "municipio": "Sébaco",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "449",
+    "municipio": "Ciudad Darío",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "450",
+    "municipio": "Terrabona",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "451",
+    "municipio": "Río Blanco",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "452",
+    "municipio": "El Tuma - la Dalia",
+    "departamento": "Matagalpa",
+    "alias": "Tuma La Dalia; El Tuma La Dalia",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "453",
+    "municipio": "Rancho Grande",
+    "departamento": "Matagalpa",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "454",
+    "municipio": "Waslala",
+    "departamento": "Costa Caribe Norte",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "481",
+    "municipio": "Ocotal",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "482",
+    "municipio": "Santa María",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "483",
+    "municipio": "Macuelizo",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "484",
+    "municipio": "Dipilto",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "485",
+    "municipio": "Ciudad Antigua",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "486",
+    "municipio": "Mozonte",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "487",
+    "municipio": "San Fernando",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "488",
+    "municipio": "El Jícaro",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "489",
+    "municipio": "Jalapa",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "490",
+    "municipio": "Murra",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "491",
+    "municipio": "Quilalí",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "492",
+    "municipio": "Wiwilí de Jinotega",
+    "departamento": "Jinotega",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "493",
+    "municipio": "Wiwilí de Nueva Segovia",
+    "departamento": "Nueva Segovia",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "521",
+    "municipio": "San Carlos",
+    "departamento": "Río San Juan",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "522",
+    "municipio": "El Castillo",
+    "departamento": "Río San Juan",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "523",
+    "municipio": "San Miguelito",
+    "departamento": "Río San Juan",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "524",
+    "municipio": "Morrito",
+    "departamento": "Río San Juan",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "525",
+    "municipio": "San Juan de Nicaragua",
+    "departamento": "Río San Juan",
+    "alias": "San Juan del Norte; Greytown",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "526",
+    "municipio": "El Almendro",
+    "departamento": "Río San Juan",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "561",
+    "municipio": "Rivas",
+    "departamento": "Rivas",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "562",
+    "municipio": "San Jorge",
+    "departamento": "Rivas",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "563",
+    "municipio": "Buenos Aires",
+    "departamento": "Rivas",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "564",
+    "municipio": "Potosí",
+    "departamento": "Rivas",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "565",
+    "municipio": "Belén",
+    "departamento": "Rivas",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "566",
+    "municipio": "Tola",
+    "departamento": "Rivas",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "567",
+    "municipio": "San Juan del Sur",
+    "departamento": "Rivas",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "568",
+    "municipio": "Cárdenas",
+    "departamento": "Rivas",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "569",
+    "municipio": "Moyogalpa",
+    "departamento": "Rivas",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "570",
+    "municipio": "Altagracia",
+    "departamento": "Rivas",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "601",
+    "municipio": "Bluefields",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "602",
+    "municipio": "Corn Island",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "603",
+    "municipio": "El Rama",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "604",
+    "municipio": "Muelle de los Bueyes",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "605",
+    "municipio": "La Cruz de Río Grande",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "606",
+    "municipio": "Prinzapolka",
+    "departamento": "Costa Caribe Norte",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "607",
+    "municipio": "Puerto Cabezas",
+    "departamento": "Costa Caribe Norte",
+    "alias": "Bilwi",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "608",
+    "municipio": "Waspán",
+    "departamento": "Costa Caribe Norte",
+    "alias": "Waspam",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "610",
+    "municipio": "Siuna",
+    "departamento": "Costa Caribe Norte",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "611",
+    "municipio": "Bonanza",
+    "departamento": "Costa Caribe Norte",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "612",
+    "municipio": "Rosita",
+    "departamento": "Costa Caribe Norte",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "615",
+    "municipio": "Bocana de Paiwas",
+    "departamento": "Costa Caribe Sur",
+    "alias": "Paiwas; Bocana Paiwás; Bocana Paiwas",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "616",
+    "municipio": "Nueva Guinea",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "619",
+    "municipio": "El Tortuguero",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "624",
+    "municipio": "Kukra Hill",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "626",
+    "municipio": "Laguna de Perlas",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "627",
+    "municipio": "Desembocadura de Río Grande",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "628",
+    "municipio": "El Ayote",
+    "departamento": "Costa Caribe Sur",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "629",
+    "municipio": "Mulukukú",
+    "departamento": "Costa Caribe Norte",
+    "alias": "",
+    "especial": false,
+    "activo": true,
+    "fuente": "UNAN-Managua, 2013, anexo 2 (pp. 139–142 del PDF): https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf",
+    "notas": "Código exacto del catálogo de referencia; no es código postal ni código censal."
+  },
+  {
+    "codigo": "888",
+    "municipio": "Registro especial (888)",
+    "departamento": "Registro especial",
+    "alias": "Sin municipio asignado",
+    "especial": true,
+    "activo": true,
+    "fuente": "Uso del prefijo documentado en La Gaceta 138/2009: https://legislacion.asamblea.gob.ni/gacetas/2009/7/g138.pdf",
+    "notas": "Se admite como código especial, separado de los 153 municipios. No se deduce un lugar de nacimiento; cópielo del documento."
+  }
+]

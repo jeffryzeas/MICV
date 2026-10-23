@@ -93,6 +93,7 @@ class Permisos
             return [];
         }
         $exactos = [
+            "municipios.index" => ["clientes.ver", "correos"],
             "clientes.acceso" => "clientes.acceso",
             "clientes.acceso.crear" => "clientes.acceso",
             "clientes.create" => "clientes.editar",

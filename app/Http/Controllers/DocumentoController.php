@@ -41,6 +41,7 @@ class DocumentoController extends Controller
                 'valida' => $v['valida'], 'errores' => $v['errores'],
                 'municipio' => $v['municipio'], 'departamento' => $v['departamento'],
                 'fecha_nacimiento' => $v['fecha_nacimiento'], 'edad' => $v['edad'],
+                'codigo_especial'=>$v['codigo_especial'],'codigo_reconocido'=>$v['codigo_reconocido'],'alcance'=>$v['alcance'],
             ];
         }
 

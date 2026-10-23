@@ -239,6 +239,7 @@ class Menu
                             "icon" => "ruler",
                             "label" => "Config. y medidas del CV",
                         ],
+                        ['id'=>'municipios-ni','url'=>route('municipios.index'),'icon'=>'map-pinned','label'=>'Municipios de Nicaragua'],
                         [
                             "id" => "paises",
                             "url" => route("admin.paises.index"),
@@ -300,6 +301,7 @@ class Menu
             ];
         }
 
+        if(!$u->esAdmin()&&($u->tienePermiso('clientes.ver')||$u->tienePermiso('correos'))){$items[]=['id'=>'municipios-ni','url'=>route('municipios.index'),'icon'=>'map-pinned','label'=>'Municipios de Nicaragua'];}
         $items[] = [
             "id" => "perfil",
             "url" => route("perfil.edit"),

@@ -122,6 +122,7 @@ class Documentos
     /** Cómo se guarda el número según el tipo de documento. */
     public static function limpiar(?string $tipo, $numero): string
     {
+        if($tipo==='cedula')return \App\Services\CedulaValidator::normalizar((string)$numero);
         return $tipo === 'cedula_pa' ? self::limpiarPanama((string) $numero) : strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $numero));
     }
 

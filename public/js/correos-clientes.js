@@ -83,7 +83,7 @@
                     : "Documento validado. Complete los nombres del titular.",
                 d?.fecha_nacimiento ? "Nacimiento: " + d.fecha_nacimiento : "",
                 d?.edad != null ? "Edad: " + d.edad : "",
-                d?.municipio || "",
+                d?.codigo_especial ? "Código especial: el lugar no se deduce del número." : d?.municipio || "",
                 d?.departamento || "",
             ]
                 .filter(Boolean)

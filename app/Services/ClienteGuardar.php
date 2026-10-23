@@ -168,8 +168,10 @@ class ClienteGuardar
             }
             $catalogado = $r['municipio'] && !str_contains($r['municipio'], 'no catalogado');
             $d['fecha_nacimiento'] = $r['fecha_nacimiento'];
-            $d['departamento_nacimiento'] = $r['departamento'];
-            $d['municipio_nacimiento'] = $catalogado ? $r['municipio'] : (($d['municipio_nacimiento'] ?? null) ?: null);
+            if(!$r['codigo_especial']){
+                $d['departamento_nacimiento'] = $r['departamento'];
+                $d['municipio_nacimiento'] = $catalogado ? $r['municipio'] : (($d['municipio_nacimiento'] ?? null) ?: null);
+            }
             $d['edad_calculada'] = $r['edad'];
         } else {
             $faltan = [];

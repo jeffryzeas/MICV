@@ -1,0 +1,23 @@
+Cambios de esta actualización:
+
+ACTUALIZACION-MUNICIPIOS-NICARAGUA.txt
+app/Http/Controllers/DocumentoController.php
+app/Http/Controllers/MunicipioNicaraguaController.php
+app/Models/MunicipioNicaragua.php
+app/Services/CedulaValidator.php
+app/Services/ClienteGuardar.php
+app/Support/Documentos.php
+app/Support/Menu.php
+app/Support/MunicipiosNicaragua.php
+app/Support/Permisos.php
+database/migrations/2026_10_31_000001_catalogo_municipios_nicaragua.php
+public/css/tema.css
+public/js/correos-clientes.js
+public/js/documento-live.js
+resources/catalogos/municipios-nicaragua.json
+resources/views/clientes/create.blade.php
+resources/views/municipios/form.blade.php
+resources/views/municipios/index.blade.php
+resources/views/partials/documento-editable.blade.php
+routes/web.php
+tests/Feature/MunicipiosNicaraguaTest.php

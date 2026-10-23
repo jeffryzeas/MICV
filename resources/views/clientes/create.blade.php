@@ -196,10 +196,10 @@
         const nombresTipo = @json(\App\Support\Pais::todosLosDocumentos());
         if (tipo === 'cedula') {
             document.getElementById('docResumen').textContent = 'Cédula: ' + (data.numero_ui || '');
-            document.getElementById('camposExtra').classList.add('hidden');
+            document.getElementById('camposExtra').classList.toggle('hidden', !data.cedula.codigo_especial);
             document.getElementById('datosCedulaAuto').style.display = 'block';
             document.getElementById('autoInfo').textContent =
-                (data.cedula.municipio||'')+' / '+(data.cedula.departamento||'')+' · Nac: '+(data.cedula.fecha_nacimiento||'')+' · Edad: '+(data.cedula.edad??'—');
+                (data.cedula.codigo_especial?'Código especial: copie el lugar de nacimiento del documento.':(data.cedula.municipio||'')+' / '+(data.cedula.departamento||''))+' · Nac: '+(data.cedula.fecha_nacimiento||'')+' · Edad: '+(data.cedula.edad??'—');
         } else {
             document.getElementById('docResumen').textContent = (nombresTipo[tipo] || tipo) + ': ' + (data.numero_limpio||'');
             document.getElementById('camposExtra').classList.remove('hidden');

@@ -52,7 +52,7 @@
             if (!r.ok) return;
             const d = await r.json();
             let ok = true, html = '';
-            if (d.cedula) { ok = d.cedula.valida; html = ok ? 'Cédula válida · ' + (d.cedula.municipio || '') + ' / ' + (d.cedula.departamento || '') + ' · ' + (d.cedula.edad ?? '') + ' años' : 'Error: ' + d.cedula.errores.join(' · '); }
+            if (d.cedula) { ok = d.cedula.valida; html = ok ? 'Cédula válida · ' + (d.cedula.codigo_especial?'Código especial; lugar según documento':(d.cedula.municipio || '') + ' / ' + (d.cedula.departamento || '')) + ' · ' + (d.cedula.edad ?? '') + ' años' : 'Error: ' + d.cedula.errores.join(' · '); }
             if (d.cr) { ok = d.cr.valida; html = ok ? 'Número válido' + (d.cr.resumen ? ' · ' + d.cr.resumen : '') + (d.cr.aviso ? '<br>Aviso: ' + d.cr.aviso : '') : 'Error: ' + d.cr.errores.join(' · ');
                 if (ok) window.jzLlenarDesdeDocumento && jzLlenarDesdeDocumento(d.cr); }
             if (d.existe && (!d.cliente || String(d.cliente.id) !== num.dataset.ignorar)) { ok = false; html += (html ? '<br>' : '') + 'Aviso: Ese documento ya está registrado para otra persona.'; }

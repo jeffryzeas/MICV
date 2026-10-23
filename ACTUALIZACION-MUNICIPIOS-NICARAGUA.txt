@@ -1,0 +1,96 @@
+MI CV · CATÁLOGO DE MUNICIPIOS Y VALIDACIÓN DE CÉDULA NICARAGÜENSE
+Actualización de octubre de 2026. Incluye el sistema completo y cambios previos.
+
+CORRECCIÓN
+El validador anterior tenía pocos municipios y asignaba departamentos mediante
+rangos incompletos e incorrectos. Por eso rechazaba códigos existentes como 615
+y devolvía lugares incorrectos para varios códigos que sí aceptaba.
+
+Se reemplazaron los rangos por un catálogo de códigos exactos: 153 municipios de
+los 15 departamentos y las dos regiones autónomas. Entre las correcciones:
+615: Bocana de Paiwas · Costa Caribe Sur
+601: Bluefields · Costa Caribe Sur
+607: Puerto Cabezas · Costa Caribe Norte
+521: San Carlos · Río San Juan
+561: Rivas · Rivas
+454: Waslala · Costa Caribe Norte
+492: Wiwilí de Jinotega · Jinotega
+493: Wiwilí de Nueva Segovia · Nueva Segovia
+248: San José de Bocay · Jinotega
+Se mantienen los ceros iniciales, como 001, 041, 081 y 009.
+
+El código especial 888 se admite separado de los 153 municipios; su uso está
+documentado en publicaciones oficiales. No se inventa un lugar de nacimiento:
+el usuario puede copiar el lugar del documento. No se deduce un país del 888.
+
+ALCANCE DE LA VALIDACIÓN
+Se comprueban estructura, fecha de calendario, código activo y letra mediante
+el cálculo local módulo 23. No se omite la letra ni se aceptan rangos enteros
+para resolver el problema de códigos faltantes. Se admiten guiones, espacios,
+letra minúscula y separadores habituales al copiar el número; se rechazan otros
+caracteres añadidos. La fecha de dos dígitos conserva la regla de siglo anterior.
+Una validación local positiva NO confirma que una persona exista en el padrón,
+que la cédula haya sido emitida o que esté vigente. No se consulta el CSE ni se
+transmiten cédulas a sitios externos. No se cambian documentos de otros países.
+
+MÓDULO
+Administrador: Configuración → Municipios de Nicaragua.
+Personal autorizado del Cyber: Municipios de Nicaragua, en modo consulta.
+Clientes: sin acceso al módulo ni a mantenimiento.
+
+- Buscar por código, municipio, alias o departamento, también sin tildes.
+- Filtrar por departamento/región y estado. Lista agrupada por departamento.
+- Consultar fuente y notas de cada código. Ver los códigos con ceros iniciales.
+- Solo el administrador puede agregar, corregir, activar o desactivar códigos.
+- Fuente o respaldo obligatorio. Un código existente no puede renumerarse.
+- Cambios con auditoría y control de versión para evitar sobrescribir otra edición.
+- Las correcciones se aplican inmediatamente a nuevas consultas de cédula,
+  al registro de clientes/CV y al registro corto de correos.
+- Se conservan las fichas existentes. No hay corrección masiva de lugares de
+  nacimiento ni reescritura automática de datos personales anteriores.
+  Al guardar nuevamente una ficha con cédula se aplica el catálogo vigente.
+
+DATOS Y FUENTES
+Referencia principal del catálogo: UNAN-Managua, tesis de 2013, anexo 2,
+listado de 153 municipios y sus códigos, páginas 139–142 del archivo PDF:
+https://repositorio.unan.edu.ni/id/eprint/5920/1/93481.pdf
+Se normalizaron ortografía de nombres y errores tipográficos evidentes de los
+nombres de departamentos. RAAN/RAAS se presentan como Costa Caribe Norte/Sur,
+sin cambiar los códigos de cédula. Se añaden alias de consulta a nombres conocidos.
+No se ha presentado la lista como una descarga oficial actual del CSE.
+El portal consultado del CSE no permitió recuperar un catálogo directo.
+Uso del 888 documentado en La Gaceta 138/2009:
+https://legislacion.asamblea.gob.ni/gacetas/2009/7/g138.pdf
+No se importaron nombres, cédulas personales ni otros datos de personas de esas
+publicaciones. El catálogo contiene únicamente códigos y referencias geográficas.
+
+Archivo base: resources/catalogos/municipios-nicaragua.json
+Tabla de mantenimiento: municipios_nicaragua
+La tabla prevalece sobre el archivo base, incluidas las desactivaciones.
+Antes de aplicar la migración, el validador puede utilizar el catálogo base.
+Para editar desde el módulo, aplique la migración.
+
+INSTALAR EN /var/www/micv
+1. Respaldar la base de datos y archivos; conservar .env, APP_KEY y storage.
+2. Copiar mi-cv/ sobre la aplicación. No incluye vendor ni node_modules.
+3. Ejecutar:
+   composer install --no-dev --optimize-autoloader
+   php artisan migrate --force
+   php artisan optimize:clear
+   php artisan optimize
+4. Si utiliza colas persistentes: php artisan queue:restart
+5. Recargar el navegador. CSS e iconos ya vienen preparados; no hay dependencias
+   nuevas de Node para esta actualización. Mantenga las dependencias de funciones
+   anteriores (Word, PDF, Excel, imágenes, audios y ClamAV).
+
+La migración crea y carga los 154 registros: 153 municipios y el especial 888.
+Las siguientes ejecuciones de migrate no reinician el catálogo ni borran cambios.
+No se ha instalado automáticamente esta actualización en su VPS.
+
+VERIFICACIÓN
+58 pruebas PHP / 860 aserciones, incluidas todos los códigos de los 153 municipios,
+prefijos corregidos, ceros iniciales, letra y fechas inválidas, código especial,
+permisos, mantenimiento con auditoría, cambios inmediatos, conflictos de versión,
+registro normal de clientes y registro de correos con el prefijo 615.
+Navegador real: catálogo, filtros, creación y edición; consulta del Cyber sin
+botones de modificación; móvil de 390 px; 615 aceptado en CV y en correos.

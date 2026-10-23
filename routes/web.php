@@ -180,6 +180,7 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
             "dashboard",
         );
 
+        Route::get('municipios-nicaragua',[\App\Http\Controllers\MunicipioNicaraguaController::class,'index'])->name('municipios.index')->middleware('rol:admin,cyber');
         Route::prefix("correos-clientes")
             ->name("correos.")
             ->middleware("rol:admin,cyber")
@@ -842,6 +843,10 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                     ->name("avisos.enviar")
                     ->middleware("throttle:sensible");
 
+                Route::get('municipios-nicaragua/nuevo',[\App\Http\Controllers\MunicipioNicaraguaController::class,'crear'])->name('municipios-ni.create');
+                Route::post('municipios-nicaragua',[\App\Http\Controllers\MunicipioNicaraguaController::class,'guardar'])->name('municipios-ni.store')->middleware('throttle:30,1');
+                Route::get('municipios-nicaragua/{municipio}',[\App\Http\Controllers\MunicipioNicaraguaController::class,'editar'])->name('municipios-ni.edit');
+                Route::put('municipios-nicaragua/{municipio}',[\App\Http\Controllers\MunicipioNicaraguaController::class,'actualizar'])->name('municipios-ni.update')->middleware('throttle:30,1');
                 Route::get("paises", [PaisController::class, "index"])->name(
                     "paises.index",
                 );

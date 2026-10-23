@@ -74,7 +74,7 @@
       if (data.cedula) {
         if (data.cedula.valida) {
           html += '<strong>Cédula válida</strong> · '
-            + (data.cedula.municipio || '') + ' / ' + (data.cedula.departamento || '')
+            + (data.cedula.codigo_especial ? 'Código especial; lugar de nacimiento según documento' : (data.cedula.municipio || '') + ' / ' + (data.cedula.departamento || ''))
             + ' · Nac: ' + (data.cedula.fecha_nacimiento || '') + ' · Edad: ' + (data.cedula.edad ?? '—');
         } else {
           html += '<strong>Error: Cédula inválida</strong>: ' + (data.cedula.errores || []).join(' · ');
