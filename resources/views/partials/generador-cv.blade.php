@@ -13,7 +13,7 @@
                     @foreach(\App\Services\CvDatos::DISENOS as $k => $t)
                         <label class="jz-diseno cursor-pointer border-2 rounded-lg p-3 text-center transition-colors">
                             <input type="radio" name="diseno" value="{{ $k }}" class="hidden" @checked($cv['diseno_defecto'] === $k)>
-                            <i data-lucide="{{ ['clasico' => 'scroll', 'pro' => 'panel-left', 'moderno' => 'layout-template', 'elegante' => 'feather', 'ejecutivo' => 'rows-3', 'creativo' => 'sparkles', 'carta' => 'mail', 'minimalista' => 'minus', 'corporate' => 'building-2', 'nordic' => 'snowflake', 'tech' => 'cpu', 'academico' => 'graduation-cap'][$k] ?? 'file' }}" class="size-6 mx-auto text-azul-800"></i>
+                            <i data-lucide="{{ ['clasico' => 'scroll', 'pro' => 'panel-left', 'moderno' => 'layout-template', 'elegante' => 'feather', 'ejecutivo' => 'rows-3', 'creativo' => 'sparkles'][$k] ?? 'file' }}" class="size-6 mx-auto text-azul-800"></i>
                             <div class="text-sm font-semibold text-azul-950 mt-1">{{ $k === 'clasico' ? 'Clásico' : \Illuminate\Support\Str::after($t, 'Pro ') }}</div>
                             <div class="text-[11px] text-gray-500 leading-tight">{{ \App\Services\CvDatos::DESCRIPCION[$k] }}</div>
                         </label>

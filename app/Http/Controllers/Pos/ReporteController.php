@@ -79,57 +79,6 @@ class ReporteController extends PosBase
         return response($bin,200,['Content-Type'=>'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Content-Disposition'=>'attachment; filename="Reporte_POS_'.$desde->format('Ymd').'_'.$hasta->format('Ymd').'.xlsx"','Cache-Control'=>'no-store']);
     }
 
-
-    /** PDF profesional del reporte de ventas con logo. */
-    public function pdf(Request $request)
-    {
-        $c = $this->comunes($request);
-        [$desde, $hasta] = $this->rango($request);
-        $id = $c['cyberPos']->id;
-        $cfg = $c['cfg'];
-        $ventas = PosVenta::where('cyber_id', $id)->where('estado', 'pagada')->whereBetween('created_at', [$desde, $hasta]);
-        $ids = (clone $ventas)->pluck('id');
-
-        $tot = (clone $ventas)->selectRaw('COUNT(*) n, COALESCE(SUM(total),0) total, COALESCE(SUM(impuesto),0) impuesto, COALESCE(SUM(descuento),0) descuento, COALESCE(SUM(costo_total),0) costo, COALESCE(SUM(cambio),0) cambio')->first();
-        $porMetodo = PosVentaPago::whereIn('venta_id', $ids)->selectRaw('metodo, SUM(monto) total')->groupBy('metodo')->pluck('total', 'metodo')->map(fn ($v) => (float) $v)->all();
-        if (isset($porMetodo['efectivo'])) {
-            $porMetodo['efectivo'] -= (float) $tot->cambio;
-        }
-        $top = PosVentaItem::whereIn('venta_id', $ids)->selectRaw('descripcion, SUM(cantidad) cant, SUM(total) total, SUM(costo) costo')
-            ->groupBy('descripcion')->orderByDesc('total')->limit(15)->get();
-        $porUsuario = (clone $ventas)->selectRaw('user_id, COUNT(*) n, SUM(total) total')->groupBy('user_id')->with('usuario:id,name')->get();
-        $base = (float) $tot->total - (float) $tot->impuesto;
-        $ganancia = $base - (float) $tot->costo;
-
-        $cyber = $c['cyberPos'];
-        $logoUrl = null;
-        if ($cyber->logo && \App\Support\Archivos::existe($cyber->logo)) {
-            $logoUrl = \App\Support\Archivos::dataUri($cyber->logo);
-        } elseif ($c['configuracion']?->logo && \App\Support\Archivos::existe($c['configuracion']->logo)) {
-            $logoUrl = \App\Support\Archivos::dataUri($c['configuracion']->logo);
-        }
-
-        $html = view('pos.reportes-pdf', [
-            'desde' => $desde,
-            'hasta' => $hasta,
-            'tot' => $tot,
-            'porMetodo' => $porMetodo,
-            'top' => $top,
-            'porUsuario' => $porUsuario,
-            'ganancia' => $ganancia,
-            'cfg' => $cfg,
-            'logoUrl' => $logoUrl,
-            'nombreNegocio' => $cyber->nombre ?? ($c['configuracion']->nombre_negocio ?? 'Mi CV'),
-            'cyberNombre' => $cyber->nombre ?? '',
-        ])->render();
-
-        return response(\App\Services\CvPdf::pdfTamano($html, 215.9, 279.4), 200, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="Reporte_POS_'.$desde->format('Ymd').'_'.$hasta->format('Ymd').'.pdf"',
-            'Cache-Control' => 'private, no-store',
-        ]);
-    }
-
     /** Detalle de ventas en CSV (abre en Excel). */
     public function csv(Request $request)
     {

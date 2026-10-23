@@ -12,40 +12,29 @@ use App\Support\CvTexto;
 class CvDatos
 {
     public const DISENOS = [
-        'clasico'     => 'Clásico (formal, con escudo del país)',
-        'pro'         => 'Pro Lateral',
-        'moderno'     => 'Pro Moderno',
-        'elegante'    => 'Pro Elegante',
-        'ejecutivo'   => 'Pro Ejecutivo',
-        'creativo'    => 'Pro Creativo',
-        'carta'       => 'Carta Amarillo y Azul',
-        'minimalista' => 'Minimalista',
-        'corporate'   => 'Corporate',
-        'nordic'      => 'Nórdico',
-        'tech'        => 'Tech',
-        'academico'   => 'Académico',
+        'clasico'  => 'Clásico (formal, con escudo del país)',
+        'pro'      => 'Pro Lateral',
+        'moderno'  => 'Pro Moderno',
+        'elegante' => 'Pro Elegante',
+        'ejecutivo'=> 'Pro Ejecutivo',
+        'creativo' => 'Pro Creativo',
+        'carta' => 'Carta Amarillo y Azul',
     ];
 
     /** Descripción corta para los selectores. */
     public const DESCRIPCION = [
-        'clasico'     => 'Marco doble y escudo de su país',
-        'pro'         => 'Barra lateral de color',
-        'moderno'     => 'Encabezado de color y 2 columnas',
-        'elegante'    => 'Blanco, letra elegante, minimalista',
-        'ejecutivo'   => 'Títulos a la izquierda, sobrio y ordenado',
-        'creativo'    => 'Columna derecha, etiquetas y barra inclinada',
-        'carta'       => 'Diseño Jeffry: columna amarilla y encabezado azul',
-        'minimalista' => 'Limpio, mucho espacio en blanco, tipografía clara',
-        'corporate'   => 'Formal corporativo, ideal para empresas',
-        'nordic'      => 'Estilo nórdico, limpio y moderno',
-        'tech'        => 'Diseño tecnológico y contemporáneo',
-        'academico'   => 'Orientado a perfiles académicos e investigación',
+        'clasico'  => 'Marco doble y escudo de su país',
+        'pro'      => 'Barra lateral de color',
+        'moderno'  => 'Encabezado de color y 2 columnas',
+        'elegante' => 'Blanco, letra elegante, minimalista',
+        'ejecutivo'=> 'Títulos a la izquierda, sobrio y ordenado',
+        'creativo' => 'Columna derecha, etiquetas y barra inclinada',
+        'carta' => 'Diseño Jeffry: columna amarilla y encabezado azul',
     ];
 
     public static function esPro(string $d): bool
     {
-        // Todos menos clasico salen en una hoja (diseños Pro + nuevos)
-        return !in_array($d, ['clasico'], true);
+        return $d !== 'clasico';
     }
 
     public static function armar(Cliente $c, string $diseno, ?string $paleta = null, bool $conFoto = true, ?User $u = null, string $lang = 'es'): array
