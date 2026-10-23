@@ -85,19 +85,6 @@ class Menu
         }
 
         $items = [
-            ['id'=>'correos','url'=>route('correos.index'),'icon'=>'mail-plus','label'=>'Correos de clientes'],
-            [
-                "id" => "chat",
-                "url" => route("chat.index"),
-                "icon" => "messages-square",
-                "label" => "SMS JZ · Mensajes",
-            ],
-            [
-                "id" => "tarjetas",
-                "url" => route("tarjetas.index"),
-                "icon" => "contact",
-                "label" => "Tarjetas de presentación",
-            ],
             [
                 "id" => "dashboard",
                 "url" => route("dashboard"),
@@ -117,6 +104,19 @@ class Menu
                 "label" => $u->esAdmin()
                     ? "Clientes y usuarios"
                     : "Lista de clientes",
+            ],
+            ['id'=>'correos','url'=>route('correos.index'),'icon'=>'mail-plus','label'=>'Correos de clientes'],
+            [
+                "id" => "chat",
+                "url" => route("chat.index"),
+                "icon" => "messages-square",
+                "label" => "SMS JZ · Mensajes",
+            ],
+            [
+                "id" => "tarjetas",
+                "url" => route("tarjetas.index"),
+                "icon" => "contact",
+                "label" => "Tarjetas de presentación",
             ],
             [
                 "id" => "cartas",

@@ -1,7 +1,46 @@
 <x-layout titulo="Editor y copias de documentos" activo="documentos">
 <style>
-.doc-app{--dc:#153d62;--accent:#0f7e79;color:#223349}.doc-head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px}.doc-head h2{font-size:24px;font-weight:800}.doc-head p{font-size:14px;color:#68798a;margin-top:3px}.doc-actions{display:flex;gap:8px;flex-wrap:wrap}.doc-btn{border:1px solid #cbd5df;background:#fff;color:#173e62;border-radius:10px;padding:10px 14px;font:600 13px inherit;cursor:pointer}.doc-btn.primary{background:#153d62;color:white;border-color:#153d62}.doc-btn.teal{background:#0f7e79;color:white;border-color:#0f7e79}.doc-btn:disabled{opacity:.45;cursor:default}.doc-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(280px,1fr);gap:18px}.doc-panel{background:white;border:1px solid #dce3e9;border-radius:16px;padding:18px;box-shadow:0 2px 8px #153d6206}.doc-panel h3{font-size:15px;font-weight:800;margin-bottom:12px}.doc-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0}.doc-tabs{display:flex;gap:8px;margin-bottom:12px}.doc-tab[aria-pressed=true]{background:#e7f4f2;border-color:#0f7e79;color:#08605c}.doc-stage{background:#e9eef2;border:1px solid #d6dfe7;border-radius:12px;min-height:280px;display:flex;align-items:center;justify-content:center;overflow:hidden}.doc-stage canvas{max-width:100%;max-height:68vh;width:auto;height:auto;display:block;touch-action:none;outline-offset:-3px;cursor:crosshair}.doc-empty{text-align:center;padding:44px 22px;color:#728296;font-size:14px}.doc-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.doc-field{display:block;font-size:12px;font-weight:700;color:#526578}.doc-field input,.doc-field select{width:100%;border:1px solid #cbd5df;border-radius:8px;padding:8px;margin-top:5px;font-size:14px;background:#fff;color:#20364a}.doc-field input[type=range]{padding:0;border:none}.doc-wide{grid-column:1/-1}.doc-help{font-size:12px;color:#6a7c8d;line-height:1.5}.doc-sheet-wrap{background:#e9eef2;border-radius:12px;padding:18px;margin-top:12px}.doc-sheet{position:relative;background:#fff;width:100%;aspect-ratio:215.9/279.4;box-shadow:0 3px 12px #173e621c}.doc-sheet img{position:absolute;object-fit:fill;outline:1px solid #eef0f3}.doc-message{margin-top:12px;font-size:13px;min-height:20px;color:#0f6f67}.doc-message.error{color:#b42318}.doc-filter-row{border-top:1px solid #e5eaf0;margin-top:14px;padding-top:14px}.doc-result{max-width:100%;max-height:160px;object-fit:contain;margin-top:10px;border:1px solid #e1e7ec}.doc-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#0f7e79;font-weight:800}.doc-tip{border-left:3px solid #0f7e79;background:#f1f8f7;border-radius:5px;padding:10px;font-size:12px;margin-top:12px;color:#45656b}.doc-range-label{display:flex;justify-content:space-between}#doc-canvas[hidden],#doc-result[hidden],#doc-reset[hidden]{display:none!important}@media(max-width:1000px){.doc-grid{grid-template-columns:1fr}.doc-head{align-items:start;flex-direction:column}.doc-stage canvas{max-height:55vh}}@media print{.doc-app{display:none}}
-.doc-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px}.doc-btn.primary{background:rgb(var(--jz-azul-800,11 60 116));border-color:rgb(var(--jz-azul-800,11 60 116));color:#fff!important;font-weight:750}.doc-hidden-file{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;overflow:hidden!important;clip-path:inset(50%)}.doc-upload-zone{display:flex;gap:18px;align-items:center;border:2px dashed #a7b9cd;background:#f1f6fc;border-radius:14px;padding:22px;margin-bottom:18px}.doc-upload-zone>svg{width:38px;height:38px;color:rgb(var(--jz-azul-800,11 60 116))}.doc-upload-zone>div{flex:1}.doc-upload-zone strong{font-size:16px;color:#183f65}.doc-upload-zone p,.doc-upload-zone span{font-size:13px;color:#52687e;display:block;margin-top:4px}.doc-upload-zone.dragging{border-color:#0b3c74;background:#e1edfc}.doc-btn svg{width:20px;height:20px}.dark .doc-upload-zone{background:#172b43;border-color:#5a7290}.dark .doc-upload-zone strong,.dark .doc-upload-zone p,.dark .doc-upload-zone span{color:#e6f0fb}@media(max-width:600px){.doc-actions{width:100%}.doc-actions #doc-upload{flex:1}.doc-upload-zone{flex-wrap:wrap;padding:16px}.doc-upload-zone .doc-btn{width:100%}.doc-upload-zone>svg{width:28px;height:28px}}
+/* Editor de documentos – alineado al tema del sistema */
+.doc-app { --dc: rgb(var(--jz-azul-800)); --accent: #0f7e79; color: #223349; }
+.doc-head { display:flex; justify-content:space-between; gap:16px; align-items:center; margin-bottom:18px; }
+.doc-head h2 { font-size:1.5rem; font-weight:800; color: rgb(var(--jz-azul-800)); }
+.doc-head p { font-size:0.875rem; color:#68798a; margin-top:3px; }
+.doc-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.doc-btn { border:1px solid #cbd5df; background:#fff; color:#173e62; border-radius:10px; padding:10px 14px; font:600 13px inherit; cursor:pointer; transition: all .15s; }
+.doc-btn:hover { border-color: rgb(var(--jz-azul-800)); }
+.doc-btn.primary { background: rgb(var(--jz-azul-800)); color:white; border-color: rgb(var(--jz-azul-800)); }
+.doc-btn.teal { background:#0f7e79; color:white; border-color:#0f7e79; }
+.doc-btn:disabled { opacity:.45; cursor:default; }
+.doc-grid { display:grid; grid-template-columns: minmax(0,1.65fr) minmax(280px,1fr); gap:18px; }
+@media (max-width:900px){ .doc-grid { grid-template-columns:1fr; } }
+.doc-panel { background:white; border:1px solid #e5e7eb; border-radius:1rem; padding:18px; box-shadow:0 1px 3px rgb(0 0 0 / 0.05); }
+.doc-panel h3 { font-size:15px; font-weight:800; margin-bottom:12px; color: rgb(var(--jz-azul-800)); }
+.doc-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:12px 0; }
+.doc-tabs { display:flex; gap:8px; margin-bottom:12px; }
+.doc-tab { border:1px solid #e5e7eb; background:#fff; border-radius:8px; padding:6px 12px; font-weight:600; font-size:13px; cursor:pointer; }
+.doc-tab[aria-pressed=true] { background:#e7f4f2; border-color:#0f7e79; color:#08605c; }
+.doc-stage { background:#f3f4f6; border:1px solid #e5e7eb; border-radius:12px; min-height:280px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.doc-stage canvas { max-width:100%; max-height:68vh; width:auto; height:auto; display:block; touch-action:none; outline-offset:-3px; cursor:crosshair; }
+.doc-empty { text-align:center; padding:44px 22px; color:#728296; font-size:14px; }
+.doc-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.doc-field { display:block; font-size:12px; font-weight:700; color:#526578; }
+.doc-field input, .doc-field select { width:100%; border:1px solid #d1d5db; border-radius:8px; padding:8px; margin-top:5px; font-size:14px; background:#fff; color:#20364a; }
+.doc-field input:focus, .doc-field select:focus { outline:2px solid rgb(var(--jz-azul-800)); outline-offset:0; border-color:transparent; }
+.doc-field input[type=range] { padding:0; border:none; }
+.doc-wide { grid-column:1/-1; }
+.doc-help { font-size:12px; color:#6a7c8d; line-height:1.5; }
+.doc-sheet-wrap { background:#f3f4f6; border-radius:12px; padding:18px; margin-top:12px; }
+.doc-sheet { position:relative; background:#fff; width:100%; aspect-ratio:215.9/279.4; box-shadow:0 3px 12px rgb(23 62 98 / 0.12); }
+.doc-sheet img { position:absolute; object-fit:fill; outline:1px solid #eef0f3; }
+.doc-message { margin-top:12px; font-size:13px; min-height:20px; color:#0f6f67; }
+.doc-message.error { color:#b42318; }
+.doc-filter-row { border-top:1px solid #e5eaf0; margin-top:14px; padding-top:14px; }
+.doc-result { max-width:100%; max-height:160px; object-fit:contain; border-radius:8px; }
+.doc-tip { font-size:12px; color:#5a6a7a; background:#f0f5fb; border-radius:8px; padding:10px 12px; margin:10px 0; }
+.dark .doc-panel { background:#182233; border-color:#2a3648; }
+.dark .doc-btn { background:#101826; color:#e5ebf3; border-color:#2a3648; }
+.dark .doc-stage { background:#1c2838; border-color:#2a3648; }
+.dark .doc-field input, .dark .doc-field select { background:#101826; color:#e5ebf3; border-color:#2a3648; }
 </style>
 <section class="doc-app" id="doc-app">
 <div class="doc-head"><div><div class="doc-kicker">Documentos e impresión</div><h2>Enderezar, mejorar y copiar</h2><p>Vista en vivo: mueva las esquinas, ajuste filtros y defina el tamaño en centímetros.</p></div><div class="doc-actions"><button type="button" id="doc-upload" class="doc-btn primary"><x-icono name="image-plus"/> Subir fotos del documento</button><input id="doc-files" type="file" accept="image/jpeg,image/png,image/webp" multiple class="doc-hidden-file" aria-label="Elegir una o dos fotos del documento"><button id="doc-clear" class="doc-btn"><x-icono name="trash-2"/> Limpiar</button></div></div>

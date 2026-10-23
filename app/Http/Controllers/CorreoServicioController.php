@@ -28,6 +28,20 @@ class CorreoServicioController extends Controller
             403,
         );
     }
+
+    public function crear(Request $r)
+    {
+        $this->acceso($r);
+        return response()
+            ->view("correos.crear", [
+                "paises" => Pais::activos(),
+                "cybers" => $r->user()->esAdmin()
+                    ? Cyber::where("activo", true)->orderBy("nombre")->get()
+                    : collect(),
+            ])
+            ->header("Cache-Control", "private, no-store");
+    }
+
     public function index(Request $r)
     {
         $this->acceso($r);

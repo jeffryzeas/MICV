@@ -187,6 +187,7 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
             ->group(function () {
                 $c = \App\Http\Controllers\CorreoServicioController::class;
                 Route::get("/", [$c, "index"])->name("index");
+                Route::get("crear", [$c, "crear"])->name("crear");
                 Route::post("/", [$c, "guardar"])
                     ->name("guardar")
                     ->middleware("throttle:20,1");
@@ -640,6 +641,10 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                         $P . "ReporteController",
                         "excel",
                     ])->name("reportes.excel");
+                    Route::get("reportes/pdf", [
+                        $P . "ReporteController",
+                        "pdf",
+                    ])->name("reportes.pdf");
                     Route::get("reportes/csv", [
                         $P . "ReporteController",
                         "csv",
