@@ -50,6 +50,14 @@ class ReporteController extends PosBase
         ]);
     }
 
+    public function pdf(Request $request)
+    {
+        $datos = $this->index($request)->getData();
+        $datos["logo"] = \App\Support\Archivos::dataUri($datos["cyberPos"]->logo);
+        $html = view("exports.ventas", $datos)->render();
+        return response(\App\Services\CvPdf::desdeHtml($html), 200, ["Content-Type" => "application/pdf", "Content-Disposition" => 'attachment; filename="Reporte_ventas.pdf"', "Cache-Control" => "private, no-store"]);
+    }
+
     /** Excel con resumen, ventas, pagos, inventario y compras. */
     public function excel(Request $request)
     {
@@ -88,6 +96,7 @@ class ReporteController extends PosBase
     /** @return array{0: Carbon, 1: Carbon} */
     protected function rango(Request $request): array
     {
+        $request->validate(['periodo' => 'nullable|in:hoy,ayer,semana,mes,mes_pasado,rango', 'desde' => 'nullable|date_format:Y-m-d', 'hasta' => 'nullable|date_format:Y-m-d']);
         $periodo = $request->input('periodo', 'mes');
         [$d, $h] = match ($periodo) {
             'hoy' => [today(), today()],

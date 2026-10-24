@@ -356,6 +356,9 @@ class Menu
             }
         }
         unset($item);
+        // Daily work first, administrative settings last; permission filtering stays below.
+        $orden = array_flip(['dashboard', 'clientes', 'clientes-nuevo', 'autoservicio', 'pos', 'documentos', 'fotos', 'tarjetas', 'cartas', 'correos', 'chat', 'equipo', 'marca', 'cybers', 'usuarios', 'configuracion', 'seguridad', 'perfil']);
+        usort($items, fn ($a, $b) => ($orden[$a['id']] ?? 16) <=> ($orden[$b['id']] ?? 16));
 
         return array_values(
             array_filter(

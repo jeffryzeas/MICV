@@ -12,6 +12,16 @@ use App\Support\CvTexto;
 class CvDatos
 {
     public const DISENOS = [
+        'esencial' => 'Pro Esencial',
+        'prisma' => 'Pro Prisma',
+        'metropolitano' => 'Pro Metropolitano',
+        'orbita' => 'Pro Órbita',
+        'firma' => 'Pro Firma',
+        'folio' => 'Pro Folio',
+        'vertice' => 'Pro Vértice',
+        'horizonte' => 'Pro Horizonte',
+        'nordico' => 'Pro Nórdico',
+        'atlas' => 'Pro Atlas',
         'clasico'  => 'Clásico (formal, con escudo del país)',
         'pro'      => 'Pro Lateral',
         'moderno'  => 'Pro Moderno',
@@ -23,6 +33,16 @@ class CvDatos
 
     /** Descripción corta para los selectores. */
     public const DESCRIPCION = [
+        'esencial' => 'Diseño limpio que prioriza la lectura',
+        'prisma' => 'Bloques redondeados y jerarquía visual',
+        'metropolitano' => 'Contraste urbano y contacto compacto',
+        'orbita' => 'Lateral suave con fotografía circular',
+        'firma' => 'Estilo serif para perfiles profesionales',
+        'folio' => 'Una columna con títulos horizontales',
+        'vertice' => 'Composición geométrica y títulos marcados',
+        'horizonte' => 'Cabecera destacada con acentos cálidos',
+        'nordico' => 'Tipografía sobria y líneas ligeras',
+        'atlas' => 'Encabezado editorial y secciones amplias',
         'clasico'  => 'Marco doble y escudo de su país',
         'pro'      => 'Barra lateral de color',
         'moderno'  => 'Encabezado de color y 2 columnas',

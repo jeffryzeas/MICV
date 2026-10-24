@@ -121,7 +121,7 @@
     }
     function meAvatar() {
         $('me').replaceChildren(avatar(me,'av-sm'));
-        if(me.verificado){const v=icon('badge-check');v.classList.add('verified','own-verified');v.setAttribute('aria-label','Correo verificado');v.removeAttribute('aria-hidden');$('me').append(v);}
+        if(me.verificado){const v=icon('badge-check');v.classList.add('verified','own-verified');v.setAttribute('aria-label',me.verificacion_tipo || 'Correo verificado');v.removeAttribute('aria-hidden');$('me').append(v);}
     }
     meAvatar();
     function contact(c, start = false) {
@@ -141,7 +141,7 @@
         if (p.verificado) {
             const check = icon("badge-check");
             check.classList.add("verified");
-            check.setAttribute("aria-label","Correo verificado");
+            check.setAttribute("aria-label",p.verificacion_tipo || "Correo verificado");
             check.setAttribute("role","img");check.removeAttribute("aria-hidden");
             name.append(check);
         }
@@ -237,7 +237,7 @@
         $("nombre").replaceChildren(element("span","name-text",other.nombre));
         if (other.verificado) {
             const v = icon("badge-check");
-            v.setAttribute("aria-label", "Correo verificado");
+            v.setAttribute("aria-label", other.verificacion_tipo || "Correo verificado");
             v.setAttribute("role","img");v.removeAttribute("aria-hidden");
             v.classList.add("verified");
             $("nombre").append(v);
@@ -930,7 +930,7 @@
                 const verified = element("div", "info-row");
                 verified.append(
                     icon("badge-check"),
-                    document.createTextNode("Cuenta verificada"),
+                    document.createTextNode(p.verificacion_tipo || "Correo verificado"),
                 );
                 section.append(verified);
             }

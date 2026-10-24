@@ -1,6 +1,8 @@
 <x-layout titulo="Vender" activo="pos-vender">
     @include('pos._barra')
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_390px] gap-4 lg:h-[calc(100vh-128px)]" id="pos">
+    <script src="{{ asset('js/pos-workspace.js') }}" defer></script>
+    <header class="pos-status"><div><strong>{{ $cfg->nombre_comercial ?: $cyberPos->nombre }}</strong><small>Terminal de venta · {{ $cfg->moneda }} · Caja abierta</small></div><span><x-icono name="scan-barcode"/> F2 Buscar · F9 Cobrar</span><button type="button" id="pos-fullscreen" class="btn btn-sec"><x-icono name="maximize"/>Pantalla completa</button></header>
+    <div class="pos-workspace grid grid-cols-1 lg:grid-cols-[1fr_390px] gap-4 lg:h-[calc(100vh-128px)]" id="pos">
         {{-- Productos --}}
         <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5 flex flex-col min-h-0">
             <div class="p-3 border-b border-gray-100 space-y-2">

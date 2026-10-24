@@ -30,7 +30,8 @@ class ChatPerfilController extends Controller
                 ])
                 : null,
             "info" => $u->chat_info ?? "",
-            "verificado" => $u->verificado(),
+            "verificado" => $u->verificado() || ($u->activo && ($u->esAdmin() || ($u->esCyber() && $u->cyber?->activo))),
+            "verificacion_tipo" => ($u->activo && ($u->esAdmin() || ($u->esCyber() && $u->cyber?->activo))) ? "Cuenta institucional" : ($u->verificado() ? "Correo verificado" : null),
             "online" => (bool) Cache::get("jz-online-" . $u->id),
             "cliente" => $u->esCliente(),
             "plataforma" => $u->esAdmin(),

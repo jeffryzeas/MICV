@@ -18,7 +18,7 @@
         </div>
     @endunless
 
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
+    <div class="photo-studio grid grid-cols-1 lg:grid-cols-5 gap-5">
         <div class="lg:col-span-3 space-y-5">
             {{-- 1. Foto --}}
             <section class="{{ $card }} p-4 sm:p-5">
@@ -64,6 +64,7 @@
                 <p id="estadoFondo" class="text-xs text-gray-500 mt-2">Revise qué color pide la institución: lo más común es blanco.</p>
             </section>
 
+            <div class="flex gap-2"><button type="button" id="foto-reset-all" class="btn btn-sec"><x-icono name="rotate-ccw"/>Restablecer ajustes</button><label class="btn btn-sec"><input type="checkbox" id="foto-guides" checked>Guías de encuadre</label></div>
             {{-- 3. Recorte --}}
             <section class="{{ $card }} p-4 sm:p-5">
                 <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -261,6 +262,8 @@
             const f = `brightness(${$('brillo').value}%) contrast(${$('contraste').value}%)`;
             zona.querySelectorAll('.cropper-canvas img, .cropper-view-box img').forEach(i => i.style.filter = f);
         }
+        $('foto-reset-all').addEventListener('click',()=>{ $('brillo').value=100; $('contraste').value=100; if(cropper)cropper.reset(); filtros(); });
+        $('foto-guides').addEventListener('change', e=>zona.classList.toggle('sin-guias',!e.target.checked));
         $('brillo').addEventListener('input', filtros); $('contraste').addEventListener('input', filtros);
         $('herramientas').addEventListener('click', e => {
             const b = e.target.closest('[data-acc]'); if (!b || !cropper) return;

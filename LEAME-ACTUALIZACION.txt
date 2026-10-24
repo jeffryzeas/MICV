@@ -1,0 +1,90 @@
+ACTUALIZACIÓN DE INTERFAZ, EXPORTACIONES Y DISEÑOS
+
+Base: ZIP mi-cv-municipios-nicaragua.zip adjunto en esta conversación.
+No se descargó ni se modificó el repositorio remoto de GitHub.
+
+CAMBIOS
+- Correos: listado como entrada del módulo, botón superior Registrar correo y pantalla separada de registro. Se conservan permisos, validaciones, cifrado y comprobantes existentes.
+- Clientes: descarga .xlsx real y PDF con los mismos filtros del listado y alcance de clientes visibles para cada usuario. Logo en PDF y en Excel cuando es PNG/JPEG. Hasta 5,000 clientes por descarga, archivos privados y límite de frecuencia.
+- POS: PDF de resumen con logo, período, indicadores, métodos netos de pago, productos destacados y totales por cajero. Conserva el Excel existente.
+- Editor de documentos: integración visual con colores configurados, botones, paneles y modo oscuro. Conserva el motor de recorte e impresión.
+- Fotos: restaurar brillo, contraste y encuadre, opción de ocultar guías, cuadrícula de transparencia. El procesamiento de fondo conserva más transición de cabello, comprueba dimensiones de salida del modelo y normaliza entrada RGB con límite de píxeles. Requiere el modelo ONNX que ya usa el sistema.
+- CV: diez variantes visuales basadas en los motores existentes: Atlas, Nórdico, Horizonte, Vértice, Folio, Firma, Órbita, Metropolitano, Prisma y Esencial. Galería de 17 opciones, seis por página, con esquemas ilustrativos y vista previa real del cliente al seleccionar. Las miniaturas no son capturas exactas. Word conserva su generador editable anterior.
+- Tarjetas: diez diseños adicionales por oficio, usando seis composiciones de render existentes: consultoría, arquitectura, odontología, barbería, panadería, veterinaria, logística, marketing, artesanía y finanzas. Total de catálogo: 30.
+- POS visual: terminal con marca y moneda, productos destacados al pasar el cursor, mejor jerarquía del total y pantalla completa que mantiene disponibles los diálogos de cobro. Se conserva la lógica transaccional existente.
+- Chat: insignia de cuenta institucional para admin activo y usuarios Cyber de negocios activos. Se distingue de Correo verificado y no modifica email_verified_at. No representa una certificación externa de identidad.
+- Menú: panel y atención al cliente primero, servicios y POS después, administración al final, manteniendo el filtro de permisos.
+
+INSTALACIÓN
+1. Respaldar archivos, base de datos y almacenamiento del sistema en producción.
+2. Comparar y copiar los archivos indicados abajo. No reemplazar el .env, storage ni datos del servidor. El ZIP también contiene el código original sin cambios para referencia.
+3. No hay migraciones ni dependencias nuevas para esta actualización. Mantener las dependencias PHP/Node del proyecto instaladas. Si faltan, instalar composer install y npm ci según su despliegue habitual.
+4. Ejecutar php artisan optimize:clear y php artisan view:cache.
+5. Verificar que Node, Chromium y el modelo de quitar fondo estén disponibles como en la instalación actual.
+6. Ejecutar php artisan test antes de publicar. Se incluye ExportacionesDisenoTest para control de acceso, aislamiento de clientes por Cyber, filtros e insignias.
+7. Probar en un entorno de ensayo: listado/nuevo correo, regreso tras errores de validación, exportación filtrada de clientes en ambos formatos, logo, fechas de reportes, selección de los 17 CV con datos largos, fotos de cabello fino y cobro/anulación/cambio de caja en POS, incluido modo de pantalla completa.
+
+VALIDACIÓN REALIZADA AQUÍ
+- 133 archivos PHP de app y routes analizados con parser PHP 8.3; prueba nueva analizada por separado.
+- Sintaxis JavaScript de archivos modificados y scripts internos de fotos, CV, documentos y POS comprobada tras sustituir expresiones Blade.
+- Galería probada con DOM: página seleccionada, paginación de seis opciones, selección y cierre.
+- Excel generado y vuelto a abrir: cadenas que empiezan con = permanecen texto, ceros iniciales de documentos y + de teléfonos se conservan; se comprobó archivo vacío y filas fijas.
+
+PENDIENTE DE VALIDACIÓN EN SU SERVIDOR
+Este entorno no cuenta con PHP/Composer y no pudo instalar Chromium. No se ejecutaron Laravel, PHPUnit, renderizado Blade, PDF, inferencia ONNX ni ventas reales. No se certifica una auditoría integral de seguridad ni una equivalencia funcional con un ERP comercial. Las mejoras del POS son de interfaz y organización; conserva las funciones de negocio existentes.
+
+ARCHIVOS NUEVOS O MODIFICADOS
+app/Http/Controllers/ChatPerfilController.php
+app/Http/Controllers/ClienteController.php
+app/Http/Controllers/CorreoServicioController.php
+app/Http/Controllers/Pos/ReporteController.php
+app/Services/CvDatos.php
+app/Support/Menu.php
+app/Support/TarjetaDisenos.php
+public/css/modulos.css
+public/images/cv/atlas.svg
+public/images/cv/carta.svg
+public/images/cv/clasico.svg
+public/images/cv/creativo.svg
+public/images/cv/ejecutivo.svg
+public/images/cv/elegante.svg
+public/images/cv/esencial.svg
+public/images/cv/firma.svg
+public/images/cv/folio.svg
+public/images/cv/horizonte.svg
+public/images/cv/metropolitano.svg
+public/images/cv/moderno.svg
+public/images/cv/nordico.svg
+public/images/cv/orbita.svg
+public/images/cv/prisma.svg
+public/images/cv/pro.svg
+public/images/cv/vertice.svg
+public/js/chat-jz.js
+public/js/cv-gallery.js
+public/js/pos-workspace.js
+resources/fotos/quitar-fondo.cjs
+resources/reports/clientes-excel.cjs
+resources/views/clientes/index.blade.php
+resources/views/components/layout.blade.php
+resources/views/correos/create.blade.php
+resources/views/correos/index.blade.php
+resources/views/cv/atlas.blade.php
+resources/views/cv/esencial.blade.php
+resources/views/cv/firma.blade.php
+resources/views/cv/folio.blade.php
+resources/views/cv/horizonte.blade.php
+resources/views/cv/metropolitano.blade.php
+resources/views/cv/nordico.blade.php
+resources/views/cv/orbita.blade.php
+resources/views/cv/prisma.blade.php
+resources/views/cv/vertice.blade.php
+resources/views/documentos/editor.blade.php
+resources/views/exports/_style.blade.php
+resources/views/exports/clientes.blade.php
+resources/views/exports/ventas.blade.php
+resources/views/fotos/index.blade.php
+resources/views/partials/generador-cv.blade.php
+resources/views/pos/reportes.blade.php
+resources/views/pos/vender.blade.php
+routes/web.php
+tests/Feature/ExportacionesDisenoTest.php

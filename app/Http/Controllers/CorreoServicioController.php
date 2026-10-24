@@ -61,6 +61,11 @@ class CorreoServicioController extends Controller
             ])
             ->header("Cache-Control", "private, no-store");
     }
+    public function create(Request $r)
+    {
+        $this->acceso($r);
+        return response()->view("correos.create", ["paises" => Pais::activos(), "cybers" => $r->user()->esAdmin() ? Cyber::where("activo", true)->get() : collect()])->header("Cache-Control", "private, no-store");
+    }
     public function guardar(Request $r)
     {
         $this->acceso($r);

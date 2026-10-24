@@ -28,7 +28,7 @@ ort.env.wasm.numThreads = Math.max(1, Math.min(4, require('os').cpus().length));
 ort.env.wasm.wasmPaths = path.join(path.dirname(require.resolve('onnxruntime-web')), path.sep);
 
 (async () => {
-    const img = sharp(entrada).rotate(); // respeta la orientación EXIF del celular
+    const img = sharp(entrada, { limitInputPixels: 80_000_000 }).rotate().toColourspace('srgb'); // respeta la orientación EXIF del celular
     const { info: { width: ancho, height: alto } } = await img.clone().toBuffer({ resolveWithObject: true });
 
     // 1. Entrada del modelo: 320×320, normalizada como en el entrenamiento.
@@ -47,7 +47,10 @@ ort.env.wasm.wasmPaths = path.join(path.dirname(require.resolve('onnxruntime-web
     // 2. Inferencia.
     const sesion = await ort.InferenceSession.create(fs.readFileSync(modelo), { executionProviders: ['wasm'] });
     const res = await sesion.run({ [sesion.inputNames[0]]: new ort.Tensor('float32', tensor, [1, 3, LADO, LADO]) });
-    const pred = res[sesion.outputNames[0]].data;
+    const salidaModelo = res[sesion.outputNames[0]];
+    const pred = salidaModelo.data;
+    const mh = salidaModelo.dims.at(-2), mw = salidaModelo.dims.at(-1);
+    if (!mh || !mw || pred.length !== mh * mw) throw new Error('El modelo no devolvió una máscara de persona válida.');
 
     // 3. Máscara 0–255 (normalizada) al tamaño original, con borde suave.
     let mn = Infinity, mx = -Infinity;
@@ -57,9 +60,9 @@ ort.env.wasm.wasmPaths = path.join(path.dirname(require.resolve('onnxruntime-web
     } else {
         for (const v of pred) { if (v < mn) mn = v; if (v > mx) mx = v; }
     }
-    const mascara = Buffer.alloc(LADO * LADO);
+    const mascara = Buffer.alloc(mw * mh);
     for (let i = 0; i < pred.length; i++) mascara[i] = Math.round(((pred[i] - mn) / ((mx - mn) || 1)) * 255);
-    const alfa = await sharp(mascara, { raw: { width: LADO, height: LADO, channels: 1 } })
+    const alfa = await sharp(mascara, { raw: { width: mw, height: mh, channels: 1 } })
         .resize(ancho, alto, { fit: 'fill', kernel: 'cubic' }).blur(0.6).extractChannel(0).raw().toBuffer();
 
     const rgb = await img.clone().removeAlpha().toColourspace('srgb').raw().toBuffer();
@@ -67,7 +70,8 @@ ort.env.wasm.wasmPaths = path.join(path.dirname(require.resolve('onnxruntime-web
     for (let i = 0; i < ancho * alto; i++) {
         rgba[i * 4] = rgb[i * 3]; rgba[i * 4 + 1] = rgb[i * 3 + 1]; rgba[i * 4 + 2] = rgb[i * 3 + 2];
         // Curva: lo casi transparente desaparece, lo casi opaco queda sólido (bordes limpios).
-        const t = Math.min(1, Math.max(0, (alfa[i] / 255 - 0.3) / 0.45));
+        // Preserve semi-transparent hair edges instead of discarding everything below 30%.
+        const t = Math.min(1, Math.max(0, (alfa[i] / 255 - 0.05) / 0.90));
         rgba[i * 4 + 3] = Math.round(255 * t * t * (3 - 2 * t)); // smoothstep
     }
     let out = sharp(rgba, { raw: { width: ancho, height: alto, channels: 4 } });

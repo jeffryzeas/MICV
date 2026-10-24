@@ -24,7 +24,7 @@ class ClienteController extends Controller
         $base = Cliente::query()->visiblesPara($u)
             ->when($cyberId !== '', fn ($w) => $w->whereHas('cybers', fn ($x) => $x->where('cybers.id', $cyberId)));
 
-        $clientes = (clone $base)
+        $clientesQuery = (clone $base)
             ->when($q !== '', function ($w) use ($q, $limpio) {
                 $w->where(function ($x) use ($q, $limpio) {
                     foreach (preg_split('/\s+/', $q) as $p) {
@@ -43,7 +43,12 @@ class ClienteController extends Controller
             ->when($sexo !== '', fn ($w) => $w->where('sexo', $sexo))
             ->when($tipoDoc !== '', fn ($w) => $w->where('tipo_documento', $tipoDoc))
             ->with('cybers')
-            ->latest()->paginate(20)->withQueryString();
+            ->latest();
+
+        if ($request->routeIs('clientes.exportar')) {
+            return $this->exportarResultado($request, $clientesQuery);
+        }
+        $clientes = $clientesQuery->paginate(20)->withQueryString();
 
         return view('clientes.index', [
             'clientes'     => $clientes,
@@ -53,6 +58,38 @@ class ClienteController extends Controller
             'total'        => (clone $base)->count(),
             'cybers'       => $u->esAdmin() ? Cyber::orderBy('nombre')->get() : collect(),
         ]);
+    }
+
+    public function exportar(Request $request)
+    {
+        abort_unless($request->user()->esAdmin() || ($request->user()->esCyber() && $request->user()->tienePermiso('clientes.ver')), 403);
+        $request->validate(['formato' => 'required|in:pdf,excel']);
+        return $this->index($request);
+    }
+
+    private function exportarResultado(Request $request, $consulta)
+    {
+        abort_if((clone $consulta)->count() > 5000, 422, 'Use los filtros para exportar hasta 5,000 clientes por archivo.');
+        $u = $request->user();
+        $cfg = Configuracion::actualSegura();
+        $marca = $u->esAdmin() ? $cfg : $u->cyber;
+        $negocio = $u->esAdmin() ? ($cfg?->nombre_negocio ?: 'Mi CV') : ($marca?->nombre ?: 'Mi CV');
+        $logo = Archivos::dataUri($marca?->logo);
+        $clientes = $consulta->get();
+        $headers = ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff'];
+        if ($request->input('formato') === 'pdf') {
+            $html = view('exports.clientes', compact('clientes', 'negocio', 'logo'))->render();
+            return response(\App\Services\CvPdf::desdeHtml($html), 200, $headers + ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="Clientes.pdf"']);
+        }
+        $datos = ['negocio' => $negocio, 'logo' => $logo, 'generado' => now()->format('d/m/Y H:i'), 'clientes' => $clientes->map(fn ($c) => [$c->nombreCompleto(), $c->documentoFormateado(), $c->telefono, $c->correo, $c->pais])->all()];
+        $dir = storage_path('app/tmp-excel');
+        if (!is_dir($dir)) mkdir($dir, 0775, true);
+        $salida = $dir.'/'.\Illuminate\Support\Str::random(24).'.xlsx';
+        try {
+            \App\Services\Nodo::correr(resource_path('reports/clientes-excel.cjs'), [$salida], 120, json_encode($datos, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+            $bin = file_get_contents($salida);
+        } finally { @unlink($salida); }
+        return response($bin, 200, $headers + ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Content-Disposition' => 'attachment; filename="Clientes.xlsx"']);
     }
 
     public function create(Request $request)

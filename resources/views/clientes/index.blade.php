@@ -1,6 +1,7 @@
 @php $esAdmin = auth()->user()->esAdmin(); @endphp
 <x-layout :titulo="$esAdmin ? 'Clientes y usuarios registrados' : 'Lista de clientes'" activo="clientes">
 
+    <div class="flex flex-wrap gap-2 mb-4">@foreach(['pdf'=>'PDF','excel'=>'Excel'] as $format=>$label)<a class="btn btn-sec" href="{{ route('clientes.exportar', array_merge(request()->except('page'),['formato'=>$format])) }}"><x-icono name="download"/>Exportar {{ $label }}</a>@endforeach</div>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         <div class="bg-white rounded-xl shadow p-4 border-l-4 border-oro-500">
             <div class="text-xs uppercase font-bold text-azul-800">Total</div>

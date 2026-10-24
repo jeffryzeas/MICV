@@ -190,6 +190,7 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                 Route::post("/", [$c, "guardar"])
                     ->name("guardar")
                     ->middleware("throttle:20,1");
+                Route::get("nuevo", [$c, "create"])->name("create");
                 Route::get("{correo}", [$c, "ver"])->name("ver");
                 Route::put("{correo}", [$c, "actualizar"])
                     ->name("actualizar")
@@ -405,6 +406,7 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
             Route::post("clientes", [ClienteController::class, "store"])
                 ->name("clientes.store")
                 ->middleware("throttle:guardar");
+            Route::get("clientes/exportar", [ClienteController::class, "exportar"])->name("clientes.exportar")->middleware("throttle:10,1");
             Route::get("clientes/{cliente}", [
                 ClienteController::class,
                 "show",
@@ -636,6 +638,7 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                         $P . "ReporteController",
                         "index",
                     ])->name("reportes");
+                    Route::get("reportes/pdf", [$P . "ReporteController", "pdf"])->name("reportes.pdf")->middleware("throttle:10,1");
                     Route::get("reportes/excel", [
                         $P . "ReporteController",
                         "excel",
