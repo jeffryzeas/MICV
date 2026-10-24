@@ -1,0 +1,10 @@
+const fs=require('fs');const {Document,Packer,Paragraph,TextRun,HeadingLevel}=require('docx');
+module.exports=async function generar(d,salida){
+ const contenido=[];const run=(s,opts={})=>new TextRun({text:String(s??''),font:'Arial',size:21,color:'111111',...opts});
+ const p=(s,opts={})=>new Paragraph({children:[run(s)],spacing:{after:90,line:285},...opts});
+ const texto=s=>String(s??'').split(/\r?\n/).filter(Boolean).forEach(line=>contenido.push(p(line)));
+ const titulo=s=>contenido.push(new Paragraph({children:[run(s,{bold:true,size:23})],heading:HeadingLevel.HEADING_1,spacing:{before:240,after:100},keepNext:true}));
+ const item=(titulo,sub,fecha,detalle)=>{contenido.push(new Paragraph({children:[run(titulo,{bold:true})],spacing:{before:100,after:40},keepNext:true}));if(sub)contenido.push(p(sub,{keepNext:true}));if(fecha)contenido.push(p(fecha));if(detalle)texto(detalle);};
+ contenido.push(new Paragraph({children:[run(d.nombre,{bold:true,size:40})],spacing:{after:100},keepNext:true}));if(d.puesto)contenido.push(p(d.puesto));(d.contacto||[]).forEach(v=>contenido.push(p(v)));
+ const s=d.secciones||{};if(d.perfil){titulo(s.perfil||'Perfil profesional');texto(d.perfil);}if(d.experiencias?.length){titulo(s.experiencia||'Experiencia laboral');d.experiencias.forEach(e=>item(e.cargo,e.empresa,e.fecha,e.descripcion));}if(d.estudios?.length){titulo(s.estudios||'Formación académica');d.estudios.forEach(e=>item(e.titulo,e.sub,e.anio,e.detalle));}if(d.habilidades?.length){titulo(s.habilidades||'Habilidades');contenido.push(p(d.habilidades.join(', ')));}if(d.idiomas?.length){titulo(s.idiomas||'Idiomas');d.idiomas.forEach(i=>contenido.push(p(i.nombre+': '+i.nivel)));}
+ const doc=new Document({creator:d.autor||'Mi CV',title:d.titulo||'Currículum',styles:{default:{document:{run:{font:'Arial',size:21,color:'111111'}}}},sections:[{properties:{page:{size:{width:12240,height:15840},margin:{top:1020,bottom:1020,left:907,right:907}}},children:contenido}]});fs.writeFileSync(salida,await Packer.toBuffer(doc));};

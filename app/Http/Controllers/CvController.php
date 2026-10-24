@@ -52,13 +52,13 @@ class CvController extends Controller
         abort_unless($cliente->esVisiblePara($request->user()), 403, 'No tiene acceso a este CV.');
         $opc = $this->opciones($request);
         try {
-            $docx = \App\Services\CvWord::generar($cliente, $opc[3], $opc[2], $request->user());
+            $docx = \App\Services\CvWord::generar($cliente, $opc[3], $opc[2], $request->user(), $opc[0]);
         } catch (\Throwable $e) {
             report($e);
             return response()->view('errores.pdf', ['error' => $this->detalleError($e)], 500);
         }
         Actividad::registrar('cv_word', "#{$cliente->id} {$cliente->nombreCompleto()} ({$opc[3]})");
-        $nombre = preg_replace('/\.pdf$/', '.docx', str_replace('_' . $opc[0] . '.pdf', '.pdf', $this->nombreArchivo($cliente, $opc)));
+        $nombre = $opc[0]==='ats' ? preg_replace('/\.pdf$/', '.docx', $this->nombreArchivo($cliente,$opc)) : preg_replace('/\.pdf$/', '.docx', str_replace('_' . $opc[0] . '.pdf', '.pdf', $this->nombreArchivo($cliente, $opc)));
         return response($docx, 200, [
             'Content-Type'        => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'Content-Disposition' => 'attachment; filename="' . $nombre . '"',
@@ -139,6 +139,6 @@ class CvController extends Controller
             $paleta = null;
         }
         $idioma = $request->input('idioma') === 'en' ? 'en' : 'es';
-        return [$diseno, $paleta, $request->input('foto', '1') !== '0', $idioma];
+        return [$diseno, $diseno==='ats'?null:$paleta, $diseno!=='ats' && $request->input('foto', '1') !== '0', $idioma];
     }
 }

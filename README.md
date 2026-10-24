@@ -1,3 +1,5 @@
+> Galería de CV con desplazamiento continuo: **31 diseños**, incluido ATS en PDF y Word. Consulte **LEAME-ACTUALIZACION.txt** para esta entrega.
+
 > Corrección de tema y permisos del portal: consulte **LEAME-ACTUALIZACION.txt**. Incluye CSS compilado y requiere `php artisan migrate --force`.
 
 > Actualización de negocios, países y libro de ingresos/gastos: consulte **LEAME-ACTUALIZACION.txt** antes de instalar. Esta actualización requiere migración y `npm ci`.

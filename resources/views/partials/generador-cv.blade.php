@@ -8,15 +8,28 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="space-y-4">
             <div>
-                <p class="text-xs font-semibold uppercase text-azul-800 mb-2">Diseño</p>
-                <button type="button" id="cv-open-gallery" class="btn btn-pri w-full"><x-icono name="layout-template"/>Elegir diseño · 20 plantillas</button>
-                <p id="cv-selected-name" class="text-sm mt-2" aria-live="polite"></p>
-                <dialog id="cv-gallery" class="cv-gallery"><div class="cv-gallery-head"><h3>Elija su plantilla</h3><button type="button" id="cv-close-gallery" class="btn btn-sec" aria-label="Cerrar galería"><x-icono name="x"/></button></div><p>20 diseños · Ejemplos con datos ficticios. Elija uno para ver su currículum real.</p><div class="cv-gallery-grid">
-                @foreach(\App\Services\CvDatos::DISENOS as $k => $t)
-                  <label class="jz-diseno cv-choice" data-title="{{ $t }}"><input type="radio" name="diseno" value="{{ $k }}" @checked($cv['diseno_defecto'] === $k)><img loading="lazy" src="{{ asset('images/cv/'.$k.'.png') }}" alt="Captura real de ejemplo de {{ $t }}"><strong>{{ $t }}</strong><small>{{ \App\Services\CvDatos::DESCRIPCION[$k] }}</small></label>
-                @endforeach
-                </div><div class="cv-gallery-head"><button type="button" id="cv-page-prev" class="btn btn-sec">Anterior</button><span id="cv-page-status" aria-live="polite"></span><button type="button" id="cv-page-next" class="btn btn-sec">Siguiente</button></div></dialog>
-                <p class="text-[11px] text-gray-400 mt-1">Los diseños Pro siempre salen en <b>una sola hoja</b>. @if($cliente->datosPais()['escudo'] || !empty($cliente->datosPais()['escudo_subido']))El Clásico lleva el escudo de {{ $cliente->datosPais()['nombre'] }}.@else El Clásico es formal, con marco doble.@endif</p>
+                <p class="label-campo">Diseño del currículum</p>
+                <button type="button" id="cv-open-gallery" class="btn btn-pri w-full" aria-haspopup="dialog" aria-controls="cv-gallery"><x-icono name="layout-template" class="size-5"/><span class="flex-1 text-left"><strong class="block">Ver los 31 diseños y elegir</strong><small class="mt-1 block text-xs font-normal text-white/90">30 estilos visuales + formato ATS</small></span><x-icono name="chevron-down" class="size-4"/></button>
+                <div class="mt-3 flex items-center gap-2" aria-hidden="true">@foreach(['esencial','balance','ats'] as $ejemplo)<img src="{{ asset('images/cv/'.$ejemplo.'.png') }}" alt="" class="h-16 w-12 rounded border border-gray-200 bg-gray-50 object-contain" loading="lazy">@endforeach<span class="text-xs text-gray-500">Pulse el botón para ver las plantillas y cambiar el diseño.</span></div>
+                <p id="cv-selected-name" class="mt-3 text-sm font-semibold text-azul-800" aria-live="polite"></p>
+                <p id="cv-ats-note" hidden class="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">ATS utiliza una columna, texto seleccionable y títulos claros, sin foto ni gráficos. Puede ocupar más de una página para conservar la legibilidad.</p>
+                <dialog id="cv-gallery" class="cv-gallery" aria-labelledby="cv-gallery-title" aria-describedby="cv-gallery-help">
+                  <header class="cv-gallery-header"><div class="flex items-start justify-between gap-3"><div><h3 id="cv-gallery-title" class="text-lg font-semibold text-azul-950">Elija el diseño de su currículum</h3><p id="cv-gallery-help" class="mt-1 text-sm text-gray-500">Desplácese hacia abajo para ver los 31 diseños. Pulse una tarjeta para aplicarla.</p></div><button type="button" id="cv-close-gallery" class="btn btn-sec shrink-0" aria-label="Cerrar galería"><x-icono name="x" class="size-4"/></button></div>
+                    <label class="mt-4 block"><span class="sr-only">Buscar diseños</span><input id="cv-design-search" type="search" class="campo" placeholder="Buscar diseño, estilo o ATS" autocomplete="off"></label>
+                    <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filtrar diseños"><button type="button" class="btn btn-sec cv-filter" data-filter="all" aria-pressed="true">Todos (31)</button><button type="button" class="btn btn-sec cv-filter" data-filter="simple" aria-pressed="false">Sencillos</button><button type="button" class="btn btn-sec cv-filter" data-filter="new" aria-pressed="false">Nuevos (10)</button><button type="button" class="btn btn-sec cv-filter" data-filter="ats" aria-pressed="false">ATS</button></div>
+                    <p id="cv-results-count" class="mt-3 text-xs text-gray-500" aria-live="polite">31 diseños disponibles</p>
+                  </header>
+                  <div id="cv-gallery-list" class="cv-gallery-scroll" tabindex="0" aria-label="Galería de diseños; desplácese para ver más"><div class="cv-gallery-grid">
+                  @foreach(\App\Services\CvDatos::DISENOS as $k=>$t)
+                    <div class="jz-diseno cv-choice" data-title="{{ $t }}" data-description="{{ \App\Services\CvDatos::DESCRIPCION[$k] }}" data-simple="{{ in_array($k,\App\Services\CvDatos::SENCILLOS,true)?'1':'0' }}" data-new="{{ in_array($k,\App\Services\CvDatos::NUEVOS,true)?'1':'0' }}" data-ats="{{ $k==='ats'?'1':'0' }}">
+                      <input type="radio" name="diseno" value="{{ $k }}" class="sr-only" tabindex="-1" aria-hidden="true" @checked($cv['diseno_defecto']===$k)>
+                      <button type="button" class="cv-choice-button" data-choose="{{ $k }}" aria-label="Usar diseño {{ $t }}" aria-pressed="{{ $cv['diseno_defecto']===$k?'true':'false' }}"><span class="cv-card-top"><span class="text-xs font-semibold text-gray-500">{{ str_pad($loop->iteration,2,'0',STR_PAD_LEFT) }} / 31</span>@if($k==='ats')<span class="cv-card-tag">ATS</span>@elseif(in_array($k,\App\Services\CvDatos::NUEVOS,true))<span class="cv-card-tag">Nuevo</span>@endif<span class="cv-selected-badge hidden" data-selected>En uso</span></span><img loading="lazy" src="{{ asset('images/cv/'.$k.'.png') }}" alt="Captura de ejemplo del diseño {{ $t }}" width="816" height="1056"><strong>{{ $t }}</strong><small>{{ \App\Services\CvDatos::DESCRIPCION[$k] }}</small><span class="cv-card-action"><x-icono name="check" class="size-4"/>Usar este diseño</span></button>
+                    </div>
+                  @endforeach
+                  </div><p id="cv-no-results" hidden class="py-12 text-center text-sm text-gray-500">No encontramos diseños con esa búsqueda. Pruebe otro nombre o elija Todos.</p></div>
+                  <footer class="cv-gallery-footer"><span class="text-xs text-gray-500"><x-icono name="arrow-down" class="size-4"/> Desplácese para ver más diseños</span><button id="cv-scroll-selected" type="button" class="btn btn-sec">Ver diseño actual</button></footer>
+                </dialog>
+                <p class="text-[11px] text-gray-400 mt-1">Los diseños visuales se ajustan a una hoja. El formato ATS conserva un tamaño legible y puede ocupar más de una página. @if($cliente->datosPais()['escudo'] || !empty($cliente->datosPais()['escudo_subido']))El Clásico lleva el escudo de {{ $cliente->datosPais()['nombre'] }}.@else El Clásico es formal, con marco doble.@endif</p>
             </div>
             <p class="text-xs text-gray-500">Carta Amarillo y Azul conserva los colores del diseño original.</p><div id="bloquePaleta">
                 <p class="text-xs font-semibold uppercase text-azul-800 mb-2">Colores (diseños Pro)</p>
@@ -38,9 +51,9 @@
                 <p class="text-xs font-semibold uppercase text-azul-800 mb-2">Idioma del CV</p>
                 <div class="grid grid-cols-2 gap-2">
                     <label class="cursor-pointer"><input type="radio" name="idioma" value="es" class="peer hidden" checked>
-                        <span class="flex items-center justify-center gap-2 border-2 border-gray-200 rounded-lg py-2 text-sm font-semibold text-gray-600 peer-checked:border-azul-800 peer-checked:bg-blue-50 peer-checked:text-azul-800">Español Español</span></label>
+                        <span class="flex items-center justify-center gap-2 border-2 border-gray-200 rounded-lg py-2 text-sm font-semibold text-gray-600 peer-checked:border-azul-800 peer-checked:bg-blue-50 peer-checked:text-azul-800">Español</span></label>
                     <label class="cursor-pointer"><input type="radio" name="idioma" value="en" class="peer hidden">
-                        <span class="flex items-center justify-center gap-2 border-2 border-gray-200 rounded-lg py-2 text-sm font-semibold text-gray-600 peer-checked:border-azul-800 peer-checked:bg-blue-50 peer-checked:text-azul-800">Inglés English</span></label>
+                        <span class="flex items-center justify-center gap-2 border-2 border-gray-200 rounded-lg py-2 text-sm font-semibold text-gray-600 peer-checked:border-azul-800 peer-checked:bg-blue-50 peer-checked:text-azul-800">Inglés</span></label>
                 </div>
                 <p class="text-[11px] text-gray-400 mt-1">En inglés se traducen los títulos. El perfil y el oficio salen en inglés si los escribió en "Mis datos → Perfil".</p>
             </div>
@@ -83,8 +96,12 @@
     function opciones(foto, idioma) {
         const diseno = sel('diseno', 'pro'), paleta = sel('paleta', '');
         caja.querySelectorAll('.jz-diseno').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
-        document.getElementById('bloquePaleta').style.opacity = ['clasico', 'carta'].includes(diseno) ? '.35' : '1';
-        return { diseno: diseno, foto: foto ? '1' : '0', idioma: idioma || sel('idioma', 'es'), paleta: diseno !== 'clasico' ? paleta : '' };
+        const paletaFija=['clasico','carta','ats'].includes(diseno);
+        const bloquePaleta=document.getElementById('bloquePaleta');
+        bloquePaleta.style.opacity=paletaFija?'.35':'1';
+        bloquePaleta.setAttribute('aria-disabled',String(paletaFija));
+        bloquePaleta.querySelectorAll('input').forEach(input=>input.disabled=paletaFija);
+        return { diseno: diseno, foto: diseno!=='ats' && foto ? '1' : '0', idioma: idioma || sel('idioma', 'es'), paleta: !['clasico','ats'].includes(diseno) ? paleta : '' };
     }
     const qs = o => '?' + new URLSearchParams(Object.entries(o).filter(([k, v]) => v !== '')).toString();
     function refrescar() { visor.src = caja.dataset.vista + qs(opciones(tieneFoto)); }
@@ -98,8 +115,8 @@
         const idiomaActual = sel('idioma', 'es');
         const opcion = (n, v, txt, on) => '<label class="jz-op"><input type="radio" name="' + n + '" value="' + v + '"' + (on ? ' checked' : '') + '><span>' + txt + '</span></label>';
         let html = '<div class="text-left space-y-3">';
-        if (tieneFoto) html += '<div><p class="jz-op-t">¿Lleva foto?</p><div class="jz-ops">' + opcion('sw_foto', '1', 'Con foto', true) + opcion('sw_foto', '0', 'Sin foto', false) + '</div></div>';
-        html += '<div><p class="jz-op-t">Idioma</p><div class="jz-ops">' + opcion('sw_idioma', 'es', 'Español Español', idiomaActual === 'es') + opcion('sw_idioma', 'en', 'Inglés English', idiomaActual === 'en') + '</div></div>';
+        if (tieneFoto && sel('diseno','pro')!=='ats') html += '<div><p class="jz-op-t">¿Lleva foto?</p><div class="jz-ops">' + opcion('sw_foto', '1', 'Con foto', true) + opcion('sw_foto', '0', 'Sin foto', false) + '</div></div>';
+        html += '<div><p class="jz-op-t">Idioma</p><div class="jz-ops">' + opcion('sw_idioma', 'es', 'Español', idiomaActual === 'es') + opcion('sw_idioma', 'en', 'Inglés', idiomaActual === 'en') + '</div></div>';
         if (accion === 'word') html += '<p class="text-xs text-gray-500">Sale en un diseño sencillo para que pueda cambiar cualquier texto en Word.</p>';
         if (accion === 'correo') html += '<p class="text-xs text-gray-500">Se enviará a <b>' + @json($correoDestino ?? '') + '</b>.</p>';
         html += '</div>';
@@ -111,7 +128,7 @@
             if (!r.isConfirmed) return;
             const o = opciones(r.value.foto, r.value.idioma);
             if (accion === 'descargar') { window.location = caja.dataset.pdf + qs(Object.assign(o, { descargar: 1 })); return; }
-            if (accion === 'word') { window.location = caja.dataset.word + qs({ foto: o.foto, idioma: o.idioma, paleta: o.paleta }); return; }
+            if (accion === 'word') { window.location = caja.dataset.word + qs({ diseno: o.diseno, foto: o.foto, idioma: o.idioma, paleta: o.paleta }); return; }
             if (accion === 'ver') { window.open(caja.dataset.pdf + qs(o), '_blank'); return; }
             Swal.fire({ title: 'Enviando su CV…', text: 'Estamos preparando el PDF y enviándolo.', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             try {

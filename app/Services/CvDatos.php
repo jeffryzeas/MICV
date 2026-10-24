@@ -32,7 +32,21 @@ class CvDatos
         'prisma' => 'Prisma',
         'academico' => 'Académico',
         'estudio' => 'Estudio',
+        'balance'=>'Balance',
+        'directivo'=>'Directivo',
+        'portafolio'=>'Portafolio',
+        'consultor'=>'Consultor',
+        'tecnico'=>'Técnico',
+        'cronologia'=>'Cronología',
+        'sereno'=>'Sereno',
+        'impacto'=>'Impacto',
+        'editorial'=>'Editorial',
+        'trayectoria'=>'Trayectoria',
+        'ats'=>'ATS · Texto limpio',
     ];
+
+    public const NUEVOS = ['balance','directivo','portafolio','consultor','tecnico','cronologia','sereno','impacto','editorial','trayectoria'];
+    public const SENCILLOS = ['clasico','elegante','esencial','lineal','folio','ejecutivo','directivo','consultor','ats'];
 
     /** Descripción corta para los selectores. */
     public const DESCRIPCION = [
@@ -56,11 +70,22 @@ class CvDatos
         'ejecutivo'=> 'Títulos a la izquierda, sobrio y ordenado',
         'creativo' => 'Columna derecha, etiquetas y barra inclinada',
         'carta' => 'Diseño Jeffry: columna amarilla y encabezado azul',
+        'balance'=>'Dos columnas equilibradas y encabezado limpio',
+        'directivo'=>'Una columna ejecutiva con tipografía editorial',
+        'portafolio'=>'Columna derecha suave y cabecera visual',
+        'consultor'=>'Secciones horizontales y lectura ordenada',
+        'tecnico'=>'Composición compacta y habilidades destacadas',
+        'cronologia'=>'Experiencia con línea temporal y títulos claros',
+        'sereno'=>'Lateral claro, espacio y estilo sobrio',
+        'impacto'=>'Encabezado de alto contraste y nombre destacado',
+        'editorial'=>'Tipografía serif y composición de revista',
+        'trayectoria'=>'Bloques profesionales y jerarquía de experiencia',
+        'ats'=>'Una columna, sin foto ni tablas; pensado para postulaciones en línea',
     ];
 
     public static function esPro(string $d): bool
     {
-        return $d !== 'clasico';
+        return !in_array($d,['clasico','ats'],true);
     }
 
     public static function armar(Cliente $c, string $diseno, ?string $paleta = null, bool $conFoto = true, ?User $u = null, string $lang = 'es'): array

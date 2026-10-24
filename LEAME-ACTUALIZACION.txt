@@ -1,3 +1,91 @@
+ACTUALIZACIÓN 4 — GALERÍA CONTINUA Y 31 DISEÑOS DE CV
+
+CAMBIOS DE ESTA ENTREGA
+- Se conserva el catálogo anterior y se añaden diez estilos: Balance, Directivo, Portafolio, Consultor, Técnico, Cronología, Sereno, Impacto, Editorial y Trayectoria.
+- Se añade ATS · Texto limpio: total de 30 diseños visuales más un formato ATS, 31 opciones.
+- Botón principal destacado: «Ver los 31 diseños y elegir», con ejemplos visibles y explicación de dónde cambiar la plantilla.
+- Galería con desplazamiento vertical continuo: se muestran los 31 diseños sin páginas ni botones Anterior/Siguiente.
+- Cabecera y pie de la galería permanecen disponibles mientras se recorren las tarjetas. Hay búsqueda por nombre o estilo y filtros opcionales Todos, Sencillos, Nuevos y ATS.
+- Cada tarjeta incluye una captura real de ejemplo, nombre, descripción, número dentro del catálogo, indicador de diseño actual y acción «Usar este diseño».
+- Al pulsar una tarjeta se aplica el diseño a la vista previa y se cierra la galería. La selección actual queda identificada junto al botón principal. «Ver diseño actual» permite localizarlo dentro de la galería.
+- Se conservan teclado, cierre con Escape, modo oscuro y el tema general de Tailwind/Blade. La galería también ajusta su espacio en ventanas bajas.
+- Se incluyen 31 capturas PNG reales con datos ficticios Lorem Ipsum. No se utilizan datos de clientes reales.
+
+FORMATO ATS
+PDF y Word (.docx) de una columna, texto real seleccionable, títulos claros y datos de contacto dentro del cuerpo. No incluyen foto, tablas, escudos, íconos, gráficos, columnas, referencias familiares, fecha de nacimiento o número de identificación.
+
+La foto y la paleta se desactivan al seleccionar ATS. El controlador también ignora esas opciones si alguien las envía manualmente por URL. El formato ATS no fuerza todo a una página: el texto largo continúa en páginas adicionales para mantener una letra legible y evitar recortes. El ejemplo entregado ocupa una página; la prueba extensa de 50 experiencias ocupa ocho páginas y conserva la última experiencia.
+
+La descarga en Word conserva la opción ATS y utiliza un documento de párrafos simples, sin tablas ni imágenes. Los demás estilos mantienen el generador Word editable anterior.
+
+ATS describe un formato pensado para facilitar la lectura automática; no garantiza aceptación por todos los sistemas ni reemplaza el contenido solicitado por cada empleador. Se siguieron pautas técnicas de lectura de currículums documentadas por Greenhouse: https://support.greenhouse.io/hc/en-us/articles/200989175-Unsuccessful-resume-parse
+
+INSTALACIÓN DE ESTA ENTREGA
+1. Respaldar el código y la base de datos antes de actualizar.
+2. Copiar los archivos nuevos y modificados, conservando .env y storage del servidor.
+3. Ejecutar php artisan optimize:clear
+4. Ejecutar php artisan view:cache
+5. Recargar con Ctrl+F5 para cargar el CSS y JavaScript nuevos.
+
+Esta entrega no añade dependencias ni migraciones. Si viene de una versión anterior a la corrección de permisos, ejecute también php artisan migrate --force para aplicar las migraciones ya incluidas. Si todavía no instaló las dependencias originales del proyecto, mantenga composer install y npm ci como parte de su instalación.
+
+El CSS compilado y las 31 imágenes están incluidos. No necesita regenerar las capturas ni recompilar el tema para usar esta actualización. Para futuros cambios propios: npm run css; para regenerar ejemplos: php artisan micv:miniaturas-cv.
+
+VALIDACIÓN
+- 87 pruebas de PHP/Laravel y 1137 verificaciones, sin fallos, errores u omisiones.
+- Las 31 plantillas renderizan con datos de ejemplo y tienen captura PNG.
+- Navegador: galería a 360, 390 y 1280 píxeles; los 31 diseños se muestran en una lista desplazable, incluido el ATS al final.
+- Búsqueda sin necesidad de escribir tildes, resultado vacío, filtros de diez diseños nuevos y ATS, selección, actualización de vista previa y cierre.
+- Teclado, Escape, foco, restauración del desplazamiento de la página, modo oscuro y ventana de poca altura.
+- Descarga Word desde la pantalla: conserva diseno=ats y foto=0.
+- PDF real generado por PHP/Browsershot y texto extraído con pdftotext: nombre, contacto, perfil, experiencia, formación, habilidades e idiomas permanecen en orden.
+- ATS extenso: ocho páginas, con texto de la última experiencia presente.
+- Word descomprimido y revisado: párrafos de texto, sin tablas ni dibujos; conserva el nombre, correo y secciones en orden.
+- ZIP con índice central, verificación CRC y extracción completa.
+
+ARCHIVOS NUEVOS O MODIFICADOS EN ESTA ENTREGA
+LEAME-ACTUALIZACION.txt
+README.md
+app/Console/Commands/MiniaturasCv.php
+app/Http/Controllers/CvController.php
+app/Services/CvDatos.php
+app/Services/CvWord.php
+public/css/tema.css
+public/images/cv/ats.png
+public/images/cv/balance.png
+public/images/cv/clasico.png
+public/images/cv/consultor.png
+public/images/cv/cronologia.png
+public/images/cv/directivo.png
+public/images/cv/editorial.png
+public/images/cv/impacto.png
+public/images/cv/portafolio.png
+public/images/cv/sereno.png
+public/images/cv/tecnico.png
+public/images/cv/trayectoria.png
+public/js/cv-gallery.js
+resources/css/tema.css
+resources/cv/cv-ats-word.cjs
+resources/cv/cv-word.cjs
+resources/views/cv/_coleccion.blade.php
+resources/views/cv/ats.blade.php
+resources/views/cv/balance.blade.php
+resources/views/cv/consultor.blade.php
+resources/views/cv/cronologia.blade.php
+resources/views/cv/directivo.blade.php
+resources/views/cv/editorial.blade.php
+resources/views/cv/impacto.blade.php
+resources/views/cv/portafolio.blade.php
+resources/views/cv/sereno.blade.php
+resources/views/cv/tecnico.blade.php
+resources/views/cv/trayectoria.blade.php
+resources/views/partials/generador-cv.blade.php
+tests/Feature/CvGaleriaAtsTest.php
+tests/Feature/NegociosContabilidadTest.php
+
+--- GUÍA DE INSTALACIÓN Y PERMISOS DE LA ENTREGA ANTERIOR ---
+La información siguiente se conserva como referencia de las funciones ya incluidas. El catálogo de CV actual es el de 31 opciones descrito arriba.
+
 ACTUALIZACIÓN 3 — TEMA GENERAL Y PERMISOS DE EDICIÓN DEL CLIENTE
 
 CORRECCIÓN DE PRESENTACIÓN

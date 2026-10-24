@@ -12,6 +12,7 @@ const {
 async function generar() {
 const salida = process.argv[2];
 const d = JSON.parse(fs.readFileSync(0, 'utf8'));
+if(d.ats){await require('./cv-ats-word.cjs')(d,salida);return;}
 // Sharp ya es una dependencia del proyecto. Normaliza también WebP y EXIF.
 if (d.foto) {
     const sharp = require('sharp');

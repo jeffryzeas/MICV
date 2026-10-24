@@ -11,9 +11,11 @@ use Illuminate\Support\Str;
 /** CV en Word (.docx), editable, con los mismos datos y el mismo idioma que el PDF. */
 class CvWord
 {
-    public static function generar(Cliente $c, string $lang = 'es', bool $conFoto = true, ?User $u = null): string
+    public static function generar(Cliente $c, string $lang = 'es', bool $conFoto = true, ?User $u = null, string $diseno = 'pro'): string
     {
-        $d = CvDatos::armar($c, 'pro', null, $conFoto, $u, $lang);
+        $esAts=$diseno==='ats';
+        if($esAts)$conFoto=false;
+        $d = CvDatos::armar($c, $esAts?'ats':'pro', null, $conFoto, $u, $lang);
         $t = $d['t'];
         $vt = $d['vt'];
 
@@ -27,6 +29,7 @@ class CvWord
         }
 
         $json = [
+            'ats' => $esAts,
             'titulo'   => ($lang === 'en' ? 'Resume — ' : 'CV — ') . $c->nombreCompleto(),
             'autor'    => $c->nombreCompleto(),
             'color'    => $d['paleta']['lateral'] ?? '#0B3C74',
