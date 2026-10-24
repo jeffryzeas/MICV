@@ -6,7 +6,7 @@ async function generar(d,salida){
  const wb=new ExcelJS.Workbook();wb.creator=d.negocio;wb.title='Reporte del punto de venta';wb.created=new Date();wb.calcProperties.fullCalcOnLoad=true;
  const azul='123B63',oro='E7BC55',gris='66758A',money='"'+String(d.simbolo||'').replace(/"/g,'')+'" #,##0.00;[Red]("'+String(d.simbolo||'').replace(/"/g,'')+'" #,##0.00)';
  function hoja(nombre,cols,datos){
-  const s=wb.addWorksheet(nombre,{views:[{state:'frozen',ySplit:5,showGridLines:false}],pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,printTitlesRow:'1:5'},properties:{defaultRowHeight:21}});
+  const s=wb.addWorksheet(nombre,{views:[{state:'frozen',ySplit:5,showGridLines:false}],pageSetup:{paperSize:9,orientation:d.orientacion||'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,printTitlesRow:'1:5'},properties:{defaultRowHeight:21}});
   s.columns=cols.map(c=>({width:c.ancho||20}));
   for(let n=1;n<=3;n++)s.mergeCells(n,1,n,cols.length);
   s.getCell('A1').value=d.negocio;s.getCell('A1').font={name:'Calibri',size:19,bold:true,color:{argb:'FFFFFFFF'}};s.getRow(1).height=34;

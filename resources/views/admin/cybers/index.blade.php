@@ -1,8 +1,8 @@
-<x-layout titulo="Cybers" activo="cybers">
+<x-layout titulo="Negocios" activo="cybers">
     <div class="flex items-center justify-between flex-wrap gap-3 mb-5">
-        <p class="text-gray-500">Cada Cyber ve solo sus clientes. El logo y los colores también los puede cambiar el propio Cyber desde "Mi marca".</p>
+        <p class="text-gray-500">Cada Negocio ve solo sus clientes. El logo y los colores también los puede cambiar el propio Negocio desde "Mi marca".</p>
         <a href="{{ route('admin.cybers.create') }}" class="inline-flex items-center gap-2 bg-oro-500 hover:bg-oro-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors shrink-0">
-            <x-icono name="plus" class="size-4" /> Registrar Cyber
+            <x-icono name="plus" class="size-4" /> Registrar Negocio
         </a>
     </div>
 
@@ -22,7 +22,7 @@
                         @if($s->logoUrl())<img src="{{ $s->logoUrl() }}" class="size-10 object-contain rounded bg-gray-100 border" alt="">@else<span class="text-gray-300">—</span>@endif
                     </td>
                     <td class="py-2.5 pr-3 font-mono text-xs">{{ $s->codigo }}</td>
-                    <td class="py-2.5 pr-3 font-medium">{{ $s->nombre }}<div class="text-xs text-gray-400">{{ $s->telefono }}</div></td>
+                    <td class="py-2.5 pr-3 font-medium">{{ $s->nombre }}<div class="text-xs text-gray-400">{{ \App\Support\Negocios::TIPOS[$s->tipo_negocio] ?? 'Negocio' }} · {{ $s->naturaleza==='juridica'?'Persona jurídica':'Persona natural' }} · {{ \App\Support\Pais::de($s->pais ?: 'NI')['nombre'] }}</div><div class="text-xs text-gray-400">{{ $s->telefono }}</div></td>
                     <td class="py-2.5 pr-3">
                         <span class="inline-block size-4 rounded align-middle" style="background:{{ $s->color_primario }}"></span>
                         <span class="inline-block size-4 rounded align-middle" style="background:{{ $s->color_secundario }}"></span>
@@ -56,7 +56,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="8" class="py-8 text-center text-gray-400">Aún no hay Cybers registrados.</td></tr>
+                <tr><td colspan="8" class="py-8 text-center text-gray-400">Aún no hay Negocios registrados.</td></tr>
             @endforelse
             </tbody>
         </table>
@@ -64,8 +64,8 @@
     </div>
     @push('scripts')
     <script>
-    function confToggle(e, activo){e.preventDefault();Swal.fire({title: activo ? '¿Poner en mantenimiento?' : '¿Reactivar el Cyber?',text: activo ? 'Sus usuarios no podrán entrar mientras esté en mantenimiento.' : '',icon:'warning',showCancelButton:true,confirmButtonColor:'#0B3C74',confirmButtonText:'Sí',cancelButtonText:'Cancelar'}).then(r=>{if(r.isConfirmed)e.target.submit();});return false;}
-    function confBorrar(e){e.preventDefault();Swal.fire({title:'¿Eliminar este Cyber?',text:'Sus clientes no se borran, solo dejan de estar en este Cyber.',icon:'warning',showCancelButton:true,confirmButtonColor:'#c0392b',confirmButtonText:'Sí, eliminar',cancelButtonText:'Cancelar'}).then(r=>{if(r.isConfirmed)e.target.submit();});return false;}
+    function confToggle(e, activo){e.preventDefault();Swal.fire({title: activo ? '¿Poner en mantenimiento?' : '¿Reactivar el Negocio?',text: activo ? 'Sus usuarios no podrán entrar mientras esté en mantenimiento.' : '',icon:'warning',showCancelButton:true,confirmButtonColor:'#0B3C74',confirmButtonText:'Sí',cancelButtonText:'Cancelar'}).then(r=>{if(r.isConfirmed)e.target.submit();});return false;}
+    function confBorrar(e){e.preventDefault();Swal.fire({title:'¿Eliminar este Negocio?',text:'Sus clientes no se borran, solo dejan de estar en este Negocio.',icon:'warning',showCancelButton:true,confirmButtonColor:'#c0392b',confirmButtonText:'Sí, eliminar',cancelButtonText:'Cancelar'}).then(r=>{if(r.isConfirmed)e.target.submit();});return false;}
     </script>
     @endpush
 </x-layout>

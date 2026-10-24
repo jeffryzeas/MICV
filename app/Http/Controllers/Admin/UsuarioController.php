@@ -248,7 +248,7 @@ class UsuarioController extends Controller
                 ],
                 "perfil_acceso" => ["nullable", "in:encargado,cajero"],
                 "encargado_id" => ["nullable", "integer"],
-                "permisos" => ["nullable", "array", "max:40"],
+                "permisos" => ["nullable", "array", "max:80"],
                 "permisos.*" => [
                     "string",
                     Rule::in(array_keys(Permisos::LISTA)),
@@ -263,7 +263,7 @@ class UsuarioController extends Controller
                 "usuario.regex" =>
                     "El usuario solo puede tener letras, números, punto, guion y guion bajo (sin espacios).",
                 "cyber_id.required_if" =>
-                    "Un usuario de Cyber debe tener un Cyber asignado.",
+                    "Un usuario de negocio debe tener un negocio asignado.",
             ],
             [
                 "name" => "nombre completo",
@@ -299,7 +299,7 @@ class UsuarioController extends Controller
             if (!$enc) {
                 throw ValidationException::withMessages([
                     "encargado_id" =>
-                        "Seleccione un encargado activo del mismo Cyber.",
+                        "Seleccione un encargado activo del mismo negocio.",
                 ]);
             }
             $datos["encargado_id"] = $enc->id;

@@ -11,7 +11,7 @@ class Legal
     public const DOCUMENTOS = [
         'terminos'   => ['Términos y condiciones', 'legal_terminos', 'file-check'],
         'privacidad' => ['Política de privacidad', 'legal_privacidad', 'shield'],
-        'contrato'   => ['Contrato de servicio (Cybers)', 'legal_contrato', 'file-signature'],
+        'contrato'   => ['Contrato de servicio (Negocios)', 'legal_contrato', 'file-signature'],
         'cookies'    => ['Política de cookies', 'legal_cookies', 'cookie'],
     ];
 
@@ -37,7 +37,9 @@ class Legal
         $cfg ??= Configuracion::actual();
         $campo = self::DOCUMENTOS[$doc][1] ?? null;
         $t = $campo ? $cfg->{$campo} : null;
-        return filled($t) ? $t : self::base($doc);
+        $texto = filled($t) ? $t : self::base($doc);
+        $anexo = resource_path('legal/anexo-'.$doc.'.md');
+        return $texto.(is_file($anexo) ? "\n\n".file_get_contents($anexo) : '');
     }
 
     public static function html(string $doc, ?Configuracion $cfg = null): string

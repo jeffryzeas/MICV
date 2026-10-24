@@ -5,6 +5,7 @@ namespace App\Support;
 class Permisos
 {
     public const LISTA = [
+        'contabilidad.ver'=>'Ver ingresos, gastos y saldo', 'contabilidad.registrar'=>'Registrar ingresos y gastos', 'contabilidad.anular'=>'Anular movimientos manuales', 'contabilidad.exportar'=>'Exportar libro de ingresos y gastos',
         "correos" => "Registrar correos de clientes",
         "chat" => "Mensajes y trabajos (SMS JZ)",
         "clientes.acceso" => "Generar acceso del cliente",
@@ -39,6 +40,7 @@ class Permisos
     ];
 
     public const PRESETS = [
+        'contador'=>['contabilidad.ver','contabilidad.registrar','contabilidad.exportar'],
         "cajero" => ["pos.vender", "pos.caja", "pos.ventas", "documentos"],
         "operador" => [
             "chat",
@@ -63,6 +65,7 @@ class Permisos
     public static function completar(array $permisos): array
     {
         $deps = [
+            'contabilidad.registrar'=>['contabilidad.ver'], 'contabilidad.anular'=>['contabilidad.ver'], 'contabilidad.exportar'=>['contabilidad.ver'],
             "clientes.acceso" => ["clientes.ver"],
             "clientes.editar" => ["clientes.ver"],
             "clientes.eliminar" => ["clientes.ver"],
@@ -93,6 +96,7 @@ class Permisos
             return [];
         }
         $exactos = [
+            'contabilidad.index'=>'contabilidad.ver', 'contabilidad.create'=>'contabilidad.registrar', 'contabilidad.store'=>'contabilidad.registrar', 'contabilidad.anular'=>'contabilidad.anular', 'contabilidad.exportar'=>'contabilidad.exportar',
             "municipios.index" => ["clientes.ver", "correos"],
             "clientes.acceso" => "clientes.acceso",
             "clientes.acceso.crear" => "clientes.acceso",
@@ -133,6 +137,7 @@ class Permisos
         }
         foreach (
             [
+                'contabilidad.' => 'contabilidad.ver',
                 "correos." => "correos",
                 "chat." => "chat",
                 "equipo." => "personal",

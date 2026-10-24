@@ -9,8 +9,8 @@ Léalos con calma. Al crear una cuenta, marcar la casilla de aceptación o usar 
 ## 1. Definiciones
 - **Plataforma:** el sitio web, la aplicación y los servicios de {{marca}}.
 - **Usuario:** la persona que crea una cuenta para hacer su propio currículum.
-- **Cyber afiliado:** el negocio (cibercafé, centro de copiado o similar) que usa la plataforma para atender al público, según el [Contrato de servicio]({{url_contrato}}).
-- **Cliente del Cyber:** la persona a quien un Cyber afiliado le registra sus datos para hacerle su currículum o sus cartas.
+- **Negocio afiliado:** el negocio (cibercafé, centro de copiado o similar) que usa la plataforma para atender al público, según el [Contrato de servicio]({{url_contrato}}).
+- **Cliente del Negocio:** la persona a quien un Negocio afiliado le registra sus datos para hacerle su currículum o sus cartas.
 - **Documentos:** los currículums (CV), cartas y demás archivos que la plataforma genera con la información que usted escribe.
 
 ## 2. Quién puede usar la plataforma
@@ -43,7 +43,7 @@ Está **prohibido**:
 4. Suplantar a otra persona o usar documentos de identidad ajenos.
 5. Subir fotos que no sean suyas, o contenido ofensivo, violento, discriminatorio, sexual o que viole derechos de autor, de imagen o de privacidad.
 6. Intentar entrar sin permiso, probar fallas de seguridad, usar robots o programas automáticos, sobrecargar el servicio o copiar sus contenidos de forma masiva.
-7. Revender, alquilar o explotar la plataforma comercialmente sin un contrato con nosotros. Los Cybers afiliados lo hacen bajo su propio contrato.
+7. Revender, alquilar o explotar la plataforma comercialmente sin un contrato con nosotros. Los Negocios afiliados lo hacen bajo su propio contrato.
 
 Si usted incumple estas reglas, podemos **borrar el contenido, suspender o cerrar la cuenta** y, si hay indicios de delito, informar a las autoridades.
 
@@ -59,7 +59,7 @@ Si usted incumple estas reglas, podemos **borrar el contenido, suspender o cerra
 4. Los **escudos nacionales** que aparecen en el CV Clásico son símbolos patrios de cada país. Se muestran solo como adorno del documento y sin dar a entender que el documento es oficial. Si la ley de su país limita su uso, elija un diseño sin escudo; el administrador también puede desactivarlo.
 
 ## 9. Precio
-El uso de la plataforma por los **usuarios es gratuito**, salvo que se anuncie otra cosa antes de contratar. Los servicios que preste un **Cyber afiliado** en su local (por ejemplo, impresión o atención) los cobra el Cyber por su cuenta y bajo su responsabilidad.
+El uso de la plataforma por los **usuarios es gratuito**, salvo que se anuncie otra cosa antes de contratar. Los servicios que preste un **Negocio afiliado** en su local (por ejemplo, impresión o atención) los cobra el Negocio por su cuenta y bajo su responsabilidad.
 
 ## 10. Eliminación de la cuenta
 1. Puede pedir la eliminación dentro de la app, en **Privacidad y cuenta → Solicitar eliminación**, confirmando con su contraseña. Los pasos también están en la página [Eliminar mi cuenta]({{url_eliminar}}).
@@ -97,5 +97,5 @@ Le escribiremos al correo de su cuenta. Usted puede escribirnos a **{{correo}}**
 ## 18. Otras disposiciones
 - Si una cláusula no es válida, las demás siguen vigentes.
 - Que no exijamos una cláusula en un momento no significa que renunciemos a ella.
-- Estos términos, la Política de privacidad, la Política de cookies y, para los Cybers, el Contrato de servicio, forman el acuerdo completo.
+- Estos términos, la Política de privacidad, la Política de cookies y, para los Negocios, el Contrato de servicio, forman el acuerdo completo.
 - El texto en español es el que vale.

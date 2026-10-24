@@ -1,7 +1,7 @@
 @php $esAdmin = auth()->user()->esAdmin(); @endphp
 <x-layout :titulo="$esAdmin ? 'Clientes y usuarios registrados' : 'Lista de clientes'" activo="clientes">
 
-    <div class="flex flex-wrap gap-2 mb-4">@foreach(['pdf'=>'PDF','excel'=>'Excel'] as $format=>$label)<a class="btn btn-sec" href="{{ route('clientes.exportar', array_merge(request()->except('page'),['formato'=>$format])) }}"><x-icono name="download"/>Exportar {{ $label }}</a>@endforeach</div>
+    <x-exportar :ruta="route('clientes.exportar')"/>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         <div class="bg-white rounded-xl shadow p-4 border-l-4 border-oro-500">
             <div class="text-xs uppercase font-bold text-azul-800">Total</div>
@@ -51,7 +51,7 @@
             </div>
             @if($esAdmin)
             <div class="min-w-[180px]">
-                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Cyber</label>
+                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Negocio</label>
                 <select name="cyber_id" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
                     <option value="">Todos</option>
                     @foreach($cybers as $cy)
@@ -73,7 +73,7 @@
             <thead>
                 <tr class="text-left text-xs uppercase text-gray-500 border-b">
                     <th class="py-2 pr-3">Documento</th><th class="py-2 pr-3">Nombre</th><th class="py-2 pr-3">Edad</th><th class="py-2 pr-3">Municipio</th>
-                    @if($esAdmin)<th class="py-2 pr-3">Cyber</th>@endif
+                    @if($esAdmin)<th class="py-2 pr-3">Negocio</th>@endif
                     <th class="py-2"></th>
                 </tr>
             </thead>

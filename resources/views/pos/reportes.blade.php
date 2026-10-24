@@ -18,9 +18,8 @@
             <input type="date" name="hasta" value="{{ $hasta->format('Y-m-d') }}" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm">
             <button class="bg-azul-800 text-white text-sm font-semibold px-3 py-1.5 rounded-lg">Ver</button>
         </div>
-        <a href="{{ route('pos.reportes.excel', request()->query()) }}" class="ml-auto inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2 rounded-lg"><x-icono name="file-spreadsheet" class="size-4" /> Descargar para Excel</a>
-        <a class="btn btn-pri" href="{{ route('pos.reportes.pdf', request()->query()) }}"><x-icono name="file-text"/>Descargar PDF</a>
     </form>
+    <x-exportar :ruta="route('pos.reportes.exportar')"/>
     <p class="text-sm text-gray-500 mb-3">Del {{ $desde->format('d/m/Y') }} al {{ $hasta->format('d/m/Y') }}</p>
 
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-3">

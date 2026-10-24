@@ -9,11 +9,11 @@
         <div class="space-y-4">
             <div>
                 <p class="text-xs font-semibold uppercase text-azul-800 mb-2">Diseño</p>
-                <button type="button" id="cv-open-gallery" class="btn btn-sec"><x-icono name="layout-template"/>Elegir o cambiar plantilla</button>
+                <button type="button" id="cv-open-gallery" class="cv-gallery-trigger"><x-icono name="layout-template"/>Elegir diseño · 20 plantillas</button>
                 <p id="cv-selected-name" class="text-sm mt-2" aria-live="polite"></p>
-                <dialog id="cv-gallery" class="cv-gallery"><div class="cv-gallery-head"><h3>Elija su plantilla</h3><button type="button" id="cv-close-gallery" class="btn btn-sec" aria-label="Cerrar galería"><x-icono name="x"/></button></div><p>Seleccione una miniatura y revise sus datos en la vista previa.</p><div class="cv-gallery-grid">
+                <dialog id="cv-gallery" class="cv-gallery"><div class="cv-gallery-head"><h3>Elija su plantilla</h3><button type="button" id="cv-close-gallery" class="btn btn-sec" aria-label="Cerrar galería"><x-icono name="x"/></button></div><p>20 diseños · Ejemplos con datos ficticios. Elija uno para ver su currículum real.</p><div class="cv-gallery-grid">
                 @foreach(\App\Services\CvDatos::DISENOS as $k => $t)
-                  <label class="jz-diseno cv-choice" data-title="{{ $t }}"><input type="radio" name="diseno" value="{{ $k }}" @checked($cv['diseno_defecto'] === $k)><img loading="lazy" src="{{ asset('images/cv/'.$k.'.svg') }}" alt="Esquema ilustrativo de {{ $t }}"><strong>{{ $t }}</strong><small>{{ \App\Services\CvDatos::DESCRIPCION[$k] }}</small></label>
+                  <label class="jz-diseno cv-choice" data-title="{{ $t }}"><input type="radio" name="diseno" value="{{ $k }}" @checked($cv['diseno_defecto'] === $k)><img loading="lazy" src="{{ asset('images/cv/'.$k.'.png') }}" alt="Captura real de ejemplo de {{ $t }}"><strong>{{ $t }}</strong><small>{{ \App\Services\CvDatos::DESCRIPCION[$k] }}</small></label>
                 @endforeach
                 </div><div class="cv-gallery-head"><button type="button" id="cv-page-prev" class="btn btn-sec">Anterior</button><span id="cv-page-status" aria-live="polite"></span><button type="button" id="cv-page-next" class="btn btn-sec">Siguiente</button></div></dialog>
                 <p class="text-[11px] text-gray-400 mt-1">Los diseños Pro siempre salen en <b>una sola hoja</b>. @if($cliente->datosPais()['escudo'] || !empty($cliente->datosPais()['escudo_subido']))El Clásico lleva el escudo de {{ $cliente->datosPais()['nombre'] }}.@else El Clásico es formal, con marco doble.@endif</p>

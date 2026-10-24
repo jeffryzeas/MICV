@@ -180,7 +180,15 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
             "dashboard",
         );
 
-        Route::get('municipios-nicaragua',[\App\Http\Controllers\MunicipioNicaraguaController::class,'index'])->name('municipios.index')->middleware('rol:admin,cyber');
+        Route::get('municipios-nicaragua',[\App\Http\Controllers\MunicipioNicaraguaController::class,'index'])->name('municipios.index')->middleware('rol:admin');
+        Route::prefix('contabilidad')->name('contabilidad.')->middleware('rol:admin,cyber')->group(function(){
+            $c=\App\Http\Controllers\ContabilidadController::class;
+            Route::get('/',[$c,'index'])->name('index');
+            Route::get('nuevo',[$c,'create'])->name('create');
+            Route::post('/',[$c,'store'])->name('store')->middleware('throttle:30,1');
+            Route::get('exportar',[$c,'exportar'])->name('exportar')->middleware('throttle:10,1');
+            Route::post('{movimiento}/anular',[$c,'anular'])->name('anular')->middleware('throttle:15,1');
+        });
         Route::prefix("correos-clientes")
             ->name("correos.")
             ->middleware("rol:admin,cyber")
@@ -638,6 +646,7 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                         $P . "ReporteController",
                         "index",
                     ])->name("reportes");
+                    Route::get("reportes/exportar", [$P . "ReporteController", "exportar"])->name("reportes.exportar")->middleware("throttle:10,1");
                     Route::get("reportes/pdf", [$P . "ReporteController", "pdf"])->name("reportes.pdf")->middleware("throttle:10,1");
                     Route::get("reportes/excel", [
                         $P . "ReporteController",

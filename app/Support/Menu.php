@@ -201,7 +201,7 @@ class Menu
                     "id" => "cybers",
                     "url" => route("admin.cybers.index"),
                     "icon" => "building-2",
-                    "label" => "Cybers",
+                    "label" => "Negocios",
                 ],
                 [
                     "id" => "usuarios",
@@ -301,7 +301,7 @@ class Menu
             ];
         }
 
-        if(!$u->esAdmin()&&($u->tienePermiso('clientes.ver')||$u->tienePermiso('correos'))){$items[]=['id'=>'municipios-ni','url'=>route('municipios.index'),'icon'=>'map-pinned','label'=>'Municipios de Nicaragua'];}
+
         $items[] = [
             "id" => "perfil",
             "url" => route("perfil.edit"),
@@ -323,7 +323,9 @@ class Menu
             "icon" => "scan-line",
             "label" => "Editor y copias de documentos",
         ];
+        if ($u->tienePermiso('contabilidad.ver')) $items[]=['id'=>'contabilidad','url'=>route('contabilidad.index'),'icon'=>'calculator','label'=>'Ingresos y gastos'];
         $mapa = [
+            'contabilidad'=>'contabilidad.ver',
             "correos" => "correos",
             "chat" => "chat",
             "tarjetas" => "tarjetas",
@@ -357,7 +359,7 @@ class Menu
         }
         unset($item);
         // Daily work first, administrative settings last; permission filtering stays below.
-        $orden = array_flip(['dashboard', 'clientes', 'clientes-nuevo', 'autoservicio', 'pos', 'documentos', 'fotos', 'tarjetas', 'cartas', 'correos', 'chat', 'equipo', 'marca', 'cybers', 'usuarios', 'configuracion', 'seguridad', 'perfil']);
+        $orden = array_flip(['dashboard', 'clientes', 'clientes-nuevo', 'autoservicio', 'pos', 'contabilidad', 'documentos', 'fotos', 'tarjetas', 'cartas', 'correos', 'chat', 'equipo', 'marca', 'cybers', 'usuarios', 'configuracion', 'seguridad', 'perfil']);
         usort($items, fn ($a, $b) => ($orden[$a['id']] ?? 16) <=> ($orden[$b['id']] ?? 16));
 
         return array_values(

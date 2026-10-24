@@ -9,7 +9,13 @@ class QuitarFondo
 {
     public static function modelo(): string
     {
-        return (string) config('micv.fondo.modelo');
+        $perfil = config('micv.fondo.perfil','actual');
+        return match($perfil) { 'isnet'=>storage_path('app/modelos/isnet-general-use.onnx'), 'birefnet'=>storage_path('app/modelos/BiRefNet-portrait-epoch_150.onnx'), 'u2net'=>storage_path('app/modelos/u2net_human_seg.onnx'), default=>(string)config('micv.fondo.modelo') };
+    }
+
+    public static function url(): string
+    {
+        return match(config('micv.fondo.perfil','actual')) { 'isnet'=>'https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx', 'birefnet'=>'https://github.com/danielgatis/rembg/releases/download/v0.0.0/BiRefNet-portrait-epoch_150.onnx', 'u2net'=>'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_human_seg.onnx', default=>(string)config('micv.fondo.url') };
     }
 
     public static function disponible(): bool

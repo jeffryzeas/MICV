@@ -6,7 +6,7 @@
     $maxSerie = max(1, max($serieClientes), max($serieCv));
     $card = 'bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5';
 @endphp
-<x-layout :titulo="$yo->esAdmin() ? 'Dashboard' : 'Panel del Cyber'" activo="dashboard">
+<x-layout :titulo="$yo->esAdmin() ? 'Dashboard' : 'Panel del Negocio'" activo="dashboard">
 
     {{-- Bienvenida + búsqueda rápida --}}
     <section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-azul-950 via-azul-800 to-[#1d5fa8] text-white p-5 sm:p-7 shadow-lg">
@@ -39,7 +39,7 @@
             [route('clientes.create'), 'user-plus', 'Registrar cliente', 'Ficha nueva y su CV', 'from-azul-800 to-[#1d5fa8]', true],
             [route('clientes.index'), 'users', 'Mis clientes', $totalClientes . ' en total', 'from-emerald-500 to-teal-600', false],
             [route('cartas.index'), 'mail', 'Cartas', 'Recomendación, trabajo…', 'from-violet-500 to-purple-600', false],
-            $yo->esAdmin() ? [route('admin.cybers.create'), 'building-2', 'Registrar Cyber', 'Y créele sus usuarios', 'from-oro-500 to-amber-600', false]
+            $yo->esAdmin() ? [route('admin.cybers.create'), 'building-2', 'Registrar Negocio', 'Y créele sus usuarios', 'from-oro-500 to-amber-600', false]
                            : [route('marca.edit'), 'palette', 'Mi marca', 'Logo y colores en los CV', 'from-oro-500 to-amber-600', false],
         ]) as [$url, $ic, $tx, $sub, $grad, $principal])
             <a href="{{ $url }}" class="group {{ $card }} p-4 flex items-center gap-3 hover:-translate-y-0.5 hover:shadow-md transition">
@@ -153,9 +153,9 @@
 
     @if($yo->esAdmin())
     <section class="{{ $card }} p-4 sm:p-5 mt-5">
-        <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-4"><x-icono name="building-2" class="size-[18px] text-oro-500" /> Cybers</h2>
+        <h2 class="font-semibold text-azul-950 flex items-center gap-2 mb-4"><x-icono name="building-2" class="size-[18px] text-oro-500" /> Negocios</h2>
         @if($cybers->isEmpty())
-            <p class="text-sm text-gray-500">Aún no hay Cybers. <a href="{{ route('admin.cybers.create') }}" class="font-semibold text-azul-800 underline">Registre el primero</a> y luego créele sus usuarios.</p>
+            <p class="text-sm text-gray-500">Aún no hay Negocios. <a href="{{ route('admin.cybers.create') }}" class="font-semibold text-azul-800 underline">Registre el primero</a> y luego créele sus usuarios.</p>
         @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             @foreach($cybers as $cy)

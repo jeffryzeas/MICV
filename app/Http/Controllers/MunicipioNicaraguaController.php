@@ -11,13 +11,7 @@ class MunicipioNicaraguaController extends Controller
     private function consultar(Request $r): void
     {
         $u = $r->user();
-        abort_unless(
-            $u->esAdmin() ||
-                ($u->esCyber() &&
-                    ($u->tienePermiso("clientes.ver") ||
-                        $u->tienePermiso("correos"))),
-            403,
-        );
+        abort_unless($u && $u->esAdmin(), 403);
     }
     private function administrar(Request $r): void
     {

@@ -50,9 +50,16 @@ class ReporteController extends PosBase
         ]);
     }
 
+    public function exportar(Request $request)
+    {
+        $request->validate(['formato'=>'required|in:pdf,excel']);
+        return $request->input('formato')==='pdf' ? $this->pdf($request) : $this->excel($request);
+    }
+
     public function pdf(Request $request)
     {
         $datos = $this->index($request)->getData();
+        $datos['orientacion'] = \App\Support\Exportacion::orientacion($request, 3);
         $datos["logo"] = \App\Support\Archivos::dataUri($datos["cyberPos"]->logo);
         $html = view("exports.ventas", $datos)->render();
         return response(\App\Services\CvPdf::desdeHtml($html), 200, ["Content-Type" => "application/pdf", "Content-Disposition" => 'attachment; filename="Reporte_ventas.pdf"', "Cache-Control" => "private, no-store"]);
@@ -64,6 +71,7 @@ class ReporteController extends PosBase
         $cfg=$this->config($request); [$desde,$hasta]=$this->rango($request);
         $ventas=PosVenta::where('cyber_id',$cfg->cyber_id)->whereBetween('created_at',[$desde,$hasta])->with('pagos','usuario','cliente')->orderBy('id')->get();
         $datos=[
+            'orientacion'=>\App\Support\Exportacion::orientacion($request,8),
             'negocio'=>$cfg->nombre_comercial ?: $cfg->cyber->nombre, 'moneda'=>$cfg->moneda, 'simbolo'=>$cfg->simbolo,
             'periodo'=>$desde->format('d/m/Y').' al '.$hasta->format('d/m/Y'), 'generado'=>now()->format('d/m/Y H:i'),
             'ventas'=>$ventas->map(fn($v)=>[

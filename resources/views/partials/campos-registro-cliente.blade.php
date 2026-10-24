@@ -40,7 +40,7 @@
     </div>
     @if(isset($cybers) && $cybers->isNotEmpty() && !$cliente)
         <div class="jz-campo mt-4 max-w-md">
-            <label class="{{ $lb }}">Cyber al que pertenece</label>
+            <label class="{{ $lb }}">Negocio al que pertenece</label>
             <x-icono name="building-2" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <select name="cyber_id" class="{{ $in }}">
                 <option value="">— Ninguno (solo el admin lo ve) —</option>

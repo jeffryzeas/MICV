@@ -145,6 +145,7 @@ class Ventas
             foreach ($pagos as $p) {
                 $venta->pagos()->create(['metodo' => $p['metodo'], 'monto' => round((float) $p['monto'], 2), 'referencia' => $p['referencia'] ?? null]);
             }
+            \App\Services\LibroIngresosGastos::venta($venta);
             Actividad::registrar('pos_venta', $numero . ' · ' . $cfg->dinero($total));
             return $venta;
         });
@@ -166,6 +167,7 @@ class Ventas
             }
             $ids = $v->items()->pluck('producto_id')->filter();
             PosProducto::whereIn('id', $ids)->orderBy('id')->lockForUpdate()->get();
+            \App\Services\LibroIngresosGastos::anularVenta($v, $u, $motivo);
             $v->update(['estado' => 'anulada', 'anulada_por' => $u->id, 'anulada_en' => now(), 'motivo_anulacion' => $motivo]);
             foreach ($v->items()->with('producto')->get() as $it) {
                 if ($it->producto) {

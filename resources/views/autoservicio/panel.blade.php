@@ -3,12 +3,12 @@
     <p class="text-gray-500 text-sm mb-4">Ponga el afiche en el mostrador. La gente escanea el QR, llena sus datos desde su celular y le da un número de turno. Aquí le aparecen al instante: toque <b>Atender</b>, revise y guarde la ficha.</p>
 
     @if($yo->esAdmin() && $cybers->isNotEmpty())
-        <form class="mb-4 flex items-center gap-2 text-sm"><label class="text-gray-500">Cyber:</label>
+        <form class="mb-4 flex items-center gap-2 text-sm"><label class="text-gray-500">Negocio:</label>
             <select name="cyber" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2">@foreach($cybers as $cy)<option value="{{ $cy->id }}" @selected($cyber?->id === $cy->id)>{{ $cy->nombre }}</option>@endforeach</select></form>
     @endif
 
     @if(!$cyber)
-        <div class="{{ $card }} p-6 text-gray-500">Primero registre un Cyber.</div>
+        <div class="{{ $card }} p-6 text-gray-500">Primero registre un Negocio.</div>
     @else
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <section class="{{ $card }} p-5 text-center">

@@ -10,7 +10,7 @@
         @if($user->esCyber())
         <label class="flex items-start gap-2 text-sm text-gray-600">
             <input type="checkbox" name="contrato" value="1" class="mt-1">
-            <span>En nombre de mi Cyber acepto el <a href="{{ route('legal.ver', 'contrato') }}" target="_blank" class="underline font-semibold text-[#0B3C74]">Contrato de servicio y tratamiento de datos</a>.</span>
+            <span>En nombre de mi Negocio acepto el <a href="{{ route('legal.ver', 'contrato') }}" target="_blank" class="underline font-semibold text-[#0B3C74]">Contrato de servicio y tratamiento de datos</a>.</span>
         </label>
         @endif
         <button type="submit" class="w-full text-white font-semibold uppercase text-sm tracking-wide py-3 rounded-lg" style="background-color:#0B3C74;">Aceptar y continuar</button>

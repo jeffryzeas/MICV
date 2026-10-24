@@ -1,6 +1,6 @@
 <x-layout titulo="Usuarios" activo="usuarios">
     <div class="flex items-center justify-between flex-wrap gap-3 mb-5">
-        <p class="text-gray-500">Administradores (ven todo), usuarios de cada Cyber (ven solo los clientes de su Cyber) y usuarios registrados (personas que hacen su propio CV).</p>
+        <p class="text-gray-500">Administradores (ven todo), usuarios de cada Negocio (ven solo los clientes de su Negocio) y usuarios registrados (personas que hacen su propio CV).</p>
         <a href="{{ route('admin.usuarios.create', $cyberId !== '' ? ['cyber_id' => $cyberId] : []) }}" class="inline-flex items-center gap-2 bg-oro-500 hover:bg-oro-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors shrink-0">
             <x-icono name="user-plus" class="size-4" /> Crear usuario
         </a>
@@ -14,7 +14,7 @@
                 <input type="search" name="q" value="{{ $buscar }}" placeholder="Nombre, usuario o correo" class="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2.5">
             </div>
             <div class="min-w-[200px]">
-                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Cyber</label>
+                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Negocio</label>
                 <select name="cyber_id" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
                     <option value="">Todos</option>
                     @foreach($cybers as $cy)<option value="{{ $cy->id }}" @selected($cyberId === (string) $cy->id)>{{ $cy->nombre }}</option>@endforeach
@@ -33,7 +33,7 @@
         <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead><tr class="text-left text-xs uppercase text-gray-500 border-b">
-                <th class="py-2 pr-3">Usuario</th><th class="py-2 pr-3">Nombre</th><th class="py-2 pr-3">Rol / Cyber</th><th class="py-2 pr-3">Estado</th><th class="py-2 pr-3">Último acceso</th><th class="py-2"></th>
+                <th class="py-2 pr-3">Usuario</th><th class="py-2 pr-3">Nombre</th><th class="py-2 pr-3">Rol / Negocio</th><th class="py-2 pr-3">Estado</th><th class="py-2 pr-3">Último acceso</th><th class="py-2"></th>
             </tr></thead>
             <tbody>
             @forelse($usuarios as $u)

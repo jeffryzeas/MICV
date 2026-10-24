@@ -13,6 +13,7 @@ class Cyber extends Model
     protected $table = "cybers";
 
     protected $fillable = [
+        "tipo_negocio", "naturaleza", "pais", "identificacion_fiscal", "perfil_uso", "modulos", "contabilidad_pos",
         "codigo",
         "nombre",
         "logo",
@@ -31,8 +32,14 @@ class Cyber extends Model
         return [
             "autoservicio_hasta" => "datetime",
             "activo" => "boolean",
+            "modulos" => "array", "contabilidad_pos" => "boolean",
             "autoservicio" => "boolean",
         ];
+    }
+
+    public function moduloHabilitado(string $modulo): bool
+    {
+        return $this->modulos === null || in_array($modulo, $this->modulos, true);
     }
 
     public function qrAbierto(): bool

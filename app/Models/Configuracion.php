@@ -104,7 +104,7 @@ class Configuracion extends Model
         'pro_paleta'            => 'cyber',
 
         // ── General
-        'diseno_defecto'        => 'pro',  // clasico | pro
+        'diseno_defecto'        => 'esencial',  // Los diseños sencillos se presentan primero
     ];
 
     /** Paletas del diseño Pro: [barra lateral, acento, fondo suave del acento]. */

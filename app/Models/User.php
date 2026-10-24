@@ -24,7 +24,7 @@ class User extends Authenticatable
 
     public const ROLES = [
         "admin" => "Administrador general",
-        "cyber" => "Usuario de Cyber",
+        "cyber" => "Usuario de negocio",
         "cliente" => "Usuario registrado (hace su propio CV)",
     ];
 
@@ -105,6 +105,8 @@ class User extends Authenticatable
         if ($permiso === "personal" && !$this->esEncargado()) {
             return false;
         }
+        $modulo = \App\Support\Negocios::moduloPermiso($permiso);
+        if ($modulo && !$this->cyber?->moduloHabilitado($modulo)) return false;
         $lista =
             $this->permisos ??
             Permisos::perfil($this->esEncargado() ? "encargado" : "cajero");

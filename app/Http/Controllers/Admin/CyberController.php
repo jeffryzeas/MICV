@@ -28,10 +28,11 @@ class CyberController extends Controller
     {
         $datos = $this->validar($request);
         $cyber = Cyber::create($datos);
+        \App\Models\Pos\PosConfig::para($cyber);
         $this->logo($request, $cyber);
         Actividad::registrar('cyber_crear', $cyber->nombre);
 
-        return redirect()->route('admin.cybers.index')->with('mensaje', "Cyber «{$cyber->nombre}» registrado. Ahora créele sus usuarios.");
+        return redirect()->route('admin.cybers.index')->with('mensaje', "Negocio «{$cyber->nombre}» registrado. Ahora créele sus usuarios.");
     }
 
     public function edit(Cyber $cyber)
@@ -41,11 +42,18 @@ class CyberController extends Controller
 
     public function update(Request $request, Cyber $cyber)
     {
-        $cyber->update($this->validar($request, $cyber));
+        $datos = $this->validar($request, $cyber);
+        $paisAnterior = $cyber->pais ?: \App\Models\Pos\PosConfig::where('cyber_id',$cyber->id)->value('pais');
+        if ($paisAnterior && $paisAnterior !== $datos['pais']) {
+            $historial = \App\Models\Pos\PosVenta::where('cyber_id',$cyber->id)->exists() || \App\Models\ContableMovimiento::where('cyber_id',$cyber->id)->exists();
+            if ($historial) throw \Illuminate\Validation\ValidationException::withMessages(['pais'=>'Este negocio tiene movimientos. El país y la moneda requieren una migración contable; no se pueden cambiar desde este formulario.']);
+        }
+        $cyber->update($datos);
+        if ($paisAnterior !== $cyber->pais) \App\Models\Pos\PosConfig::para($cyber)->update(\App\Support\PosPaises::de($cyber->pais));
         $this->logo($request, $cyber);
         Actividad::registrar('cyber_editar', $cyber->nombre);
 
-        return redirect()->route('admin.cybers.index')->with('mensaje', 'Cyber actualizado.');
+        return redirect()->route('admin.cybers.index')->with('mensaje', 'Negocio actualizado.');
     }
 
     public function toggle(Cyber $cyber)
@@ -53,20 +61,23 @@ class CyberController extends Controller
         $cyber->update(['activo' => !$cyber->activo]);
         Actividad::registrar('cyber_toggle', $cyber->nombre . ' → ' . ($cyber->activo ? 'activo' : 'mantenimiento'));
 
-        return back()->with('mensaje', $cyber->activo ? 'Cyber reactivado.' : 'Cyber en mantenimiento: sus usuarios no podrán entrar.');
+        return back()->with('mensaje', $cyber->activo ? 'Negocio reactivado.' : 'Negocio en mantenimiento: sus usuarios no podrán entrar.');
     }
 
     public function destroy(Cyber $cyber)
     {
+        if (\App\Models\ContableMovimiento::where('cyber_id',$cyber->id)->exists() || \App\Models\Pos\PosVenta::where('cyber_id',$cyber->id)->exists()) {
+            return back()->withErrors(['general'=>'Este negocio tiene historial financiero. Desactívelo para conservar sus operaciones.']);
+        }
         if ($cyber->usuarios()->exists()) {
-            return back()->withErrors(['general' => 'Este Cyber tiene usuarios. Elimínelos o muévalos a otro Cyber primero (o póngalo en mantenimiento).']);
+            return back()->withErrors(['general' => 'Este negocio tiene usuarios. Elimínelos o muévalos a otro negocio primero (o póngalo en mantenimiento).']);
         }
         $nombre = $cyber->nombre;
         Archivos::borrar($cyber->logo);
         $cyber->delete(); // los clientes NO se borran: solo se quitan de este Cyber
         Actividad::registrar('cyber_eliminar', $nombre);
 
-        return redirect()->route('admin.cybers.index')->with('mensaje', "Cyber «{$nombre}» eliminado.");
+        return redirect()->route('admin.cybers.index')->with('mensaje', "Negocio «{$nombre}» eliminado.");
     }
 
     protected function validar(Request $request, ?Cyber $c = null): array
@@ -74,6 +85,12 @@ class CyberController extends Controller
         $request->merge(['codigo' => mb_strtoupper(trim((string) $request->input('codigo')))]);
         $hex = ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'];
         $d = $request->validate([
+            'tipo_negocio' => ['required', Rule::in(array_keys(\App\Support\Negocios::TIPOS))],
+            'naturaleza' => ['required', Rule::in(['natural','juridica'])],
+            'pais' => ['required', Rule::in(array_keys(\App\Support\PosPaises::PAISES))],
+            'identificacion_fiscal' => ['nullable','string','max:50'],
+            'perfil_uso' => ['required', Rule::in(array_keys(\App\Support\Negocios::PERFILES))],
+            'modulos' => ['nullable','array'], 'modulos.*' => [Rule::in(array_keys(\App\Support\Negocios::MODULOS))],
             'codigo'           => ['required', 'string', 'max:20', 'regex:/^[A-Z0-9_-]+$/', Rule::unique('cybers', 'codigo')->ignore($c?->id)],
             'nombre'           => ['required', 'string', 'max:120'],
             'direccion'        => ['nullable', 'string', 'max:255'],
@@ -84,7 +101,9 @@ class CyberController extends Controller
             'logo'             => ['nullable', 'image', 'max:51200'],
         ], ['codigo.regex' => 'El código solo puede tener letras, números, guion y guion bajo.'], ['codigo' => 'código']);
         unset($d['logo']);
-        $d['activo'] = $request->boolean('activo', true);
+        $d['activo'] = $request->boolean('activo');
+        $d['modulos'] = \App\Support\Negocios::modulos($d['perfil_uso'], $d['modulos'] ?? []);
+        $d['contabilidad_pos'] = $request->boolean('contabilidad_pos') && in_array('pos',$d['modulos'],true) && in_array('contabilidad',$d['modulos'],true);
         return $d;
     }
 

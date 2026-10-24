@@ -16,17 +16,17 @@
                 @foreach(['admin' => \App\Models\User::ROLES['admin'], 'cyber' => \App\Models\User::ROLES['cyber']] as $k => $t)
                     <label class="flex items-start gap-3 border-2 rounded-lg p-3 cursor-pointer {{ $rolSel === $k ? 'border-azul-800 bg-blue-50' : 'border-gray-200' }}">
                         <input type="radio" name="rol" value="{{ $k }}" @checked($rolSel === $k) class="mt-1" onchange="jzRol()">
-                        <span><b class="text-azul-950">{{ $t }}</b><br><span class="text-xs text-gray-500">{{ $k === 'admin' ? 'Ve todos los Cybers y clientes, crea Cybers y usuarios.' : 'Registra clientes y genera CV. Solo ve los de su Cyber.' }}</span></span>
+                        <span><b class="text-azul-950">{{ $t }}</b><br><span class="text-xs text-gray-500">{{ $k === 'admin' ? 'Ve todos los Negocios y clientes, crea Negocios y usuarios.' : 'Registra clientes y genera CV. Solo ve los de su Negocio.' }}</span></span>
                     </label>
                 @endforeach
             </div>
             @endif
 
             <div id="bloqueCyber" class="mb-4 {{ $rolSel !== 'cyber' ? 'hidden' : '' }}">
-                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Cyber</label>
+                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Negocio</label>
                 @if($cybers->isEmpty())
                     <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
-                        Primero <a href="{{ route('admin.cybers.create') }}" class="font-semibold underline">registre un Cyber</a>.
+                        Primero <a href="{{ route('admin.cybers.create') }}" class="font-semibold underline">registre un Negocio</a>.
                     </div>
                 @else
                     <select name="cyber_id" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
@@ -41,7 +41,7 @@
             @unless($usuario->esCliente())
             <div id="bloqueAccesoCyber" class="{{ $rolSel !== 'cyber' ? 'hidden' : '' }}">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <label class="text-sm">Perfil del usuario de Cyber<select name="perfil_acceso" class="w-full border rounded-lg p-2"><option value="encargado" @selected(old('perfil_acceso',$usuario->encargado_id?'cajero':'encargado')==='encargado')>Encargado del negocio</option><option value="cajero" @selected(old('perfil_acceso',$usuario->encargado_id?'cajero':'encargado')==='cajero')>Cajero / empleado</option></select></label>
+                <label class="text-sm">Perfil del usuario de Negocio<select name="perfil_acceso" class="w-full border rounded-lg p-2"><option value="encargado" @selected(old('perfil_acceso',$usuario->encargado_id?'cajero':'encargado')==='encargado')>Encargado del negocio</option><option value="cajero" @selected(old('perfil_acceso',$usuario->encargado_id?'cajero':'encargado')==='cajero')>Cajero / empleado</option></select></label>
                 <label class="text-sm">Encargado (para cajeros)<select name="encargado_id" class="w-full border rounded-lg p-2"><option value="">Seleccione</option>@foreach($encargados as $enc)<option data-cyber="{{ $enc->cyber_id }}" value="{{ $enc->id }}" @selected(old('encargado_id',$usuario->encargado_id)==$enc->id)>{{ $enc->name }} — {{ $enc->cyber?->nombre }}</option>@endforeach</select></label>
             </div>
             @include('partials.permisos-selector')

@@ -182,13 +182,12 @@ class MunicipiosNicaraguaTest extends TestCase
             ->assertSee('data-codigo="561"', false)
             ->assertDontSee('data-codigo="521"', false);
     }
-    public function test_solo_admin_mantiene_catalogo_y_cyber_autorizado_solo_consulta()
+    public function test_catalogo_exclusivo_admin_incluso_si_negocio_tiene_permiso_de_clientes()
     {
         $cy = $this->usuario("cyber");
         $this->actingAs($cy)
             ->get(route("municipios.index"))
-            ->assertOk()
-            ->assertDontSee("Nuevo código");
+            ->assertForbidden();
         $this->post(
             route("admin.municipios-ni.store"),
             $this->datos(),
@@ -200,7 +199,7 @@ class MunicipiosNicaraguaTest extends TestCase
         $cy->forceFill(["permisos" => ["pos.vender"]])->save();
         $this->actingAs($cy)->get(route("municipios.index"))->assertForbidden();
         $cy->forceFill(["permisos" => ["correos"]])->save();
-        $this->actingAs($cy)->get(route("municipios.index"))->assertOk();
+        $this->actingAs($cy)->get(route("municipios.index"))->assertForbidden();
     }
     public function test_agregar_codigo_tiene_efecto_inmediato_y_no_elude_el_checksum()
     {

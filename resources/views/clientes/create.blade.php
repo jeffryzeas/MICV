@@ -156,7 +156,7 @@
         if (data.existe && data.cliente && data.en_mi_cyber) {
             const r0 = await Swal.fire({
                 icon: 'info', title: 'Ya está en su lista',
-                html: '<b>' + data.cliente.nombre_completo + '</b><br><small>Esta persona ya está registrada en su Cyber.</small>',
+                html: '<b>' + data.cliente.nombre_completo + '</b><br><small>Esta persona ya está registrada en su Negocio.</small>',
                 confirmButtonText: 'Ver su ficha', confirmButtonColor: '#0B3C74', showCancelButton: true, cancelButtonText: 'Cerrar',
             });
             if (r0.isConfirmed && data.cliente.url) window.location = data.cliente.url;
@@ -164,8 +164,8 @@
         }
         if (data.existe && data.cliente) {
             const c = data.cliente;
-            // El cliente existe en otro Cyber: se cargan sus datos y al guardar
-            // se vincula también a este Cyber (no se duplica).
+            // El cliente existe en otro Negocio: se cargan sus datos y al guardar
+            // se vincula también a este Negocio (no se duplica).
             const r = await Swal.fire({
                 icon: 'info',
                 title: 'Persona encontrada',

@@ -2,7 +2,7 @@ const fs = require('fs');
 const ExcelJS = require('exceljs');
 async function generar(d, salida) {
  const wb = new ExcelJS.Workbook(); wb.creator = d.negocio;
- const s = wb.addWorksheet('Clientes', {views:[{state:'frozen',ySplit:5,showGridLines:false}],pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,printTitlesRow:'1:5'}});
+ const s = wb.addWorksheet('Clientes', {views:[{state:'frozen',ySplit:5,showGridLines:false}],pageSetup:{orientation:d.orientacion||'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,printTitlesRow:'1:5'}});
  s.columns = [34,25,24,40,12].map(width=>({width}));
  for(let i=1;i<=3;i++) s.mergeCells(i,1,i,5);
  s.getCell('A1').value=d.negocio;s.getCell('A2').value='Directorio de clientes';s.getCell('A3').value='Generado: '+d.generado+' · '+d.clientes.length+' registros · Uso interno';

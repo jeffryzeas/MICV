@@ -1,3 +1,5 @@
+> Actualización de negocios, países y libro de ingresos/gastos: consulte **LEAME-ACTUALIZACION.txt** antes de instalar. Esta actualización requiere migración y `npm ci`.
+
 # Mi CV — sistema de currículums (Laravel 12)
 
 Basado en el **Sistema JZ**, sin la parte de empresa, boletas (despachos,

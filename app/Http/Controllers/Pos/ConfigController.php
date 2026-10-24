@@ -44,6 +44,9 @@ class ConfigController extends PosBase
             'metodos.*.nombre' => ['required', 'string', 'max:30'],
         ], ['prefijo.regex' => 'El prefijo solo puede tener letras, números, guion o barra.'], ['impuesto_tasa' => 'tasa', 'siguiente_numero' => 'siguiente número']);
 
+        if (($d['moneda'] !== $cfg->moneda || $d['pais'] !== $cfg->pais) && (\App\Models\Pos\PosVenta::where('cyber_id',$cfg->cyber_id)->exists() || \App\Models\ContableMovimiento::where('cyber_id',$cfg->cyber_id)->exists())) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['moneda'=>'No se puede cambiar país o moneda cuando hay movimientos registrados.']);
+        }
         // El consecutivo nunca puede bajar a uno ya usado.
         $ultimo = (int) \App\Models\Pos\PosVenta::where('cyber_id', $cfg->cyber_id)->max('consecutivo');
         if ($d['siguiente_numero'] <= $ultimo) {
@@ -57,7 +60,7 @@ class ConfigController extends PosBase
         $d['precios_con_impuesto'] = $request->boolean('precios_con_impuesto');
         $d['prefijo'] = $d['prefijo'] ?? '';
         $d['locale'] = $d['locale'] ?: (PosPaises::PAISES[$d['pais']][6] ?? 'es');
-        $cfg->update($d);
+        \Illuminate\Support\Facades\DB::transaction(function()use($cfg,$d){$cfg->update($d);$cfg->cyber->update(['pais'=>$d['pais']]);});
         Actividad::registrar('pos_config', $cfg->cyber->nombre);
         return back()->with('mensaje', 'Configuración del punto de venta guardada.');
     }

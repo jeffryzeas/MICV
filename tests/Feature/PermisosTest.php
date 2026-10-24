@@ -14,6 +14,7 @@ class PermisosTest extends TestCase
     public function test_cajero_predeterminado_no_puede_configurar_ni_administrar_personal(): void
     {
         $u=new User(['rol'=>'cyber','encargado_id'=>7,'permisos'=>null]);
+        $u->setRelation('cyber',new \App\Models\Cyber(['modulos'=>null]));
         $this->assertTrue($u->tienePermiso('pos.vender'));
         $this->assertTrue($u->tienePermiso('pos.ventas'));
         $this->assertFalse($u->tienePermiso('pos.config'));

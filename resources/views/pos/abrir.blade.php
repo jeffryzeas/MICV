@@ -19,7 +19,7 @@
         @if(!\App\Models\Pos\PosProducto::where('cyber_id', $cyberPos->id)->exists())
             <div class="mt-4 bg-blue-50 border border-blue-100 rounded-2xl p-4 text-sm text-azul-800">
                 <p class="font-semibold">¿Primera vez?</p>
-                <p class="mt-1">Revise la <a class="underline font-semibold" href="{{ route('pos.config') }}">configuración</a> (moneda, impuesto y datos del negocio) y agregue sus <a class="underline font-semibold" href="{{ route('pos.productos') }}">productos y servicios</a>. Puede cargar de una vez los servicios típicos de un Cyber.</p>
+                <p class="mt-1">Revise la <a class="underline font-semibold" href="{{ route('pos.config') }}">configuración</a> (moneda, impuesto y datos del negocio) y agregue sus <a class="underline font-semibold" href="{{ route('pos.productos') }}">productos y servicios</a>. Puede cargar de una vez los servicios típicos de un Negocio.</p>
             </div>
         @endif
     </div>

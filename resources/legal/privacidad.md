@@ -16,7 +16,7 @@ También es el **aviso de privacidad** que piden las leyes de varios países.
 - **Correo para temas de privacidad:** **{{correo}}**
 - **Teléfono:** {{telefono}}
 
-Cuando un **Cyber afiliado** registra sus datos en su local, lo hace por cuenta nuestra y siguiendo nuestras instrucciones (es "encargado del tratamiento"). Esta misma política se aplica a esos datos.
+Cuando un **Negocio afiliado** registra sus datos en su local, lo hace por cuenta nuestra y siguiendo nuestras instrucciones (es "encargado del tratamiento"). Esta misma política se aplica a esos datos.
 
 ## 2. Qué datos tratamos
 | Tipo | Datos | ¿Es obligatorio? |
@@ -37,7 +37,7 @@ Cuando un **Cyber afiliado** registra sus datos en su local, lo hace por cuenta 
 |---|---|
 | Crear su cuenta, guardar su información y generar su CV y sus cartas | Su consentimiento y la ejecución del servicio que usted pide |
 | Verificar su correo, recuperar su contraseña y enviarle su CV por correo | Ejecución del servicio |
-| Que el Cyber afiliado que le atendió pueda hacerle sus documentos | Su consentimiento, dado al Cyber |
+| Que el Negocio afiliado que le atendió pueda hacerle sus documentos | Su consentimiento, dado al Negocio |
 | Proteger la plataforma contra fraudes, robots y ataques (límites de intentos, reCAPTCHA, auditoría) | Interés legítimo en la seguridad y obligación legal de proteger los datos |
 | Atender sus solicitudes y reclamos, y cumplir órdenes de autoridades | Obligación legal |
 | Avisarle de cambios importantes del servicio o de estos textos | Ejecución del servicio |
@@ -45,7 +45,7 @@ Cuando un **Cyber afiliado** registra sus datos en su local, lo hace por cuenta 
 **No vendemos ni alquilamos sus datos.** No los usamos para publicidad, no hacemos perfiles comerciales y no tomamos decisiones automáticas que le afecten. Las "ideas" de redacción son sugerencias fijas que usted elige; no analizan su persona.
 
 ## 4. Con quién compartimos sus datos
-1. **Cyber afiliado:** solo si usted acudió a ese local o él le registró. Solo ve a sus propios clientes.
+1. **Negocio afiliado:** solo si usted acudió a ese local o él le registró. Solo ve a sus propios clientes.
 2. **Proveedores técnicos**, con contratos y medidas de confidencialidad, y solo lo necesario:
    - el **servidor o hosting** donde funciona la plataforma;
    - **Google**: el correo (Gmail) para enviar códigos y su CV, y reCAPTCHA para detectar robots. reCAPTCHA recoge datos técnicos de su navegador según la [política de privacidad de Google](https://policies.google.com/privacy) y sus [términos](https://policies.google.com/terms).
@@ -70,7 +70,7 @@ Las cuentas que no se usen por más de 24 meses podrán eliminarse, avisando ant
 - Conexión cifrada (HTTPS).
 - Contraseñas guardadas con un cifrado de un solo sentido: nadie puede leerlas, ni nosotros.
 - Fotos en almacenamiento privado: no tienen dirección pública.
-- Acceso por roles: cada Cyber solo ve a sus clientes.
+- Acceso por roles: cada Negocio solo ve a sus clientes.
 - Límites de intentos contra robots y adivinación de contraseñas.
 - Llaves de servicios externos guardadas cifradas.
 - Registro de auditoría de las acciones importantes.
@@ -96,7 +96,7 @@ Cómo ejercerlos:
 
 Respondemos dentro del plazo que fije la ley de su país y, como máximo, en **10 días hábiles**. Si no queda conforme, puede reclamar ante la autoridad de protección de datos de su país (vea la tabla del punto 12).
 
-**Si un Cyber le registró:** puede pedirle al Cyber o pedirnos directamente a nosotros que corrijamos o borremos sus datos.
+**Si un Negocio le registró:** puede pedirle al Negocio o pedirnos directamente a nosotros que corrijamos o borremos sus datos.
 
 ## 9. Menores de edad
 La plataforma es para personas que buscan empleo y **no está dirigida a menores de 15 años**. Las personas de 15 a 17 años solo pueden usarla con permiso de su madre, padre o representante legal. Si usted es madre, padre o representante y cree que un menor nos dio datos sin permiso, escríbanos y los borraremos.

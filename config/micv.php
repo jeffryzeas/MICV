@@ -20,6 +20,7 @@ return [
 
     // Quitar el fondo de las fotos carné (modelo U²-Net, se descarga con: php artisan micv:modelo-fondo).
     'fondo' => [
+        'perfil' => env('MICV_FONDO_PERFIL', 'actual'),
         'modelo'  => env('MICV_MODELO_FONDO', storage_path('app/modelos/u2net_human_seg.onnx')),
         'url'     => env('MICV_MODELO_FONDO_URL', 'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_human_seg.onnx'),
         'timeout' => (int) env('MICV_FONDO_TIMEOUT', 120),

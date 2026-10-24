@@ -38,7 +38,7 @@
                     <div><label class="{{ $lb }}">Correo</label><input name="correo" type="email" maxlength="150" value="{{ $v('correo') }}" class="{{ $in }}"></div>
                     <div class="sm:col-span-2"><label class="{{ $lb }}">Dirección</label><input name="direccion" maxlength="200" value="{{ $v('direccion') }}" class="{{ $in }}"></div>
                 </div>
-                <p class="text-xs text-gray-400 mt-2">El logo es el de <a href="{{ auth()->user()->esAdmin() ? route('admin.cybers.index') : route('marca.edit') }}" class="underline">la marca del Cyber</a>.</p>
+                <p class="text-xs text-gray-400 mt-2">El logo es el de <a href="{{ auth()->user()->esAdmin() ? route('admin.cybers.index') : route('marca.edit') }}" class="underline">la marca del Negocio</a>.</p>
             </section>
 
             <section class="{{ $card }}">

@@ -25,7 +25,7 @@
                 <tr class="border-b last:border-0 {{ $mala ? 'bg-red-50/50' : '' }}">
                     <td class="py-2 pr-3 whitespace-nowrap text-xs">{{ $r->created_at?->format('d/m/Y h:i A') }}</td>
                     <td class="py-2 pr-3 font-mono text-xs">{{ $r->usuario?->usuario ?? '—' }}</td>
-                    <td class="py-2 pr-3 text-xs">{{ $r->usuario ? ($r->usuario->esAdmin() ? 'Admin' : ($r->usuario->esCliente() ? 'Cliente' : ($r->usuario->cyber?->nombre ?? 'Cyber'))) : '—' }}</td>
+                    <td class="py-2 pr-3 text-xs">{{ $r->usuario ? ($r->usuario->esAdmin() ? 'Admin' : ($r->usuario->esCliente() ? 'Cliente' : ($r->usuario->cyber?->nombre ?? 'Negocio'))) : '—' }}</td>
                     <td class="py-2 pr-3"><span class="px-2 py-0.5 rounded-full text-xs {{ $mala ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700' }}">{{ str_replace('_', ' ', $r->accion) }}</span></td>
                     <td class="py-2 pr-3 text-xs">{{ $r->detalle }}</td>
                     <td class="py-2 text-xs text-gray-400">{{ $r->ip }}</td>

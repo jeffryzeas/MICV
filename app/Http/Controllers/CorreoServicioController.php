@@ -287,7 +287,9 @@ class CorreoServicioController extends Controller
             $correo->cyber->logo && Archivos::existe($correo->cyber->logo)
                 ? Archivos::dataUri($correo->cyber->logo)
                 : null;
-        $html = view("correos.pdf", compact("correo", "logo"))->render();
+        $qr = \App\Services\Nodo::correr(resource_path('reports/correo-qr.cjs'), [], 30, $correo->contenidoQr());
+        if (!str_starts_with($qr,'data:image/png;base64,')) throw new \RuntimeException('No se pudo generar el QR.');
+        $html = view("correos.pdf", compact("correo", "logo", "qr"))->render();
         return response(CvPdf::pdfTamano($html, 215.9, 279.4), 200, [
             "Content-Type" => "application/pdf",
             "Content-Disposition" =>

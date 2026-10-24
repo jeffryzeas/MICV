@@ -269,6 +269,7 @@ class CorreosGestionTest extends TestCase
         $html = view("correos.pdf", [
             "correo" => $reg,
             "logo" => null,
+            "qr" => "data:image/png;base64,iVBORw0KGgo=",
         ])->render();
         $this->assertStringContainsString("&lt;Clave&gt;&amp;123", $html);
         $qr = json_decode(

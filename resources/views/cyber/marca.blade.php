@@ -1,5 +1,5 @@
 <x-layout titulo="Mi marca" activo="marca">
-    <p class="text-gray-500 mb-5">El logo y los colores de <b>{{ $cyber->nombre }}</b> se ven en su menú y en los CV que genera (paleta "Colores del Cyber").</p>
+    <p class="text-gray-500 mb-5">El logo y los colores de <b>{{ $cyber->nombre }}</b> se ven en su menú y en los CV que genera (paleta "Colores del Negocio").</p>
     <div class="bg-white rounded-xl shadow p-6 max-w-3xl">
         <form method="POST" action="{{ route('marca.update') }}" enctype="multipart/form-data">
             @csrf @method('PUT')

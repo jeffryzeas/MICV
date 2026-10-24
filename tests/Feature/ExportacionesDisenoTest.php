@@ -35,8 +35,6 @@ class ExportacionesDisenoTest extends TestCase
         $this->actingAs($this->usuario('admin'))->getJson(route('clientes.exportar', ['formato' => 'html']))->assertUnprocessable()->assertJsonValidationErrors('formato');
     }
 
-    #[\PHPUnit\Framework\Attributes\RunInSeparateProcess]
-    #[\PHPUnit\Framework\Attributes\PreserveGlobalState(false)]
     public function test_pdf_respeta_cyber_y_filtros_sin_exponer_otros_clientes(): void
     {
         $a = Cyber::create(['codigo' => 'EXPA', 'nombre' => 'Negocio A', 'activo' => true]);
@@ -46,7 +44,7 @@ class ExportacionesDisenoTest extends TestCase
             $cliente->cybers()->attach($cyber->id);
         }
         // Inspect the real rendered report; only replace the external Chromium conversion.
-        \Mockery::mock('alias:App\Services\CvPdf')->shouldReceive('desdeHtml')->once()->with(\Mockery::on(function ($html) {
+        $this->mock(\App\Services\ReportePdf::class)->shouldReceive('generar')->once()->with(\Mockery::on(function ($html) {
             $this->assertStringContainsString('AnaVisible', $html);
             $this->assertStringNotContainsString('AnaAjena', $html);
             $this->assertStringNotContainsString('OtraPersona', $html);

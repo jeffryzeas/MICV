@@ -31,7 +31,7 @@
                 <p class="text-gray-500 mt-1">{{ $cliente->tipoDocumentoLegible() }} · <span class="font-mono">{{ $cliente->documentoFormateado() }}</span></p>
                 @if($cliente->profesion)<p class="text-sm text-gray-400 mt-0.5">{{ $cliente->profesion }}</p>@endif
                 @if($yo->esAdmin())
-                    <p class="text-xs text-gray-400 mt-1">Cyber: {{ $cliente->cybers->pluck('nombre')->implode(', ') ?: 'ninguno' }}
+                    <p class="text-xs text-gray-400 mt-1">Negocio: {{ $cliente->cybers->pluck('nombre')->implode(', ') ?: 'ninguno' }}
                         @if($cliente->creador) · registrado por {{ $cliente->creador->usuario }}@endif</p>
                 @endif
 

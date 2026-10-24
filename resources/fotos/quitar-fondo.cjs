@@ -9,7 +9,8 @@
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
-const ort = require('onnxruntime-web');
+let ort, native=false;
+try { ort=require('onnxruntime-node');native=true; } catch {ort=require('onnxruntime-web');}
 
 const [entrada, salida, modelo, colorArg = '#ffffff'] = process.argv.slice(2);
 if (!entrada || !salida || !modelo) {
@@ -24,8 +25,11 @@ const CONF = nombreModelo.includes('birefnet')
         ? { lado: 1024, media: [0.5, 0.5, 0.5], desv: [1, 1, 1], porMax: false, sigmoide: false }
         : { lado: 320, media: [0.485, 0.456, 0.406], desv: [0.229, 0.224, 0.225], porMax: true, sigmoide: false };
 const LADO = CONF.lado;
-ort.env.wasm.numThreads = Math.max(1, Math.min(4, require('os').cpus().length));
-ort.env.wasm.wasmPaths = path.join(path.dirname(require.resolve('onnxruntime-web')), path.sep);
+if(!native){
+ if(nombreModelo.includes('birefnet'))throw new Error('BiRefNet requiere onnxruntime-node. Instale ese motor o seleccione U2Net/ISNet.');
+ ort.env.wasm.numThreads = Math.max(1, Math.min(4, require('os').cpus().length));
+ ort.env.wasm.wasmPaths = path.join(path.dirname(require.resolve('onnxruntime-web')), path.sep);
+}
 
 (async () => {
     const img = sharp(entrada, { limitInputPixels: 80_000_000 }).rotate().toColourspace('srgb'); // respeta la orientación EXIF del celular
@@ -45,7 +49,7 @@ ort.env.wasm.wasmPaths = path.join(path.dirname(require.resolve('onnxruntime-web
     }
 
     // 2. Inferencia.
-    const sesion = await ort.InferenceSession.create(fs.readFileSync(modelo), { executionProviders: ['wasm'] });
+    const sesion = await ort.InferenceSession.create(fs.readFileSync(modelo), { executionProviders: [native ? 'cpu' : 'wasm'] });
     const res = await sesion.run({ [sesion.inputNames[0]]: new ort.Tensor('float32', tensor, [1, 3, LADO, LADO]) });
     const salidaModelo = res[sesion.outputNames[0]];
     const pred = salidaModelo.data;
@@ -60,6 +64,7 @@ ort.env.wasm.wasmPaths = path.join(path.dirname(require.resolve('onnxruntime-web
     } else {
         for (const v of pred) { if (v < mn) mn = v; if (v > mx) mx = v; }
     }
+    if(!Number.isFinite(mn)||!Number.isFinite(mx))throw new Error('Máscara de segmentación inválida.');
     const mascara = Buffer.alloc(mw * mh);
     for (let i = 0; i < pred.length; i++) mascara[i] = Math.round(((pred[i] - mn) / ((mx - mn) || 1)) * 255);
     const alfa = await sharp(mascara, { raw: { width: mw, height: mh, channels: 1 } })

@@ -31,7 +31,7 @@
                 <input type="hidden" name="cybers_enviados" value="1">
                 <div class="mb-5 p-4 bg-gray-50 rounded-lg">
                     <label class="block text-xs font-semibold uppercase text-azul-800 mb-2 flex items-center gap-1.5">
-                        <x-icono name="building-2" class="size-3.5" /> Cybers que ven a esta persona
+                        <x-icono name="building-2" class="size-3.5" /> Negocios que ven a esta persona
                     </label>
                     <div class="flex flex-wrap gap-3">
                         @php $mios = old('cybers', $cliente->cybers->pluck('id')->all()); @endphp

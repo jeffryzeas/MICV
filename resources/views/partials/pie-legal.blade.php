@@ -5,7 +5,7 @@
         <a href="{{ route('legal.ver', 'terminos') }}" class="hover:underline">Términos</a>
         <a href="{{ route('legal.ver', 'privacidad') }}" class="hover:underline">Privacidad</a>
         <a href="{{ route('legal.ver', 'cookies') }}" class="hover:underline">Cookies</a>
-        <a href="{{ route('legal.ver', 'contrato') }}" class="hover:underline">Contrato Cybers</a>
+        <a href="{{ route('legal.ver', 'contrato') }}" class="hover:underline">Contrato Negocios</a>
         <a href="{{ route('eliminar.mostrar') }}" class="hover:underline">Eliminar mi cuenta</a>
     </div>
     <div>&copy; {{ date('Y') }} {{ $cfgPie?->nombre_negocio ?? 'Mi CV' }}@if($cfgPie?->pie_pagina) · {{ $cfgPie->pie_pagina }}@endif</div>

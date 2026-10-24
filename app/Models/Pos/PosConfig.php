@@ -35,7 +35,7 @@ class PosConfig extends Model
         if ($cfg) {
             return $cfg;
         }
-        $pais = \App\Models\Cliente::query()->whereHas('cybers', fn ($q) => $q->where('cybers.id', $cyber->id))
+        $pais = $cyber->pais ?: \App\Models\Cliente::query()->whereHas('cybers', fn ($q) => $q->where('cybers.id', $cyber->id))
             ->selectRaw('pais, count(*) as n')->groupBy('pais')->orderByDesc('n')->value('pais') ?: 'NI';
         $d = PosPaises::de($pais);
         return static::create($d + [

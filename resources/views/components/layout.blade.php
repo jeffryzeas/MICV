@@ -6,7 +6,7 @@
     $configuracionSistema = \App\Models\Configuracion::actualSegura();
     $yo = auth()->user();
     $miCyber = $yo && !$yo->esAdmin() ? $yo->cyber : null;
-    $rolBadge = $yo?->esAdmin() ? 'Admin' : ($yo?->esCliente() ? 'Mi cuenta' : ($miCyber?->nombre ?? 'Cyber'));
+    $rolBadge = $yo?->esAdmin() ? 'Admin' : ($yo?->esCliente() ? 'Mi cuenta' : ($miCyber?->nombre ?? 'Negocio'));
     $usuarioNombre = $yo?->name;
     $menuItems = \App\Support\Menu::para($yo);
     $logoutUrl = route('logout');
@@ -122,9 +122,9 @@
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden" onclick="toggleSidebar()"></div>
 
     <aside id="appSidebar" class="fixed lg:sticky inset-y-0 left-0 lg:top-0 z-40 -translate-x-full lg:translate-x-0 transition-transform duration-200 w-64 h-screen shrink-0 bg-azul-950 text-white flex flex-col">
-        <div class="flex items-center gap-3 px-5 py-5 border-b border-white/10">
+        <div class="app-brand flex items-center gap-3 px-5 py-5 border-b border-white/10">
             @if(!empty($logoUrl))
-                {{-- Logo propio del Cyber (lo pone el Cyber desde "Mi marca") --}}
+                {{-- Logo propio del Negocio (lo pone el Negocio desde "Mi marca") --}}
                 <img src="{{ $logoUrl }}" alt="Logo" class="h-9 max-w-[100px] object-contain bg-white rounded p-0.5">
             @elseif($logoSistema)
                 {{-- Logo general del sistema (lo pone el admin principal) --}}
@@ -174,7 +174,7 @@
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0">
-        <header class="bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between sticky top-0 z-20">
+        <header class="app-topbar bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between sticky top-0 z-20">
             <div class="flex items-center gap-3 min-w-0 flex-1">
                 <button type="button" onclick="toggleSidebar()" class="lg:hidden text-gray-500">
                     <x-icono name="menu" class="size-5" />

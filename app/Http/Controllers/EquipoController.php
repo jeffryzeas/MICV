@@ -49,7 +49,7 @@ class EquipoController extends Controller
             'name'=>['required','string','max:150'], 'usuario'=>['required','string','min:3','max:40','regex:/^[A-Z0-9._-]+$/',Rule::unique('users','usuario')->ignore($u?->id)],
             'email'=>['required','email','max:150',Rule::unique('users','email')->ignore($u?->id)],
             'password'=>[$u ? 'nullable':'required','confirmed',Password::min(8)],
-            'permisos'=>['nullable','array','max:40'], 'permisos.*'=>['string',Rule::in(array_diff(array_keys(Permisos::LISTA),['personal']))],
+            'permisos'=>['nullable','array','max:80'], 'permisos.*'=>['string',Rule::in(array_diff(array_keys(Permisos::LISTA),['personal']))],
             'encargado_id'=>['nullable','integer'],
         ]);
         $encargado=$r->user()->esAdmin() ? User::where('cyber_id',$cy->id)->where('rol','cyber')->whereNull('encargado_id')->where('activo',true)->find($d['encargado_id']??0) : $r->user();
@@ -59,7 +59,7 @@ class EquipoController extends Controller
         if (!$r->user()->esAdmin() && collect($d['permisos']??[])->contains(fn($p)=>!$r->user()->tienePermiso($p))) {
             throw \Illuminate\Validation\ValidationException::withMessages(['permisos'=>'Solo puede conceder los permisos que tiene habilitados.']);
         }
-        $d['permisos']=Permisos::completar(array_values($d['permisos']??[]));
+        $d['permisos']=array_values(array_filter(Permisos::completar(array_values($d['permisos']??[])),fn($p)=>!(($modulo=\App\Support\Negocios::moduloPermiso($p))) || $cy->moduloHabilitado($modulo)));
         if (blank($d['password']??null)) unset($d['password']);
         return $d;
     }

@@ -3,7 +3,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="bg-white rounded-xl shadow p-5 sm:p-6">
             <h2 class="font-semibold text-azul-950 mb-1 flex items-center gap-2"><x-icono name="shield-ban" class="size-[18px] text-red-500" /> Bloquear un documento</h2>
-            <p class="text-xs text-gray-500 mb-4">Ningún Cyber podrá registrar, consultar ni ver a la persona con ese número. Un usuario registrado tampoco podrá poner ese documento en su ficha. Solo usted (admin) la sigue viendo.</p>
+            <p class="text-xs text-gray-500 mb-4">Ningún Negocio podrá registrar, consultar ni ver a la persona con ese número. Un usuario registrado tampoco podrá poner ese documento en su ficha. Solo usted (admin) la sigue viendo.</p>
             <form method="POST" action="{{ route('admin.bloqueos.store') }}" class="space-y-4">
                 @csrf
                 <div><label class="{{ $lb }}">Número de documento *</label>
@@ -26,7 +26,7 @@
                             <div class="font-mono font-semibold text-azul-950">{{ $b->numero }}</div>
                             <div class="text-xs text-gray-500">{{ $b->motivo ?: 'Sin motivo' }} · {{ $b->created_at->format('d/m/Y') }} · {{ $b->autor?->name ?? '—' }}</div>
                         </div>
-                        <form method="POST" action="{{ route('admin.bloqueos.destroy', $b) }}" class="jz-confirmar" data-msg="El documento {{ $b->numero }} volverá a estar disponible para los Cybers.">
+                        <form method="POST" action="{{ route('admin.bloqueos.destroy', $b) }}" class="jz-confirmar" data-msg="El documento {{ $b->numero }} volverá a estar disponible para los Negocios.">
                             @csrf @method('DELETE')
                             <button class="inline-flex items-center gap-1.5 text-sm border border-gray-300 hover:border-red-400 hover:text-red-600 rounded-lg px-3 py-1.5"><x-icono name="unlock" class="size-4" /> Quitar</button>
                         </form>

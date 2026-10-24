@@ -18,6 +18,10 @@ class DashboardController extends Controller
         if ($u->esCliente()) {
             return redirect()->route('mi-cv.panel');
         }
+        if (!$u->esAdmin() && in_array($u->cyber?->perfil_uso,['pos','contabilidad','pos_contabilidad'],true)) {
+            if ($u->cyber->perfil_uso !== 'contabilidad' && $u->tienePermiso('pos.vender')) return redirect()->route('pos.vender');
+            if ($u->tienePermiso('contabilidad.ver')) return redirect()->route('contabilidad.index');
+        }
         if (!$u->esAdmin() && (!$u->esEncargado() || !$u->tienePermiso('clientes.ver'))) { return view('equipo.inicio'); }
         $base = Cliente::query()->visiblesPara($u);
         $inicioMes = now()->startOfMonth();

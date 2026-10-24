@@ -17,7 +17,7 @@ class UsuarioActivo
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-            return redirect()->route('login')->withErrors(['usuario' => 'Su acceso fue desactivado (usuario o Cyber en mantenimiento). Hable con el administrador.']);
+            return redirect()->route('login')->withErrors(['usuario' => 'Su acceso fue desactivado (usuario o negocio en mantenimiento). Hable con el administrador.']);
         }
         return $next($request);
     }

@@ -63,7 +63,7 @@
         <div class="bg-white rounded-xl shadow p-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
             <label class="flex items-start gap-2 text-sm">
                 <input type="checkbox" name="nueva_version" value="1" class="mt-1">
-                <span><b>Publicar como nueva versión</b> ({{ $cfg->legal_version ?: '1.0' }} → siguiente). Todos los usuarios y Cybers deberán aceptar los textos otra vez al entrar. Úselo solo con cambios importantes.</span>
+                <span><b>Publicar como nueva versión</b> ({{ $cfg->legal_version ?: '1.0' }} → siguiente). Todos los usuarios y Negocios deberán aceptar los textos otra vez al entrar. Úselo solo con cambios importantes.</span>
             </label>
             <button type="submit" class="inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-6 py-3 rounded-lg shrink-0">
                 <x-icono name="check" class="size-4" /> Guardar textos
