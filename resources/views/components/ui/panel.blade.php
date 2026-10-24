@@ -1,0 +1,2 @@
+@props(['title'=>null,'icon'=>null,'description'=>null])
+<section {{ $attributes->class('panel') }}>@if($title)<header class="mb-5 border-b border-gray-200 pb-4"><h2 class="flex items-center gap-2 text-base font-semibold text-azul-950">@if($icon)<x-icono :name="$icon" class="size-5 text-azul-800"/>@endif{{ $title }}</h2>@if($description)<p class="mt-1 text-sm text-gray-500">{{ $description }}</p>@endif</header>@endif{{ $slot }}</section>

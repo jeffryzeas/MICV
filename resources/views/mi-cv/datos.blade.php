@@ -2,7 +2,9 @@
 <x-layout titulo="Mis datos" activo="mi-datos">
     <p class="text-gray-500 mb-4 text-sm">Llene sus datos con calma, paso a paso o saltando al que quiera. Puede guardar en cualquier momento con el botón de abajo.</p>
 
-    <form method="POST" action="{{ route('mi-cv.actualizar') }}" enctype="multipart/form-data" onsubmit="return confSave(event)" data-pasos="si">
+    @php($edicion=\App\Support\EdicionCliente::permitidos(auth()->user()))
+    <div class="mb-5 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 flex items-start gap-2"><x-icono name="shield-check" class="size-5 shrink-0"/><p>{{ $edicion ? 'Puede editar las secciones habilitadas. Las demás se muestran en modo de consulta.' : 'Su cuenta tiene acceso de consulta. Solicite al administrador o al encargado que habilite la edición.' }}</p></div>
+    <form id="form-mi-cv" method="POST" action="{{ route('mi-cv.actualizar') }}" enctype="multipart/form-data" onsubmit="return confSave(event)" data-pasos="si">
         @csrf @method('PUT')
 
         <div class="bg-white rounded-xl shadow p-4 sm:p-6">
@@ -17,11 +19,13 @@
             @include('partials.campos-registro-cliente', ['cliente' => $cliente, 'paisActual' => $paisActual, 'notas' => false])
             <x-cv-form-fields :cliente="$cliente" />
 
-            @include('partials.barra-guardar', ['texto' => 'Guardar mis datos'])
+            @if($edicion)@include('partials.barra-guardar', ['texto' => 'Guardar mis datos'])@endif
         </div>
     </form>
 
     @push('scripts')
+    <script type="application/json" id="portal-edicion">@json(\App\Support\EdicionCliente::mapa(auth()->user()))</script>
+    <script src="{{ asset('js/portal-edicion.js') }}" defer></script>
     <script>
     function confSave(e){e.preventDefault();Swal.fire({title:'¿Guardar sus datos?',icon:'question',showCancelButton:true,confirmButtonColor:'#0B3C74',confirmButtonText:'Sí, guardar',cancelButtonText:'Cancelar'}).then(r=>{if(r.isConfirmed)e.target.submit();});return false;}
     </script>

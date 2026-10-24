@@ -1,5 +1,5 @@
 <x-layout titulo="Correos de clientes" activo="correos">
-<div class="jz-service max-w-6xl mx-auto space-y-6"><header><a href="{{ route('correos.create') }}" class="btn btn-pri" style="float:right"><x-icono name="mail-plus"/>Registrar correo</a><h1 class="text-2xl font-bold text-azul-800 flex items-center gap-2"><x-icono name="mail-plus"/>Correos de clientes</h1><p class="text-gris-500 mt-2">Registre el correo que creó con el cliente en el proveedor y entregue su comprobante. Este formulario no abre cuentas en Gmail ni cambia la contraseña de la plataforma.</p></header>
+<div class="w-full space-y-6"><header class="page-heading"><div><h1 class="page-title flex items-center gap-2"><x-icono name="mail" class="size-5"/>Correos de clientes</h1><p class="mt-1 text-sm text-gray-500">Consulte los registros y sus comprobantes.</p></div><x-ui.button :href="route('correos.create')" icon="mail-plus">Registrar correo</x-ui.button></header>
 @if(session('exito'))<p role="status" class="p-4 bg-green-50 rounded-xl">{{ session('exito') }}</p>@endif
 @if($errors->any())<div role="alert" class="p-4 bg-red-50 rounded-xl">@foreach($errors->all() as $e)<p>{{ $e }}</p>@endforeach</div>@endif
 

@@ -49,6 +49,7 @@ class MiCvController extends Controller
     public function actualizar(Request $request, ClienteGuardar $guardar)
     {
         $c = $this->miCliente($request);
+        abort_unless(\App\Support\EdicionCliente::permitidos($request->user()),403,'Su cuenta tiene acceso de consulta.');
         $guardar->actualizarPropio($request, $c);
         Actividad::registrar('mi_cv_actualizar', "#{$c->id}");
 

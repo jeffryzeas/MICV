@@ -74,6 +74,7 @@
                     <label class="inline-flex items-center gap-2 text-sm"><input type="checkbox" name="activo" value="1" @checked(old('activo', $usuario->activo ?? true))> Usuario activo (puede iniciar sesión)</label>
                 </div>
             </div>
+            @if($usuario->esCliente())<x-permisos-cliente :usuario="$usuario"/>@endif
             <button type="submit" class="mt-6 inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
                 <x-icono name="check" class="size-4" /> {{ $editando ? 'Guardar cambios' : 'Crear usuario' }}
             </button>

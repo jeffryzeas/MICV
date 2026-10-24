@@ -320,6 +320,11 @@ class UsuarioController extends Controller
         } else {
             $datos["permisos"] = null;
         }
+        if ($datos['rol']==='cliente' && $request->boolean('edicion_cliente_enviada')) {
+            $extra=$request->validate(['edicion_cliente'=>'nullable|array|max:4','edicion_cliente.*'=>['string',Rule::in(array_keys(\App\Support\EdicionCliente::GRUPOS))]]);
+            $datos['edicion_cliente']=array_values(array_unique($extra['edicion_cliente']??[]));
+        }
+        if($datos['rol']!=='cliente')$datos['edicion_cliente']=null;
         unset($datos["perfil_acceso"]);
         unset($datos["password"]);
         $datos["activo"] = $request->boolean("activo");

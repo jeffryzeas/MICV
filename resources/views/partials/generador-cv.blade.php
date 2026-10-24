@@ -9,7 +9,7 @@
         <div class="space-y-4">
             <div>
                 <p class="text-xs font-semibold uppercase text-azul-800 mb-2">Diseño</p>
-                <button type="button" id="cv-open-gallery" class="cv-gallery-trigger"><x-icono name="layout-template"/>Elegir diseño · 20 plantillas</button>
+                <button type="button" id="cv-open-gallery" class="btn btn-pri w-full"><x-icono name="layout-template"/>Elegir diseño · 20 plantillas</button>
                 <p id="cv-selected-name" class="text-sm mt-2" aria-live="polite"></p>
                 <dialog id="cv-gallery" class="cv-gallery"><div class="cv-gallery-head"><h3>Elija su plantilla</h3><button type="button" id="cv-close-gallery" class="btn btn-sec" aria-label="Cerrar galería"><x-icono name="x"/></button></div><p>20 diseños · Ejemplos con datos ficticios. Elija uno para ver su currículum real.</p><div class="cv-gallery-grid">
                 @foreach(\App\Services\CvDatos::DISENOS as $k => $t)

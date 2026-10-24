@@ -17,20 +17,32 @@ class AccesoClienteController extends Controller
 {
     public function formulario(Request $r, Cliente $cliente)
     {
-        $this->autorizar($r, $cliente);
+        $permiso=$r->user()->tienePermiso("clientes.acceso")?"clientes.acceso":"clientes.permisos";
+        $this->autorizar($r, $cliente, $permiso);
 
         return view("chat.acceso", compact("cliente"));
     }
 
-    private function autorizar(Request $r, Cliente $c): void
+    private function autorizar(Request $r, Cliente $c, string $permiso="clientes.acceso"): void
     {
         abort_unless(
             ($r->user()->esAdmin() ||
                 ($r->user()->esEncargado() &&
-                    $r->user()->tienePermiso("clientes.acceso"))) &&
+                    $r->user()->tienePermiso($permiso))) &&
                 $c->esVisiblePara($r->user()),
             403,
         );
+    }
+
+    public function permisos(Request $r, Cliente $cliente)
+    {
+        $this->autorizar($r,$cliente,'clientes.permisos');
+        $d=$r->validate(['edicion_cliente'=>'nullable|array|max:4','edicion_cliente.*'=>['string',Rule::in(array_keys(\App\Support\EdicionCliente::GRUPOS))]]);
+        $cuenta=User::find($cliente->user_id);
+        abort_unless($cuenta && $cuenta->esCliente(),422,'El cliente necesita una cuenta personal antes de configurar su edición.');
+        $cuenta->update(['edicion_cliente'=>array_values(array_unique($d['edicion_cliente']??[]))]);
+        Actividad::registrar('cliente_permisos_edicion','#'.$cliente->id);
+        return back()->with('mensaje','Permisos de edición del cliente actualizados.');
     }
 
     public function crear(Request $r, Cliente $cliente)

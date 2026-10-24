@@ -37,7 +37,6 @@
 
 <title>{{ $titulo }} · {{ $nombreSistema }}</title>
 <link rel="stylesheet" href="{{ asset('css/tema.css') }}?v={{ @filemtime(public_path('css/tema.css')) }}">
-<link rel="stylesheet" href="{{ asset('css/modulos.css') }}?v={{ @filemtime(public_path('css/modulos.css')) }}">
 <style>:root{--jz-azul-800: {{ \App\Support\Color::rgb($colorPrimario) }};--jz-oro-500: {{ \App\Support\Color::rgb($colorSecundario, '#C9971F') }};--jz-oro-700: {{ \App\Support\Color::oscuro($colorSecundario) }};}</style>
 <style>[x-cloak]{display:none!important}</style>
 <script src="{{ asset('vendor/sweetalert2.all.min.js') }}"></script>

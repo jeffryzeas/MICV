@@ -8,6 +8,7 @@ class Permisos
         'contabilidad.ver'=>'Ver ingresos, gastos y saldo', 'contabilidad.registrar'=>'Registrar ingresos y gastos', 'contabilidad.anular'=>'Anular movimientos manuales', 'contabilidad.exportar'=>'Exportar libro de ingresos y gastos',
         "correos" => "Registrar correos de clientes",
         "chat" => "Mensajes y trabajos (SMS JZ)",
+        "clientes.permisos" => "Administrar edición del portal del cliente",
         "clientes.acceso" => "Generar acceso del cliente",
         "clientes.ver" => "Ver clientes",
         "clientes.editar" => "Crear y editar clientes",
@@ -35,8 +36,8 @@ class Permisos
         "pos.proveedores" => "Proveedores",
         "pos.reportes" => "Reportes y Excel",
         "pos.config" => "Configurar POS",
-        "marca" => "Marca del Cyber",
-        "personal" => "Administrar cajeros",
+        "marca" => "Marca del negocio",
+        "personal" => "Administrar usuarios del negocio",
     ];
 
     public const PRESETS = [
@@ -65,6 +66,7 @@ class Permisos
     public static function completar(array $permisos): array
     {
         $deps = [
+            "clientes.permisos"=>["clientes.ver"],
             'contabilidad.registrar'=>['contabilidad.ver'], 'contabilidad.anular'=>['contabilidad.ver'], 'contabilidad.exportar'=>['contabilidad.ver'],
             "clientes.acceso" => ["clientes.ver"],
             "clientes.editar" => ["clientes.ver"],
@@ -96,9 +98,10 @@ class Permisos
             return [];
         }
         $exactos = [
+            "clientes.acceso.permisos"=>"clientes.permisos",
             'contabilidad.index'=>'contabilidad.ver', 'contabilidad.create'=>'contabilidad.registrar', 'contabilidad.store'=>'contabilidad.registrar', 'contabilidad.anular'=>'contabilidad.anular', 'contabilidad.exportar'=>'contabilidad.exportar',
             "municipios.index" => ["clientes.ver", "correos"],
-            "clientes.acceso" => "clientes.acceso",
+            "clientes.acceso" => ["clientes.acceso","clientes.permisos"],
             "clientes.acceso.crear" => "clientes.acceso",
             "clientes.create" => "clientes.editar",
             "clientes.store" => "clientes.editar",

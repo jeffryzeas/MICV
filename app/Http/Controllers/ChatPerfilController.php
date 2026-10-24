@@ -69,6 +69,7 @@ class ChatPerfilController extends Controller
             422,
             "Complete primero su ficha de cliente.",
         );
+        abort_if($c && ($r->hasFile('foto') || $r->boolean('quitar_foto')) && !\App\Support\EdicionCliente::puede($u,'foto'),403,'No tiene permiso para cambiar su foto.');
         $old = $c ? $c->foto : $u->chat_foto;
         $new = null;
         if ($r->hasFile("foto")) {

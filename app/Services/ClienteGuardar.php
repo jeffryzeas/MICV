@@ -99,6 +99,7 @@ class ClienteGuardar
     /** Edición completa de la ficha, incluidos el documento y el país. */
     public function actualizarPropio(Request $request, Cliente $cliente, bool $desdePanel = false): Cliente
     {
+        if (!$desdePanel && $request->user()?->esCliente()) return $this->actualizarLimitado($request,$cliente);
         $request->merge(['numero_documento' => \App\Support\Documentos::limpiar($request->input('tipo_documento'), $request->input('numero_documento'))]);
         $datos = $request->validate($this->reglas(true), $this->mensajes(), $this->atributos());
         $datos = \App\Support\SituacionLaboral::validar($datos);
@@ -125,6 +126,38 @@ class ClienteGuardar
             $cliente->update($campos);
             $this->sincronizarCv($cliente, $datos, soloSiVienenDatos: false);
             $this->guardarFoto($request, $cliente);
+            self::sincronizarNombreCuenta($cliente);
+            return $cliente->fresh();
+        });
+    }
+
+    protected function actualizarLimitado(Request $request, Cliente $cliente): Cliente
+    {
+        $campos=\App\Support\EdicionCliente::validarPeticion($request,$cliente);
+        $grupos=\App\Support\EdicionCliente::permitidos($request->user());
+        if(in_array('documento',$grupos,true))$request->merge(['numero_documento'=>\App\Support\Documentos::limpiar($request->input('tipo_documento'),$request->input('numero_documento'))]);
+        $reglas=array_filter($this->reglas(true),fn($key)=>in_array(explode('.',$key)[0],$campos,true),ARRAY_FILTER_USE_KEY);
+        if(in_array('foto',$grupos,true))$reglas['quitar_foto']='nullable|boolean';
+        $datos=$request->validate($reglas,$this->mensajes(),$this->atributos());
+        $guardar=collect($datos)->only(array_intersect($campos,self::CAMPOS))->all();
+        if(in_array('documento',$grupos,true)){
+            $completos=$cliente->getAttributes();
+            if($cliente->fecha_nacimiento)$completos['fecha_nacimiento']=$cliente->fecha_nacimiento->toDateString();
+            $completos=$this->completarSegunDocumento(array_merge($completos,$datos));
+            $otro=Cliente::where('tipo_documento',$completos['tipo_documento'])->where('numero_documento',$completos['numero_documento'])->whereKeyNot($cliente->id)->exists();
+            if($otro)throw ValidationException::withMessages(['numero_documento'=>'Ese documento pertenece a otra persona.']);
+            foreach(['pais','tipo_documento','numero_documento','edad_calculada','fecha_nacimiento','municipio_nacimiento','departamento_nacimiento'] as $key)if(array_key_exists($key,$completos))$guardar[$key]=$completos[$key];
+        }
+        if(in_array('datos',$grupos,true)){
+            $laboral=\App\Support\SituacionLaboral::validar(array_merge($cliente->getAttributes(),$guardar));
+            $guardar['autorizacion_laboral']=$laboral['autorizacion_laboral']??null;
+            foreach(['linkedin','github','sitio_web'] as $campo)if(array_key_exists($campo,$guardar))$guardar[$campo]=Cliente::limpiarEnlace($guardar[$campo],$campo);
+            $guardar['telefono_whatsapp']=$request->boolean('telefono_whatsapp');
+        }
+        return DB::transaction(function()use($request,$cliente,$datos,$guardar,$grupos){
+            if($guardar)$cliente->update($guardar);
+            if(in_array('cv',$grupos,true))$this->sincronizarCv($cliente,$datos,soloSiVienenDatos:false);
+            if(in_array('foto',$grupos,true))$this->guardarFoto($request,$cliente);
             self::sincronizarNombreCuenta($cliente);
             return $cliente->fresh();
         });

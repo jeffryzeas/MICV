@@ -95,6 +95,7 @@ class FotoController extends Controller
     /** Pone la foto recortada como foto del CV del cliente. */
     public function usarEnCv(Request $request, Cliente $cliente)
     {
+        abort_if($request->user()->esCliente() && !\App\Support\EdicionCliente::puede($request->user(),'foto'),403);
         abort_unless($cliente->esVisiblePara($request->user()), 403);
         $img = Archivos::desdeDataUri($request->input('imagen'));
         if (!$img) {

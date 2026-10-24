@@ -1,68 +1,14 @@
-@php $editando = $cyber->exists; @endphp
-<x-layout :titulo="$editando ? 'Editar Negocio' : 'Registrar Negocio'" activo="cybers">
-    <a href="{{ route('admin.cybers.index') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors mb-5">
-        <x-icono name="arrow-left" class="size-4" /> Volver
-    </a>
-    <div class="bg-white rounded-xl shadow p-6 max-w-3xl">
-        <form method="POST" enctype="multipart/form-data" action="{{ $editando ? route('admin.cybers.update', $cyber) : route('admin.cybers.store') }}">
-            @csrf <input type="hidden" name="activo" value="0"> @if($editando) @method('PUT') @endif
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="sm:col-span-3"><h2 class="font-bold mb-2">Perfil del negocio</h2><p class="text-sm text-gray-500">Elija el país y los módulos que utilizará. La moneda se configura inicialmente según el país; revise los impuestos antes de operar.</p></div>
-                <label>Tipo de negocio<select class="campo w-full" name="tipo_negocio" required>@foreach(\App\Support\Negocios::TIPOS as $key=>$label)<option value="{{ $key }}" @selected(old('tipo_negocio',$cyber->tipo_negocio ?? 'comercio')===$key)>{{ $label }}</option>@endforeach</select></label>
-                <label>Naturaleza<select class="campo w-full" name="naturaleza" required><option value="natural" @selected(old('naturaleza',$cyber->naturaleza)==='natural')>Persona natural</option><option value="juridica" @selected(old('naturaleza',$cyber->naturaleza)==='juridica')>Persona jurídica</option></select></label>
-                <label>País<select class="campo w-full" name="pais" id="negocio-pais" required>@foreach(\App\Support\PosPaises::PAISES as $key=>$values)<option value="{{ $key }}" @selected(old('pais',$cyber->pais ?? 'NI')===$key)>{{ \App\Support\Pais::de($key)['nombre'] }} · {{ $values[0] }} {{ $values[1] }}</option>@endforeach</select></label>
-                <label class="sm:col-span-2">Identificación fiscal<input class="campo w-full" name="identificacion_fiscal" maxlength="50" value="{{ old('identificacion_fiscal',$cyber->identificacion_fiscal) }}"></label>
-                <label>Uso principal<select class="campo w-full" name="perfil_uso" id="negocio-perfil" required>@foreach(\App\Support\Negocios::PERFILES as $key=>$label)<option value="{{ $key }}" @selected(old('perfil_uso',$cyber->perfil_uso ?? 'integral')===$key)>{{ $label }}</option>@endforeach</select></label>
-                <fieldset class="sm:col-span-3 border rounded-xl p-4" id="negocio-modulos"><legend>Módulos personalizados</legend><div class="ledger-fields">@foreach(\App\Support\Negocios::MODULOS as $key=>$label)<label><input type="checkbox" name="modulos[]" value="{{ $key }}" @checked(in_array($key,old('modulos',$cyber->modulos ?? array_keys(\App\Support\Negocios::MODULOS)),true))>{{ $label }}</label>@endforeach</div></fieldset>
-                <label class="sm:col-span-3"><input type="checkbox" name="contabilidad_pos" value="1" @checked(old('contabilidad_pos',$cyber->contabilidad_pos))>Vincular las ventas nuevas del POS con ingresos y gastos<small class="block text-gray-500">Disponible cuando ambos módulos están habilitados. No importa ventas anteriores ni modifica la moneda de movimientos existentes. Las compras y gastos se registran manualmente.</small></label>
-
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Código</label>
-                    <input type="text" name="codigo" value="{{ old('codigo', $cyber->codigo) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2.5 uppercase font-mono">
-                </div>
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Nombre del Negocio</label>
-                    <input type="text" name="nombre" value="{{ old('nombre', $cyber->nombre) }}" required placeholder="Ej: Negocio San Nicolás" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Teléfono</label>
-                    <input type="text" name="telefono" value="{{ old('telefono', $cyber->telefono) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                </div>
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Correo</label>
-                    <input type="email" name="correo" value="{{ old('correo', $cyber->correo) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                </div>
-                <div class="sm:col-span-3">
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Dirección</label>
-                    <input type="text" name="direccion" value="{{ old('direccion', $cyber->direccion) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Color primario</label>
-                    <input type="color" name="color_primario" value="{{ old('color_primario', $cyber->color_primario) }}" class="w-full h-10 border border-gray-300 rounded-lg">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Color secundario</label>
-                    <input type="color" name="color_secundario" value="{{ old('color_secundario', $cyber->color_secundario) }}" class="w-full h-10 border border-gray-300 rounded-lg">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Estado</label>
-                    <label class="inline-flex items-center gap-2 text-sm border border-gray-300 rounded-lg px-3 py-2.5 w-full">
-                        <input type="checkbox" name="activo" value="1" @checked(old('activo', $cyber->activo ?? true))> Activo
-                    </label>
-                </div>
-                <div class="sm:col-span-3">
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Logo (opcional)</label>
-                    <div class="flex items-center gap-4">
-                        @if($cyber->logoUrl())<img src="{{ $cyber->logoUrl() }}" class="h-12 object-contain bg-gray-50 border rounded p-1" alt="">@endif
-                        <input type="file" name="logo" accept="image/*" class="text-sm">
-                        @if($cyber->logoUrl())<label class="inline-flex items-center gap-2 text-sm"><input type="checkbox" name="quitar_logo" value="1"> Quitar logo</label>@endif
-                    </div>
-                </div>
-            </div>
-            <button type="submit" class="mt-6 inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
-                <x-icono name="check" class="size-4" /> {{ $editando ? 'Guardar cambios' : 'Registrar Negocio' }}
-            </button>
-        </form>
-    </div>
-@push('scripts')<script>const perfilNegocio=document.getElementById('negocio-perfil'),modulosNegocio=document.getElementById('negocio-modulos');function mostrarModulos(){modulosNegocio.hidden=perfilNegocio.value!=='personalizado';}perfilNegocio.addEventListener('change',mostrarModulos);mostrarModulos();</script>@endpush
-</x-layout>
+@php($editando=$cyber->exists)
+<x-layout :titulo="$editando?'Editar negocio':'Registrar negocio'" activo="cybers"><div class="page-heading"><p class="text-sm text-gray-500">Datos generales, módulos habilitados e identidad visual.</p><x-ui.button :href="route('admin.cybers.index')" variant="secondary" icon="arrow-left">Volver a negocios</x-ui.button></div>
+<form method="POST" enctype="multipart/form-data" action="{{ $editando ? route('admin.cybers.update',$cyber) : route('admin.cybers.store') }}" class="space-y-5">@csrf @if($editando) @method('PUT') @endif<input type="hidden" name="activo" value="0">
+<x-ui.panel title="Datos del negocio" icon="building-2" description="El país define los valores iniciales de moneda. Revise los impuestos antes de operar."><div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+<x-ui.field label="Código" for="negocio-codigo"><input id="negocio-codigo" class="campo uppercase font-mono" name="codigo" value="{{ old('codigo',$cyber->codigo) }}" maxlength="20" required></x-ui.field><x-ui.field label="Nombre comercial" for="negocio-nombre" class="sm:col-span-2"><input id="negocio-nombre" class="campo" name="nombre" value="{{ old('nombre',$cyber->nombre) }}" maxlength="120" required placeholder="Nombre del negocio"></x-ui.field>
+<x-ui.field label="Tipo de negocio" for="negocio-tipo"><select id="negocio-tipo" class="campo" name="tipo_negocio" required>@foreach(\App\Support\Negocios::TIPOS as $key=>$label)<option value="{{ $key }}" @selected(old('tipo_negocio',$cyber->tipo_negocio??'comercio')===$key)>{{ $label }}</option>@endforeach</select></x-ui.field>
+<x-ui.field label="Naturaleza" for="negocio-naturaleza"><select id="negocio-naturaleza" class="campo" name="naturaleza" required><option value="natural" @selected(old('naturaleza',$cyber->naturaleza)==='natural')>Persona natural</option><option value="juridica" @selected(old('naturaleza',$cyber->naturaleza)==='juridica')>Persona jurídica</option></select></x-ui.field>
+<x-ui.field label="País y moneda inicial" for="negocio-pais"><select class="campo" name="pais" id="negocio-pais" required>@foreach(\App\Support\PosPaises::PAISES as $key=>$values)<option value="{{ $key }}" @selected(old('pais',$cyber->pais??'NI')===$key)>{{ \App\Support\Pais::de($key)['nombre'] }} · {{ $values[0] }} {{ $values[1] }}</option>@endforeach</select></x-ui.field>
+@foreach(['identificacion_fiscal'=>'Identificación fiscal','telefono'=>'Teléfono','correo'=>'Correo electrónico'] as $campo=>$label)<x-ui.field :label="$label" :for="'negocio-'.$campo"><input id="negocio-{{ $campo }}" class="campo" name="{{ $campo }}" type="{{ $campo==='correo'?'email':'text' }}" value="{{ old($campo,$cyber->$campo) }}" maxlength="{{ $campo==='correo'?150:50 }}"></x-ui.field>@endforeach
+<x-ui.field label="Dirección" for="negocio-direccion" class="sm:col-span-2 xl:col-span-3"><input id="negocio-direccion" class="campo" name="direccion" value="{{ old('direccion',$cyber->direccion) }}" maxlength="255"></x-ui.field></div></x-ui.panel>
+<x-ui.panel title="Módulos y funcionamiento" icon="layout-dashboard"><div class="form-grid"><label>Uso principal<select class="campo" name="perfil_uso" id="negocio-perfil" required>@foreach(\App\Support\Negocios::PERFILES as $key=>$label)<option value="{{ $key }}" @selected(old('perfil_uso',$cyber->perfil_uso??'integral')===$key)>{{ $label }}</option>@endforeach</select></label><div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-500">Los usuarios solo podrán utilizar los módulos habilitados para este negocio.</div></div><fieldset class="mt-5 rounded-lg border border-gray-200 p-4" id="negocio-modulos"><legend class="px-1 text-sm font-semibold text-azul-950">Módulos personalizados</legend><div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">@foreach(\App\Support\Negocios::MODULOS as $key=>$label)<label class="flex items-start gap-2 text-sm"><input class="casilla mt-0.5" type="checkbox" name="modulos[]" value="{{ $key }}" @checked(in_array($key,old('modulos',$cyber->modulos??array_keys(\App\Support\Negocios::MODULOS)),true))><span>{{ $label }}</span></label>@endforeach</div></fieldset><label class="mt-5 flex items-start gap-2 text-sm"><input class="casilla mt-0.5" type="checkbox" name="contabilidad_pos" value="1" @checked(old('contabilidad_pos',$cyber->contabilidad_pos))><span>Vincular las ventas nuevas del POS con ingresos y gastos<small class="mt-1 block text-xs text-gray-500">Requiere ambos módulos. No importa ventas anteriores ni registra automáticamente compras o gastos.</small></span></label></x-ui.panel>
+<x-ui.panel title="Marca y estado" icon="palette"><div class="form-grid"><label>Color primario<input type="color" name="color_primario" value="{{ old('color_primario',$cyber->color_primario?:'#0B3C74') }}" class="campo"></label><label>Color secundario<input type="color" name="color_secundario" value="{{ old('color_secundario',$cyber->color_secundario?:'#C9971F') }}" class="campo"></label><div><label class="label-campo" for="negocio-logo">Logo (opcional)</label><input id="negocio-logo" type="file" name="logo" accept="image/png,image/jpeg,image/webp" class="campo">@if($cyber->logoUrl())<div class="mt-3 flex flex-wrap items-center gap-3"><img src="{{ $cyber->logoUrl() }}" class="h-12 max-w-[120px] object-contain" alt="Logo actual"><label class="flex items-center gap-2 text-sm"><input class="casilla" type="checkbox" name="quitar_logo" value="1">Quitar logo</label></div>@endif</div><label class="flex items-center gap-2"><input class="casilla" type="checkbox" name="activo" value="1" @checked(old('activo',$cyber->activo??true))>Negocio activo</label></div></x-ui.panel>
+<div class="panel flex flex-wrap justify-end gap-3"><x-ui.button :href="route('admin.cybers.index')" variant="secondary">Cancelar</x-ui.button><x-ui.button type="submit" icon="save">{{ $editando?'Guardar cambios':'Registrar negocio' }}</x-ui.button></div></form>
+@push('scripts')<script>const perfilNegocio=document.getElementById('negocio-perfil'),modulosNegocio=document.getElementById('negocio-modulos');function mostrarModulos(){modulosNegocio.hidden=perfilNegocio.value!=='personalizado';}perfilNegocio.addEventListener('change',mostrarModulos);mostrarModulos();</script>@endpush</x-layout>

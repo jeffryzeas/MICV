@@ -148,6 +148,7 @@ class ClienteController extends Controller
 
     public function edit(Request $request, Cliente $cliente)
     {
+        abort_unless($request->user()->tienePermiso("clientes.editar"),403);
         $this->autorizar($request, $cliente);
         $cliente->load(['estudios', 'experiencias', 'idiomas', 'habilidades', 'referencias', 'cybers']);
 
@@ -159,6 +160,7 @@ class ClienteController extends Controller
 
     public function update(Request $request, Cliente $cliente, ClienteGuardar $guardar)
     {
+        abort_unless($request->user()->tienePermiso("clientes.editar"),403);
         $this->autorizar($request, $cliente);
         $guardar->actualizar($request, $cliente);
         Actividad::registrar('cliente_editar', "#{$cliente->id} {$cliente->nombreCompleto()}");

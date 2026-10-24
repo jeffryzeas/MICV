@@ -8,8 +8,8 @@
         <x-icono name="arrow-left" class="size-4" /> Volver a la lista
     </a>
 
-    @if($yo->esAdmin() || ($yo->esEncargado() && $yo->tienePermiso('clientes.acceso')))
-    <a href="{{ route('clientes.acceso',$cliente) }}" class="inline-flex border bg-white rounded-lg px-4 py-3 mb-4 text-azul-800 font-semibold">Cuenta personal y acceso del cliente →</a>
+    @if($yo->esAdmin() || ($yo->esEncargado() && ($yo->tienePermiso('clientes.acceso') || $yo->tienePermiso('clientes.permisos'))))
+    <x-ui.button :href="route('clientes.acceso',$cliente)" variant="secondary" icon="shield-check" class="mb-4">Cuenta y permisos del cliente</x-ui.button>
     @endif
     <div class="bg-white rounded-xl shadow p-6 mb-5">
         <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5">

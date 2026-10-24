@@ -1,3 +1,5 @@
+> Corrección de tema y permisos del portal: consulte **LEAME-ACTUALIZACION.txt**. Incluye CSS compilado y requiere `php artisan migrate --force`.
+
 > Actualización de negocios, países y libro de ingresos/gastos: consulte **LEAME-ACTUALIZACION.txt** antes de instalar. Esta actualización requiere migración y `npm ci`.
 
 # Mi CV — sistema de currículums (Laravel 12)

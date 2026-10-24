@@ -1,216 +1,96 @@
-ACTUALIZACIÓN 2 — NEGOCIOS, PAÍSES, INGRESOS Y GASTOS
-Fecha de entrega: 02/11/2026
+ACTUALIZACIÓN 3 — TEMA GENERAL Y PERMISOS DE EDICIÓN DEL CLIENTE
 
-Esta versión continúa el ZIP entregado anteriormente. No se modificó GitHub ni un servidor de producción. Se conservan los nombres técnicos Cyber/cybers/cyber_id y el rol cyber para compatibilidad de base de datos; en las pantallas se utiliza Negocio.
+CORRECCIÓN DE PRESENTACIÓN
+Se corrigió el alcance de los estilos: campos y botones ya no dependen del contenedor exclusivo de correos. La aplicación utiliza un tema Tailwind compartido en resources/css/tema.css y su archivo compilado public/css/tema.css.
 
-INSTALACIÓN OBLIGATORIA
-1. Respaldar base de datos y archivos del servidor.
-2. Copiar el código actualizado conservando .env, storage y los datos existentes. El ZIP no incluye credenciales, dependencias instaladas ni la base de datos de pruebas.
-3. Instalar dependencias PHP si corresponde: composer install --no-dev --optimize-autoloader
-4. Ejecutar npm ci para instalar la nueva dependencia qrcode junto con las dependencias Node existentes. No omitir este paso: el comprobante de correo genera su QR en el servidor.
-5. Ejecutar php artisan migrate --force
-   Nueva migración: 2026_11_03_000001_negocios_contabilidad.php
-6. Ejecutar php artisan optimize:clear y php artisan view:cache
-7. Probar primero en un entorno de ensayo. Ejecutar php artisan test con dependencias de desarrollo instaladas.
-8. Al publicar, los usuarios deberán aceptar la nueva versión de los textos legales mediante el mecanismo existente.
+Se retiró la carga de modulos.css y los estilos visuales independientes del editor de documentos. Se conservaron únicamente las reglas de geometría del lienzo y la hoja de impresión dentro del tema compartido. El archivo modulos.css queda como compatibilidad vacía para enlaces antiguos.
 
-NEGOCIOS Y PAÍSES
-- Tipo: cyber, comercio, tienda, servicios profesionales, despacho contable, empresa, independiente u otro negocio.
-- Naturaleza: persona natural o jurídica; país e identificación fiscal.
-- Perfiles de uso: integral, solo POS, solo ingresos y gastos, POS con contabilidad, o selección personalizada de módulos.
-- El país inicial define moneda, símbolo, decimales y parámetros sugeridos del POS. Se conservan las configuraciones previas al migrar.
-- No se permite cambiar país o moneda desde los formularios si existen ventas o movimientos contables. La razón es evitar reetiquetar importes históricos como otra moneda.
-- Los parámetros tributarios sugeridos no determinan el régimen fiscal real del negocio. Deben revisarse antes de utilizar el sistema.
-- Panel de entrada adaptado a los perfiles de POS o contabilidad.
+Componentes Blade reutilizables: ui.button, ui.field y ui.panel. Todos comparten bordes, color del negocio, altura de controles, espaciado, foco, estados deshabilitados y modo oscuro. Los íconos siguen usando el componente Blade x-icono del proyecto y tienen tamaño coherente dentro de los botones.
 
-LIBRO DE INGRESOS Y GASTOS
-- Funciona sin POS y sin abrir una caja.
-- Registro de fecha, ingreso/gasto, categoría, concepto, referencia, importe, moneda y usuario responsable.
-- Saldo anterior, ingresos del período, gastos y saldo al cierre; tabla paginada y exportación PDF/Excel.
-- Los importes manuales se conservan con dos decimales en el libro y sus exportaciones para no ocultar centavos.
-- Anulación con motivo, fecha y usuario; no se borra el historial ni se sobrescriben montos originales.
-- Clave única de operación: un reintento no duplica un movimiento.
-- Aislamiento por negocio y permisos independientes de lectura, registro, anulación y exportación.
+Formularios y pantallas revisados: movimientos de ingresos/gastos, listado y registro de correos, datos del negocio, usuarios del equipo, permisos, exportaciones, documentos, fotos, tarjetas, POS, galería de CV y portal del cliente. Los formularios nuevos aprovechan el ancho disponible y se adaptan a móvil. El diseño de impresión de CV, tarjetas y PDF conserva sus reglas de página.
 
-VÍNCULO OPCIONAL CON POS
-- Activable al crear o editar un negocio si ambos módulos están habilitados.
-- Cada venta nueva pagada genera un ingreso por su total; el cambio no se cuenta como ingreso adicional.
-- Reintentar la misma venta no duplica el asiento auxiliar.
-- La anulación de una venta vinculada anula también su movimiento, aunque el vínculo se haya deshabilitado después.
-- Deshabilitar el vínculo afecta las ventas nuevas y no elimina movimientos anteriores.
-- No se importan ventas anteriores, compras, comisiones bancarias ni gastos automáticamente. Estos gastos se registran manualmente, evitando duplicar conceptos.
-- Este módulo es un libro auxiliar de ingresos y gastos: no es contabilidad completa por partida doble, conciliación bancaria, estados financieros ni declaración tributaria. Su saldo incluye los medios de pago registrados y no equivale únicamente a efectivo en caja o utilidad.
+PERMISOS PARA EDITAR CLIENTES
+1. Para que un usuario del negocio edite fichas, active el permiso existente «Crear y editar clientes» desde Usuarios / Mi equipo. Este permiso sigue limitado a los clientes visibles para su negocio.
+2. Para administrar qué puede editar el titular desde su cuenta personal, el administrador debe habilitar al encargado el permiso «Administrar edición del portal del cliente».
+3. Entre a Clientes -> Ver ficha -> Cuenta y permisos del cliente.
+4. Seleccione las secciones editables y guarde:
+   - Datos personales, contacto y perfil.
+   - País, documento de identidad y datos de nacimiento.
+   - Foto del currículum y chat.
+   - Estudios, experiencia, idiomas, habilidades y referencias.
+5. Sin ninguna sección seleccionada, el portal queda en modo de consulta.
 
-CV Y EXPERIENCIA DE USUARIO
-- Exactamente 20 diseños disponibles, con los sencillos al principio: Clásico, Elegante, Esencial, Lineal, Folio, Ejecutivo, Lateral, Moderno, Carta Amarillo y Azul, Creativo, Atlas, Nórdico, Horizonte, Vértice, Firma, Órbita, Metropolitano, Prisma, Académico y Estudio.
-- Botón destacado Elegir diseño · 20 plantillas; galería modal de seis opciones por página, accesible por teclado.
-- Veinte capturas PNG reales renderizadas con las plantillas y datos ficticios Lorem Ipsum. No son íconos esquemáticos ni imágenes de clientes.
-- Se mantiene la vista previa del CV real al seleccionar una plantilla. Los CV siguen siendo verticales y Word conserva su generador editable anterior.
-- Regeneración opcional: php artisan micv:miniaturas-cv
-- Menú móvil y cabecera limitan el nombre largo de la organización; los campos de cédula se ajustan en una sola fila en pantallas pequeñas.
-- Selector de permisos agrupado por módulos y perfiles: cajero, contador, documentos y todos los disponibles. Los módulos de la organización limitan los permisos reales.
-- El catálogo de municipios/códigos de cédulas se reserva al administrador. Los negocios conservan la validación de documentos en sus formularios.
+La misma configuración está disponible al editar una cuenta de tipo cliente desde Usuarios del administrador. Primero debe existir la cuenta personal. No se cambian contraseñas, cuentas ni roles para aplicar estos permisos.
 
-EXPORTACIONES Y QR
-- Acciones visibles Exportar PDF y Exportar Excel con íconos Blade del sistema.
-- Selector Automática/Vertical/Horizontal en reportes de clientes, ventas y libro de ingresos/gastos. También se aplica a la configuración de impresión de Excel.
-- Los PDF utilizan márgenes, encabezados repetibles de tabla, logo y colores del negocio; el ajuste de orientación no altera los formatos fijos de CV, fotos, tarjetas o el comprobante personal.
-- El QR de correo se genera como PNG en Node antes de renderizar el PDF; ya no depende de crear un SVG asincrónico dentro del navegador.
-- El QR incluye las credenciales del comprobante, como en el flujo original. El PDF mantiene encabezados privados y solo se entrega al titular autorizado.
+Las cuentas anteriores que no tienen una selección explícita conservan la edición de toda su ficha propia. Los controles de las secciones restringidas se muestran deshabilitados; el servidor también rechaza envíos manuales de campos no autorizados. Se bloquea el cambio de foto por la ruta alternativa del chat cuando no está permitido. Las secciones protegidas no se borran al guardar otras. Las notas internas, roles, estado y permisos del sistema no son campos editables por el cliente.
 
-CENTRO DE CHAT
-- Ajustes de cabecera, nombres extensos, burbujas, espaciado, búsqueda, pestañas y comportamiento móvil para una apariencia de mensajería más familiar.
-- Se conservan las funciones existentes: búsqueda, mensajes no leídos, adjuntos, notas de voz, edición/eliminación, permisos y cifrado al guardar.
-- La insignia institucional identifica el rol activo del negocio o administrador en esta plataforma; no es certificación legal ni cifrado de extremo a extremo.
+La administración de acceso y permisos del portal corresponde al administrador general o al encargado autorizado del negocio. La eliminación de clientes está reservada al administrador general. Los permisos de ficha no sustituyen los controles de seguridad de la propia cuenta, como cambiar contraseña o verificar un correo personal.
 
-QUITAR FONDO
-Se conserva el modelo actual por defecto y se ofrece selección de perfiles locales. No se cambia ni se descarga automáticamente un modelo pesado en producción.
-- Actual: conserva MICV_MODELO_FONDO y su configuración anterior.
-- U2Net: php artisan micv:modelo-fondo --perfil=u2net
-- ISNet: php artisan micv:modelo-fondo --perfil=isnet
-- BiRefNet Portrait: instalar onnxruntime-node en el servidor y ejecutar php artisan micv:modelo-fondo --perfil=birefnet
-Después de descargar, establecer MICV_FONDO_PERFIL=u2net, isnet o birefnet en .env y limpiar la caché de configuración. Para BiRefNet se necesita el motor nativo y más memoria; se rechaza su ejecución en WASM para evitar agotar memoria. No se incluyó el modelo de cientos de MB en el ZIP.
-El procesamiento normaliza RGB y orientación, valida las dimensiones y valores de la máscara, limita píxeles y preserva transiciones suaves de cabello. La calidad depende de la fotografía y del modelo; ningún recorte garantiza resultados perfectos en todas las imágenes.
-Fuentes técnicas de modelos: https://github.com/danielgatis/rembg y https://github.com/ZhengPeng7/BiRefNet
+INSTALACIÓN
+1. Respaldar archivos y base de datos.
+2. Copiar el código actualizado conservando .env y el almacenamiento existente.
+3. Ejecutar: php artisan migrate --force
+   Nueva migración: 2026_11_03_000002_edicion_portal_cliente.php
+   Añade users.edicion_cliente como JSON nullable. No cambia los permisos anteriores por defecto.
+4. Ejecutar: php artisan optimize:clear
+5. Ejecutar: php artisan view:cache
+6. Recargar el navegador con Ctrl+F5 para descartar estilos guardados.
 
-TEXTOS LEGALES
-- Terminología general de Negocio y ampliación de servicios y responsabilidades por módulo.
-- Anexos de términos, contrato y privacidad aplicados también cuando existen textos personalizados, sin reemplazar el cuerpo personalizado.
-- La migración incrementa la versión de aceptación si existe configuración previa.
-- Se distinguen registros auxiliares, facturación fiscal, parámetros por país, exportaciones y custodia de credenciales. Antes de usar estos textos como contrato definitivo deben revisarse para el responsable, país y actividad concretos.
+El CSS compilado está incluido. Esta entrega no añade dependencias PHP o Node. Si todavía no instaló la actualización anterior, ejecute también npm ci para disponer de qrcode y mantenga las dependencias de PDF/imagen del proyecto.
 
-PRUEBAS REALIZADAS
-- PHP 8.3: migraciones y suite completa: 73 pruebas, 933 verificaciones, cero fallos, errores u omisiones.
-- Blade: todas las vistas compiladas correctamente con view:cache.
-- Navegador Chromium: registro de clientes con nombre de negocio extenso, libro contable, formulario de negocio, permisos, galería y chat a 390 y 1280 píxeles, sin desbordamiento horizontal ni errores JavaScript.
-- Galería: 20 opciones, paginación, imágenes cargadas, selección y cierre.
-- Veinte capturas reales de CV generadas con sus fuentes y plantillas.
-- PDF generado a través de la implementación PHP/Browsershot: libro vertical, libro horizontal y comprobante de correo en una hoja. Se verificaron sus tamaños reales.
-- QR decodificado desde el PNG y desde la página del PDF rasterizada: contenido UTF-8 idéntico al original, incluidos contraseña y símbolos.
-- Excel vuelto a abrir: valores numéricos, textos que empiezan por = tratados como texto, ceros iniciales, referencias, fechas/encabezados y orientación.
-- Casos de seguridad: negocio ajeno, permisos insuficientes, catálogo exclusivo de administrador, reintentos, anulación y restricción de cambio de moneda con historial.
+Para recompilar el tema después de modificaciones propias: npm run css. La configuración de Tailwind ahora resuelve las rutas de contenido desde su propio archivo e incluye las clases utilizadas en los scripts de la aplicación.
 
-LÍMITES DE LA VALIDACIÓN
-Las pruebas de base de datos se ejecutaron con SQLite. Debe realizarse una prueba de migración y operación en su MySQL/MariaDB de producción. No se probó una inferencia completa con los modelos ONNX opcionales ni sus requisitos de memoria en el servidor destino. No se realizó una auditoría externa de seguridad, una certificación fiscal ni pruebas de carga empresarial.
+VALIDACIÓN REALIZADA
+- Suite completa PHP/Laravel: 82 pruebas y 974 verificaciones; cero errores, fallos u omisiones.
+- Vistas Blade compiladas correctamente.
+- 14 pantallas revisadas en navegador a 360, 390 y 1280 píxeles: sin desbordamiento horizontal. Se comprobó que los campos nuevos tienen borde y altura y los botones tienen el espaciado correspondiente.
+- Comprobación adicional en modo oscuro de movimientos, correos, negocios, documentos y acceso del cliente.
+- Editor de documentos: carga de una imagen y recorte con resultado visible después de la unificación del tema.
+- Galería: veinte capturas reales cargadas, paginación, selección y cierre.
+- Permisos: edición autorizada; rechazo de datos restringidos; cuenta de consulta; encargado autorizado; negocio ajeno; bloqueo del cambio de foto desde el chat; conservación de relaciones protegidas y compatibilidad con las cuentas anteriores.
+- ZIP completo comprobado, con índice central, verificación CRC y extracción de todos los archivos.
 
-ARCHIVOS NUEVOS O CAMBIADOS RESPECTO A LA ENTREGA ANTERIOR
-.env.example
-LEAME-ACTUALIZACION.txt
-README.md
-app/Console/Commands/MiniaturasCv.php
-app/Console/Commands/ModeloFondo.php
-app/Http/Controllers/Admin/CyberController.php
+ALCANCE
+El ZIP contiene todo el código de la versión anterior y esta corrección. No contiene vendor, node_modules, .env, bases de datos, credenciales ni capturas internas de pruebas. GitHub y el servidor de producción no fueron modificados.
+
+Se mantienen las funciones anteriores: negocios por tipo/país, libro auxiliar de ingresos y gastos opcionalmente vinculado al POS, exportaciones PDF/Excel, veinte diseños de CV con capturas y QR PNG de correos. El libro sigue siendo auxiliar y no contabilidad completa por partida doble. Los modelos avanzados de quitar fondo siguen requiriendo instalación local y validación de recursos; esta entrega no descarga modelos nuevos.
+
+ARCHIVOS NUEVOS O MODIFICADOS RESPECTO AL ZIP ANTERIOR
+app/Http/Controllers/AccesoClienteController.php
 app/Http/Controllers/Admin/UsuarioController.php
+app/Http/Controllers/ChatPerfilController.php
 app/Http/Controllers/ClienteController.php
-app/Http/Controllers/ContabilidadController.php
-app/Http/Controllers/CorreoServicioController.php
-app/Http/Controllers/DashboardController.php
-app/Http/Controllers/EquipoController.php
-app/Http/Controllers/MunicipioNicaraguaController.php
-app/Http/Controllers/Pos/ConfigController.php
-app/Http/Controllers/Pos/ReporteController.php
-app/Http/Middleware/PermisosModulo.php
-app/Http/Middleware/UsuarioActivo.php
-app/Models/Configuracion.php
-app/Models/ContableMovimiento.php
-app/Models/Cyber.php
-app/Models/Pos/PosConfig.php
+app/Http/Controllers/FotoController.php
+app/Http/Controllers/MiCvController.php
 app/Models/User.php
-app/Services/CvDatos.php
-app/Services/CvEjemplo.php
-app/Services/LibroIngresosGastos.php
-app/Services/Pos/Ventas.php
-app/Services/QuitarFondo.php
-app/Services/ReportePdf.php
-app/Support/Exportacion.php
-app/Support/Legal.php
-app/Support/Menu.php
-app/Support/Negocios.php
+app/Services/ClienteGuardar.php
+app/Support/EdicionCliente.php
 app/Support/Permisos.php
-config/micv.php
-database/migrations/2026_11_03_000001_negocios_contabilidad.php
-package-lock.json
-package.json
-phpunit.xml
-public/css/chat-jz.css
+database/migrations/2026_11_03_000002_edicion_portal_cliente.php
 public/css/modulos.css
-public/images/cv/academico.png
-public/images/cv/atlas.png
-public/images/cv/carta.png
-public/images/cv/clasico.png
-public/images/cv/creativo.png
-public/images/cv/ejecutivo.png
-public/images/cv/elegante.png
-public/images/cv/esencial.png
-public/images/cv/estudio.png
-public/images/cv/firma.png
-public/images/cv/folio.png
-public/images/cv/horizonte.png
-public/images/cv/lineal.png
-public/images/cv/metropolitano.png
-public/images/cv/moderno.png
-public/images/cv/nordico.png
-public/images/cv/orbita.png
-public/images/cv/prisma.png
-public/images/cv/pro.png
-public/images/cv/vertice.png
-public/js/cv-gallery.js
-resources/fotos/quitar-fondo.cjs
-resources/legal/anexo-contrato.md
-resources/legal/anexo-privacidad.md
-resources/legal/anexo-terminos.md
-resources/legal/contrato.md
-resources/legal/privacidad.md
-resources/legal/terminos.md
-resources/reports/clientes-excel.cjs
-resources/reports/contabilidad-excel.cjs
-resources/reports/correo-qr.cjs
-resources/reports/pos-excel.cjs
-resources/views/admin/actividad.blade.php
-resources/views/admin/bloqueos.blade.php
+public/css/tema.css
+public/js/portal-edicion.js
+resources/css/tema.css
 resources/views/admin/cybers/form.blade.php
-resources/views/admin/cybers/index.blade.php
-resources/views/admin/legal.blade.php
 resources/views/admin/usuarios/form.blade.php
-resources/views/admin/usuarios/index.blade.php
-resources/views/autoservicio/panel.blade.php
-resources/views/chat/activar.blade.php
-resources/views/chat/avisos.blade.php
-resources/views/chat/supervision.blade.php
-resources/views/clientes/create.blade.php
-resources/views/clientes/edit.blade.php
-resources/views/clientes/index.blade.php
+resources/views/chat/acceso.blade.php
 resources/views/clientes/show.blade.php
 resources/views/components/exportar.blade.php
 resources/views/components/layout.blade.php
+resources/views/components/permisos-cliente.blade.php
+resources/views/components/ui/button.blade.php
+resources/views/components/ui/field.blade.php
+resources/views/components/ui/panel.blade.php
 resources/views/contabilidad/create.blade.php
 resources/views/contabilidad/index.blade.php
 resources/views/correos/create.blade.php
-resources/views/correos/pdf.blade.php
-resources/views/cv/academico.blade.php
-resources/views/cv/estudio.blade.php
-resources/views/cv/lineal.blade.php
-resources/views/cyber/marca.blade.php
-resources/views/dashboard.blade.php
+resources/views/correos/index.blade.php
+resources/views/correos/ver.blade.php
+resources/views/documentos/editor.blade.php
 resources/views/equipo/form.blade.php
-resources/views/equipo/index.blade.php
-resources/views/exports/_style.blade.php
-resources/views/exports/contabilidad.blade.php
-resources/views/legal/aceptar.blade.php
-resources/views/partials/campos-registro-cliente.blade.php
+resources/views/mi-cv/datos.blade.php
 resources/views/partials/generador-cv.blade.php
 resources/views/partials/permisos-selector.blade.php
-resources/views/partials/pie-legal.blade.php
-resources/views/pos/_barra.blade.php
-resources/views/pos/abrir.blade.php
-resources/views/pos/config.blade.php
-resources/views/pos/productos.blade.php
-resources/views/pos/reportes.blade.php
-resources/views/pos/sin-cyber.blade.php
 routes/web.php
-tests/Feature/CorreosGestionTest.php
-tests/Feature/ExportacionesDisenoTest.php
-tests/Feature/MunicipiosNicaraguaTest.php
-tests/Feature/NegociosContabilidadTest.php
-tests/Feature/PermisosTest.php
-tests/Unit/NegociosTest.php
+tailwind.config.js
+tests/Feature/EdicionClienteTest.php

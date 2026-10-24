@@ -4,7 +4,7 @@
  *  solo hace falta recompilar si se agregan clases nuevas:  npm run css
  */
 export default {
-  content: ['./resources/views/**/*.blade.php', './app/Support/**/*.php'],
+  content: { relative: true, files: ['./resources/views/**/*.blade.php', './app/Support/**/*.php', './public/js/*.js'] },
   darkMode: 'class',
   theme: {
     extend: {

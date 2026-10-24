@@ -1,0 +1,2 @@
+@props(['label','for'=>null,'hint'=>null])
+<div {{ $attributes->class('min-w-0') }}><label @if($for) for="{{ $for }}" @endif class="label-campo">{{ $label }}</label>{{ $slot }}@if($hint)<p class="mt-1.5 text-xs text-gray-500">{{ $hint }}</p>@endif</div>

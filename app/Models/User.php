@@ -31,6 +31,7 @@ class User extends Authenticatable
     protected $fillable = [
         "encargado_id",
         "permisos",
+        "edicion_cliente",
         "cyber_id",
         "usuario",
         "name",
@@ -49,6 +50,7 @@ class User extends Authenticatable
     {
         return [
             "permisos" => "array",
+            "edicion_cliente" => "array",
             "email_verified_at" => "datetime",
             "ultimo_acceso" => "datetime",
             "terminos_aceptados_en" => "datetime",
@@ -102,7 +104,8 @@ class User extends Authenticatable
         if ($this->esCliente()) {
             return false;
         }
-        if ($permiso === "personal" && !$this->esEncargado()) {
+        if ($permiso === "clientes.eliminar") return false;
+        if (in_array($permiso,["personal","clientes.acceso","clientes.permisos"],true) && !$this->esEncargado()) {
             return false;
         }
         $modulo = \App\Support\Negocios::moduloPermiso($permiso);

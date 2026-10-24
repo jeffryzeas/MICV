@@ -397,6 +397,7 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                 AccesoClienteController::class,
                 "formulario",
             ])->name("clientes.acceso");
+            Route::put("clientes/{cliente}/acceso/permisos", [AccesoClienteController::class,"permisos"])->name("clientes.acceso.permisos")->middleware("throttle:20,1");
             Route::post("clientes/{cliente}/acceso", [
                 AccesoClienteController::class,
                 "crear",

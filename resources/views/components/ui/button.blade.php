@@ -1,0 +1,3 @@
+@props(['href'=>null,'variant'=>'primary','icon'=>null,'type'=>'button'])
+@php($variants=['primary'=>'btn-pri','secondary'=>'btn-sec','danger'=>'btn-danger'])
+@if($href)<a href="{{ $href }}" {{ $attributes->class(['btn',$variants[$variant]??'btn-sec']) }}>@if($icon)<x-icono :name="$icon" class="size-4"/>@endif<span>{{ $slot }}</span></a>@else<button type="{{ $type }}" {{ $attributes->class(['btn',$variants[$variant]??'btn-sec']) }}>@if($icon)<x-icono :name="$icon" class="size-4"/>@endif<span>{{ $slot }}</span></button>@endif
