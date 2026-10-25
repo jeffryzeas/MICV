@@ -1,5 +1,5 @@
 from __future__ import annotations
-from contextlib import contextmanager
+from contextlib import contextmanager, closing
 from pathlib import Path
 import json, sqlite3, time, uuid, zipfile, tempfile
 from .security import Vault, AccessError, pin_valid
@@ -109,7 +109,9 @@ class Store:
         # SQLite.backup incluye una instantánea consistente incluso usando WAL.
         with tempfile.TemporaryDirectory() as tmp:
             snap = Path(tmp) / 'micv.sqlite'
-            with sqlite3.connect(self.path) as source, sqlite3.connect(snap) as target:
+            # El contexto de sqlite3 solo confirma/revierte transacciones; no cierra
+            # la conexion. Windows exige cerrar ambos archivos antes de borrarlos.
+            with closing(sqlite3.connect(self.path)) as source, closing(sqlite3.connect(snap)) as target:
                 source.backup(target)
             with zipfile.ZipFile(destination, 'w', zipfile.ZIP_DEFLATED) as archive:
                 archive.write(snap, 'micv.sqlite')

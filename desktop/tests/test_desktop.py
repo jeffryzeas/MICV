@@ -50,6 +50,36 @@ class DesktopTests(unittest.TestCase):
         self.assertEqual(self.service.effective('ledger')[0]['data']['monto'],'20.00')
         with self.assertRaises(AccessError):self.service.sale([{'producto_id':1,'cantidad':'4'}],[{'metodo':'efectivo','monto':'40'}])
         with self.assertRaises(AccessError):self.service.sale([{'producto_id':1,'cantidad':'1'}],[{'metodo':'tarjeta','monto':'11'}])
+    def test_backup_closes_both_connections_before_archiving(self):
+        from unittest.mock import patch
+        import zipfile
+        connections=[];connect=sqlite3.connect;write=zipfile.ZipFile.write
+        def tracked(*args,**kwargs):
+            connection=connect(*args,**kwargs);connections.append(connection);return connection
+        def checked_write(archive,*args,**kwargs):
+            self.assertEqual(len(connections),2)
+            for connection in connections:
+                with self.assertRaises(sqlite3.ProgrammingError):connection.execute('SELECT 1')
+            return write(archive,*args,**kwargs)
+        try:
+            with patch('micv_desktop.storage.sqlite3.connect',side_effect=tracked), patch.object(zipfile.ZipFile,'write',checked_write):
+                self.store.backup(Path(self.tmp.name)/'closed-backup.zip')
+        finally:
+            for connection in connections:connection.close()
+    def test_backup_closes_source_if_destination_cannot_open(self):
+        from unittest.mock import patch
+        connections=[];connect=sqlite3.connect
+        def failing(*args,**kwargs):
+            if connections:raise OSError('forced destination failure')
+            connection=connect(*args,**kwargs);connections.append(connection);return connection
+        try:
+            with patch('micv_desktop.storage.sqlite3.connect',side_effect=failing):
+                with self.assertRaisesRegex(OSError,'forced destination failure'):
+                    self.store.backup(Path(self.tmp.name)/'failed-backup.zip')
+            self.assertEqual(len(connections),1)
+            with self.assertRaises(sqlite3.ProgrammingError):connections[0].execute('SELECT 1')
+        finally:
+            for connection in connections:connection.close()
     def test_ack_before_pull_keeps_stock_reservation(self):
         op=self.service.sale([{'producto_id':1,'cantidad':'1'}],[{'metodo':'efectivo','monto':'10'}]);self.store.ack({'uuid':op['uuid'],'status':'accepted','entity_id':8})
         self.assertEqual(self.service.effective('products')[0]['data']['stock'],'4.00')

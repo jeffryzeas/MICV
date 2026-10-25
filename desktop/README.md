@@ -13,6 +13,14 @@ Esta entrega es una primera edición funcional del trabajo local. **No es todav�
 | Editor de documentos | Mismo editor de fotos, perspectiva, filtros y copias, abierto localmente en el navegador | No sube fotografías a servicios externos |
 | CV, tarjetas, fotos de carnet, chat y administración general | No tienen una réplica local en esta edición | Se abren en el sistema web original |
 
+## SQLite local y MySQL en Laravel
+
+SQLite se utiliza solamente dentro de la aplicación de escritorio para trabajar sin internet. Al sincronizar, envía registros por la API HTTPS y Laravel los guarda con su conexión habitual. Si su servidor ya tiene MySQL configurado, los clientes, ventas, caja, movimientos y recibos de sincronización se guardan en esa base MySQL. No necesita cambiar el servidor a SQLite ni entregar la contraseña MySQL al programa.
+
+La API utiliza los modelos y transacciones de Laravel sin fijar otra conexión. Se agregó una prueba de configuración que comprueba que siguen el driver MySQL; no representa una prueba contra el servidor MySQL de su negocio, al cual no se ha accedido desde aquí.
+
+El error WinError 32 al respaldar correspondía al archivo SQLite temporal del equipo. Se corrigió el cierre explícito de las conexiones antes de crear el ZIP y limpiar ese temporal. Se conserva la base local y la cola de operaciones.
+
 ## Preparar Laravel
 
 1. Respaldar base de datos, `.env`, archivos y código del servidor.
@@ -46,7 +54,7 @@ No desactivar HTTPS en producción. Las pruebas locales usan HTTP exclusivamente
 
 ## Abrir desde Python para desarrollo
 
-Desde `desktop/`, con Python 3.12:
+Desde `desktop/`, con CPython estándar 3.12, 3.13 o 3.14 de 64 bits:
 
 ```sh
 python -m venv .venv
@@ -73,12 +81,32 @@ La contraseña del sistema no se guarda. Los datos quedan en `%LOCALAPPDATA%\Equ
 
 En Windows 10/11 de 64 bits:
 
-1. Instalar Python 3.12 de 64 bits con el lanzador `py`.
+1. Usar CPython estándar 3.12, 3.13 o 3.14 de 64 bits. Si ya tiene Python 3.14.7 no necesita instalar 3.12. El lanzador `py` es opcional: el script busca también el intérprete directo, el Registro de Windows y las carpetas habituales.
 2. Instalar Inno Setup 6 desde su sitio oficial.
 3. Abrir PowerShell en `desktop/` y ejecutar:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\Compilar-Windows.ps1
+```
+
+Si aparece «py no se reconoce», reemplace `Compilar-Windows.ps1` por la versión actual: ya no depende del lanzador. Solo si no tiene ninguna versión compatible instalada:
+
+```powershell
+winget install -e --id Python.Python.3.14 --scope user --architecture x64
+```
+
+Cierre y vuelva a abrir PowerShell después de instalar. Puede comprobar los requisitos sin compilar ni instalar dependencias:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Compilar-Windows.ps1 -CheckPrerequisites
+```
+
+Si Python está en otra carpeta, especifique la ruta real a `python.exe` con `-PythonPath`. Si Inno Setup está en otra ubicación, indique `-InnoPath`. No se elimina automáticamente ningún entorno existente o dato local. Para comprobar solamente Python, combine `-CheckPrerequisites -PortableOnly`.
+
+Para generar únicamente la carpeta portable sin instalar Inno Setup:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Compilar-Windows.ps1 -PortableOnly
 ```
 
 El script crea un entorno, instala dependencias, ejecuta las pruebas Python, compila con PyInstaller, comprueba el arranque y genera:
@@ -134,6 +162,6 @@ php artisan test
 npm run test:documentos
 ```
 
-Se verificó en el entorno disponible: pruebas Python, arranque e interfaz Qt en Linux, exportación real PDF/Excel, editor HTML sin red y API Laravel real. La prueba integrada activó una licencia firmada por PHP, la verificó en Python, guardó operaciones durante un corte y sincronizó clientes, caja, venta y contabilidad; un reintento confirmó la misma venta. La ejecución e instalación nativas de Windows quedan pendientes de la compilación en Windows.
+Se verificó en el entorno disponible: pruebas Python, arranque e interfaz Qt en Linux, exportación real PDF/Excel, editor HTML sin red y API Laravel real. La prueba integrada activó una licencia firmada por PHP, la verificó en Python, guardó operaciones durante un corte y sincronizó clientes, caja, venta y contabilidad; un reintento confirmó la misma venta. Además se instalaron las dependencias, se ejecutaron las once pruebas Python y se comprobó el arranque Qt con CPython 3.14.8 en Linux. El detector PowerShell admite 3.12, 3.13 y 3.14 x64 estándar. La ejecución e instalación nativas de Windows quedan pendientes de la compilación en Windows.
 
 Fuentes de herramientas: https://pyinstaller.org/en/stable/ · https://jrsoftware.org/isinfo.php · https://doc.qt.io/qtforpython-6/deployment/
