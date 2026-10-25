@@ -15,7 +15,7 @@
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
             <div>
-                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">1. Nacionalidad / país del documento</label>
+                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">1. País emisor del documento</label>
                 <select id="paisDoc" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
                     @foreach(\App\Support\Pais::porRegion() as $region => $lista)<optgroup label="{{ $region }}">@foreach($lista as $cod => $p)<option value="{{ $cod }}">{{ $p['nombre'] }}</option>@endforeach</optgroup>@endforeach
                 </select>

@@ -69,6 +69,7 @@
         </div>
     </div>
 
+    @include('partials.aviso-identidad', ['cliente' => $cliente])
     @include('partials.generador-cv', ['cliente' => $cliente, 'cv' => $cv, 'paletas' => $paletas, 'cyberColores' => $cyberColores])
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -80,6 +81,8 @@
                 <tr class="border-b"><td class="py-2 text-gray-500">Edad</td><td class="py-2 font-medium">{{ $cliente->edad() ?? '—' }}</td></tr>
                 <tr class="border-b"><td class="py-2 text-gray-500">Sexo</td><td class="py-2 font-medium">{{ $cliente->sexoLegible() ?? '—' }}</td></tr>
                 <tr class="border-b"><td class="py-2 text-gray-500">Nacionalidad</td><td class="py-2 font-medium">{{ $cliente->nacionalidad ?? '—' }}</td></tr>
+                <tr class="border-b"><td class="py-2 text-gray-500">País emisor del documento</td><td class="py-2 font-medium">{{ $cliente->datosPais()['nombre'] }}</td></tr>
+                <tr class="border-b"><td class="py-2 text-gray-500">País de residencia actual</td><td class="py-2 font-medium">{{ $cliente->residenciaLegible() }}</td></tr>
                 <tr class="border-b"><td class="py-2 text-gray-500">{{ $cliente->datosPais()['municipio'] }} / {{ $cliente->datosPais()['departamento'] }}</td><td class="py-2 font-medium">{{ $cliente->municipio_nacimiento ?? '—' }} / {{ $cliente->departamento_nacimiento ?? '—' }}</td></tr>
                 <tr class="border-b"><td class="py-2 text-gray-500">Estado civil</td><td class="py-2 font-medium">{{ $cliente->estado_civil ?? '—' }}</td></tr>
                 <tr class="border-b"><td class="py-2 text-gray-500">Número de hijos</td><td class="py-2 font-medium">{{ $cliente->numero_hijos ?? '—' }}</td></tr>

@@ -22,8 +22,9 @@
 
         <fieldset class="space-y-3">
             <legend class="font-semibold text-azul-950 flex items-center gap-2 mb-1"><x-icono name="id-card" class="size-5 text-oro-500" /> Documento</legend>
+            <p class="text-xs text-gray-500">El país que emitió su documento puede ser distinto de su nacionalidad y de donde vive actualmente.</p>
             <div class="grid grid-cols-2 gap-3">
-                <div><label class="{{ $lb }}" for="aPais">País</label>
+                <div><label class="{{ $lb }}" for="aPais">País emisor del documento</label>
                     <select name="pais" id="aPais" class="{{ $in }}">
                         @foreach(\App\Support\Pais::porRegion() as $region => $lista)<optgroup label="{{ $region }}">@foreach($lista as $cod => $p)<option value="{{ $cod }}" @selected($paisSel === $cod)>{{ $p['nombre'] }}</option>@endforeach</optgroup>@endforeach
                     </select></div>

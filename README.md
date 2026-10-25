@@ -1,3 +1,5 @@
+> Documento, nacionalidad y residencia independientes: consulte **LEAME-IDENTIDAD.txt** para actualizar y corregir registros anteriores.
+
 > Galería de CV con desplazamiento continuo: **31 diseños**, incluido ATS en PDF y Word. Consulte **LEAME-ACTUALIZACION.txt** para esta entrega.
 
 > Corrección de tema y permisos del portal: consulte **LEAME-ACTUALIZACION.txt**. Incluye CSS compilado y requiere `php artisan migrate --force`.

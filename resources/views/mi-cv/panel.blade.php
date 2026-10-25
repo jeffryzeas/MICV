@@ -18,7 +18,7 @@
                 </a>
             @endif
             <div class="flex-1 min-w-0 text-center sm:text-left">
-                <p class="text-white/70 text-sm">{{ $cliente->nacionalidad ?: $p['nombre'] }}</p>
+                <p class="text-white/70 text-sm">Nacionalidad: {{ $cliente->nacionalidad ?: 'Sin declarar' }} · Reside en: {{ $cliente->residenciaLegible() }}</p>
                 <h1 class="text-2xl sm:text-3xl font-bold leading-tight inline-flex items-center gap-2 justify-center sm:justify-start flex-wrap">Hola, {{ $cliente->primer_nombre }}
                     @if(auth()->user()->verificado())<span class="inline-flex items-center gap-1 bg-white/95 text-[#0f5fa8] text-xs font-semibold rounded-full pl-1 pr-2.5 py-0.5 shadow">@include('partials.verificado', ['tam' => 18]) Verificado</span>@endif
                 </h1>
@@ -43,6 +43,8 @@
             </div>
         </div>
     </section>
+
+    @include('partials.aviso-identidad', ['cliente' => $cliente])
 
     {{-- Lo que tiene y lo que falta --}}
     <section class="bg-white rounded-xl shadow p-4 sm:p-5 mb-5">

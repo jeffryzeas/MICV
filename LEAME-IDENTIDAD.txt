@@ -1,0 +1,67 @@
+ACTUALIZACIÓN — DOCUMENTO, NACIONALIDAD Y RESIDENCIA INDEPENDIENTES
+
+EJEMPLO CORRECTO
+Nacionalidad: Nicaragüense.
+País emisor del documento: Costa Rica.
+Tipo de documento: DIMEX.
+País de residencia actual: Costa Rica (o el país donde viva realmente).
+
+Ninguno de esos datos se usa para inventar otro. Pueden ser tres países distintos.
+La aplicación recoge lo declarado por la persona; no certifica ciudadanía,
+condición migratoria ni autorización para trabajar.
+
+CAMBIOS
+- Registro público: solicita nacionalidad, residencia y tipo de documento por
+  separado. Conserva los datos al verificar el correo y no asigna automáticamente
+  la primera clase de documento de un país a una cuenta nueva.
+- Nacionalidad y residencia empiezan sin selección. No se rellenan desde el país
+  del documento. Cambiar de emisor no modifica nacionalidad, residencia ni el
+  código de teléfono elegido. El tipo se debe elegir nuevamente en el registro.
+- Validación en servidor: documento compatible con su emisor, nacionalidad
+  declarada y país de residencia válido. No se obliga a que coincidan.
+- Se conserva la declaración laboral para el CV. No se deducen permisos del
+  documento. Esa declaración se completa en los datos del CV.
+- Panel y ficha distinguen nacionalidad, país emisor y residencia; una nacionalidad
+  vacía aparece como «Sin declarar», sin sustituirla por el país del documento.
+- PDF y Excel de clientes tienen columnas separadas para los tres datos.
+- Los permisos de edición siguen vigentes, incluido el selector de nacionalidad.
+- Se conservan la corrección de exportaciones y los 31 diseños de CV.
+
+REGISTROS ANTERIORES
+No se reescriben nacionalidades antiguas en masa: no es posible conocer la real
+solo a partir del documento. Aparece un aviso para revisar datos incompletos y
+posibles asignaciones automáticas de documentos de residencia. Es orientativo:
+no rechaza ni cambia una nacionalidad que la persona declare como correcta.
+
+Para el cliente que indicó: abrir su ficha, pulsar Editar y elegir Nicaragüense
+en Nacimiento y nacionalidad. Mantener Costa Rica y DIMEX en Documento, y
+confirmar el país donde reside en Datos laborales y cualidades. Guardar.
+Si la cuenta no tiene permiso para editar datos, lo hace un encargado autorizado
+o el administrador. Esta entrega no modifica la base de datos de su servidor.
+
+Los registros pendientes de verificación creados antes de esta actualización
+pueden completar el proceso; los datos que no se preguntaron quedan sin declarar
+hasta que la persona los complete. No se inventa una nacionalidad al verificarlos.
+
+INSTALACIÓN
+1. Respaldar el código y la base de datos del servidor.
+2. Actualizar los archivos del proyecto desde este ZIP, conservando .env,
+   storage, archivos subidos y la base de datos de producción.
+3. Ejecutar desde la raíz del proyecto:
+     php artisan optimize:clear
+     php artisan view:cache
+4. Recargar con Ctrl+F5 para cargar los scripts actualizados.
+
+No hay migraciones ni dependencias nuevas para esta actualización.
+
+VALIDACIÓN
+- 94 pruebas de Laravel, 1180 verificaciones, sin fallos ni omisiones.
+- Registro público y verificación de correo conservan los tres datos.
+- Edición exclusiva del documento respeta nacionalidad y residencia.
+- Se rechazan nacionalidad ausente/inválida y documento de otro emisor.
+- Compatibilidad con registros pendientes anteriores.
+- Navegador a 360, 390 y 1280 px: campos independientes, selecciones conservadas,
+  avisos y permisos de consulta. Sin desbordamiento horizontal.
+- Generación real de PDF y Excel de clientes, ventas y contabilidad.
+- PDF/Excel de ejemplo distinguen país emisor, nacionalidad y residencia.
+- Compilación Blade y ZIP con comprobación CRC y extracción completa.

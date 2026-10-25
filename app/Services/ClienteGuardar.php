@@ -151,6 +151,7 @@ class ClienteGuardar
         if(in_array('datos',$grupos,true)){
             $laboral=\App\Support\SituacionLaboral::validar(array_merge($cliente->getAttributes(),$guardar));
             $guardar['autorizacion_laboral']=$laboral['autorizacion_laboral']??null;
+            $guardar['nacionalidad']=$laboral['nacionalidad'];
             foreach(['linkedin','github','sitio_web'] as $campo)if(array_key_exists($campo,$guardar))$guardar[$campo]=Cliente::limpiarEnlace($guardar[$campo],$campo);
             $guardar['telefono_whatsapp']=$request->boolean('telefono_whatsapp');
         }
@@ -177,9 +178,6 @@ class ClienteGuardar
             $d[$red] = Cliente::limpiarEnlace($d[$red] ?? null, $red);
         }
         $d['telefono_whatsapp'] = (bool) ($d['telefono_whatsapp'] ?? false);
-        if (blank($d['nacionalidad'] ?? null) && $pais['gentilicio']) {
-            $d['nacionalidad'] = \App\Support\Nacionalidades::de($d['pais'], $d['sexo'] ?? null) ?: $pais['gentilicio'];
-        }
 
         if ($d['tipo_documento'] !== 'cedula') {
             // Reglas del documento de cada país; lo que se puede leer del número se completa solo.
@@ -403,7 +401,7 @@ class ClienteGuardar
     protected function atributos(): array
     {
         return [
-            'pais' => 'nacionalidad', 'numero_documento' => 'número de documento', 'primer_nombre' => 'primer nombre',
+            'pais' => 'país emisor del documento', 'numero_documento' => 'número de documento', 'primer_nombre' => 'primer nombre',
             'primer_apellido' => 'primer apellido', 'fecha_nacimiento' => 'fecha de nacimiento',
             'estudios.*.anio' => 'año', 'experiencias.*.fecha_inicio' => 'fecha de inicio',
             'experiencias.*.fecha_fin' => 'fecha de fin', 'referencias.*.correo' => 'correo de la referencia',

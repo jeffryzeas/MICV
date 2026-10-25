@@ -78,11 +78,11 @@ class ClienteController extends Controller
         $clientes = $consulta->get();
         $headers = ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff'];
         if ($request->input('formato') === 'pdf') {
-            $orientacion = \App\Support\Exportacion::orientacion($request, 5);
+            $orientacion = \App\Support\Exportacion::orientacion($request, 7);
             $html = view('exports.clientes', compact('clientes', 'negocio', 'logo', 'orientacion'))->render();
             return response(app(\App\Services\ReportePdf::class)->generar($html), 200, $headers + ['Content-Type' => 'application/pdf', 'Content-Disposition' => 'attachment; filename="Clientes.pdf"']);
         }
-        $datos = ['negocio' => $negocio, 'logo' => $logo, 'orientacion' => \App\Support\Exportacion::orientacion($request,5), 'generado' => now()->format('d/m/Y H:i'), 'clientes' => $clientes->map(fn ($c) => [$c->nombreCompleto(), $c->documentoFormateado(), $c->telefono, $c->correo, $c->pais])->all()];
+        $datos = ['negocio' => $negocio, 'logo' => $logo, 'orientacion' => \App\Support\Exportacion::orientacion($request,7), 'generado' => now()->format('d/m/Y H:i'), 'clientes' => $clientes->map(fn ($c) => [$c->nombreCompleto(), $c->documentoFormateado(), $c->telefono, $c->correo, $c->datosPais()['nombre'], $c->nacionalidad, $c->residenciaLegible()])->all()];
         $dir = storage_path('app/tmp-excel');
         if (!is_dir($dir)) mkdir($dir, 0775, true);
         $salida = $dir.'/'.\Illuminate\Support\Str::random(24).'.xlsx';

@@ -17,8 +17,34 @@
                 <x-icono name="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
             </div>
             
-            <p class="text-[11px] text-gray-400 mt-1">Con esto adaptamos sus documentos, el seguro social, el código de teléfono y el CV. Si su país no está, elija "Otro país".</p>
+            <p class="text-xs text-gray-500 mt-1">Seleccione el país que lo emitió. Ejemplo: para un DIMEX, Costa Rica. Esto no determina su nacionalidad.</p>
         </div>
+        @php($documentosRegistro = \App\Support\Pais::de(old('pais', 'NI'))['documentos'])
+        <div>
+            <label for="regTipo" class="label-campo">Tipo de documento</label>
+            <select name="tipo_documento" id="regTipo" required class="campo mt-1">
+                <option value="">Seleccione el tipo de documento</option>
+                @foreach($documentosRegistro as $tipo => $nombre)<option value="{{ $tipo }}" @selected(old('tipo_documento') === $tipo)>{{ $nombre }}</option>@endforeach
+            </select>
+            <p class="text-xs text-gray-500 mt-1">El número se completa después de verificar su cuenta.</p>
+        </div>
+        <div>
+            <label for="regNacionalidad" class="label-campo">Su nacionalidad</label>
+            <input name="nacionalidad" id="regNacionalidad" list="regNacionalidades" required maxlength="60" value="{{ old('nacionalidad') }}" placeholder="Ej.: Nicaragüense" class="campo mt-1" aria-describedby="regIdentidadAyuda">
+            <datalist id="regNacionalidades">
+                @foreach(\App\Support\Nacionalidades::lista() as [$nombrePais,$masculino,$femenino])<option value="{{ $masculino }}">{{ $nombrePais }}</option>@if($femenino !== $masculino)<option value="{{ $femenino }}">{{ $nombrePais }}</option>@endif @endforeach
+            </datalist>
+        </div>
+        <div>
+            <label for="regResidencia" class="label-campo">País donde reside actualmente</label>
+            <select name="pais_residencia" id="regResidencia" required class="campo mt-1">
+                <option value="">Seleccione dónde vive</option>
+                @foreach(\App\Support\Pais::todos() as $codigo => $paisResidencia)@if($codigo !== 'OT')<option value="{{ $codigo }}" @selected(old('pais_residencia') === $codigo)>{{ $paisResidencia['nombre'] }}</option>@endif @endforeach
+            </select>
+            <p id="regIdentidadAyuda" class="text-xs text-gray-500 mt-1">Ejemplo: una persona nicaragüense puede tener un DIMEX emitido en Costa Rica y vivir en Costa Rica. Complete cada dato por separado.</p>
+        </div>
+        <script type="application/json" id="regDocumentos">@json(\App\Support\Pais::paraJs())</script>
+        <script src="{{ asset('js/registro-identidad.js') }}" defer></script>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label class="block text-xs font-semibold uppercase text-gray-500 mb-1">Primer nombre</label>
                 <input type="text" name="primer_nombre" value="{{ old('primer_nombre') }}" required autocomplete="given-name" maxlength="60" placeholder="Ej: María" class="w-full border border-gray-300 rounded-lg px-3 py-2.5"></div>

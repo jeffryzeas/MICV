@@ -56,10 +56,23 @@ class Cliente extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /** Datos del país de la persona (documentos, INSS/CCSS, etiquetas…). */
+    /** País emisor del documento, independiente de nacionalidad y residencia. */
     public function datosPais(): array
     {
         return \App\Support\Pais::de($this->pais ?: 'NI');
+    }
+
+    public function residenciaLegible(): string
+    {
+        return $this->pais_residencia ? \App\Support\Pais::de($this->pais_residencia)['nombre'] : 'Sin declarar';
+    }
+
+    /** Aviso para revisar posibles asignaciones antiguas; nunca modifica ni invalida datos. */
+    public function revisarIdentidad(): bool
+    {
+        if (blank($this->nacionalidad) || blank($this->pais_residencia)) return true;
+        $residencia = in_array($this->tipo_documento, ['dimex', 'nie_es', 'green_us'], true) || str_starts_with($this->tipo_documento ?? '', 'residencia');
+        return $residencia && \App\Support\SituacionLaboral::codigoNacionalidad($this->nacionalidad) === $this->pais;
     }
 
     public function cybers(): BelongsToMany
