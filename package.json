@@ -13,7 +13,8 @@
         "sharp": "^0.35.5"
     },
     "scripts": {
-        "css": "tailwindcss -c tailwind.config.js -i resources/css/tema.css -o public/css/tema.css --minify"
+        "css": "tailwindcss -c tailwind.config.js -i resources/css/tema.css -o public/css/tema.css --minify",
+        "test:documentos": "node --test tests/js/documentos-core.test.cjs"
     },
     "devDependencies": {
         "tailwindcss": "^3.4.17"

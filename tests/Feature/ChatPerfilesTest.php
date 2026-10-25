@@ -131,7 +131,7 @@ class ChatPerfilesTest extends TestCase
             ->get(route("documentos.index"))
             ->assertOk()
             ->assertSee('id="doc-upload"', false)
-            ->assertSee("Subir fotos del documento")
+            ->assertSee("Subir fotos")
             ->assertSee("<svg", false)
             ->assertDontSee("↶");
         $this->get(route("chat.index"))

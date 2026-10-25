@@ -1,0 +1,68 @@
+ACTUALIZACIÓN — REGISTRO SENCILLO Y EDITOR DE DOCUMENTOS
+
+REGISTRO Y DATOS PERSONALES
+El registro público vuelve al formulario anterior. La nacionalidad y residencia
+se completan dentro de la aplicación, junto con la información del documento.
+No hay avisos sobre datos internos o asignaciones anteriores en las pantallas.
+Nacionalidad usa el catálogo actual, como el país. No se deduce del documento.
+Consulte LEAME-IDENTIDAD.txt para el detalle de esos campos.
+
+EDITOR «ENDEREZAR, MEJORAR Y COPIAR»
+- Botones compartidos del tema Laravel/Blade y SVG del paquete de iconos existente.
+- Tres zonas claras: recorte/perspectiva, mejora de lectura y copias/impresión.
+- Carga de hasta dos fotos: frente y reverso; arrastrar, seleccionar o pegar con Ctrl+V.
+- JPG, PNG o WebP; hasta 50 MB por foto. Archivos inválidos no reemplazan las caras cargadas.
+- Corrección de perspectiva con cuatro puntos, giro a izquierda/derecha y foto completa.
+- El recorte inicial conserva todos los bordes de la imagen; no elimina un 4% por defecto.
+- Zoom del 50 al 200% independiente del tamaño de impresión.
+- Selección de esquina por control o teclas 1 a 4; flechas ajustan y Mayús acelera.
+- Ajustes rápidos Natural, Aclarar documento y Blanco y negro.
+- Brillo, contraste, nitidez y umbral de blanco y negro con valores visibles.
+- Deshacer/rehacer por cara; botones habilitados según el historial real.
+- Intercambiar frente/reverso y quitar una cara.
+- Copiar la imagen corregida al portapapeles; requiere un navegador compatible,
+  un contexto seguro (HTTPS o localhost) y permiso de escritura del portapapeles.
+  Cuando no está disponible, puede descargar PNG. Un rechazo no bloquea el editor.
+- Descarga JPG/PNG de la cara activa y PDF de la hoja completa.
+- Carta y A4, orientación vertical/horizontal y una/dos columnas.
+- De 1 a 10 copias por hoja. Cada copia incluye las caras cargadas.
+- Ancho, alto, márgenes y separación en centímetros; vista previa de cada posición.
+- Las medidas se conservan a tamaño real. Solo se reducen si se activa la casilla
+  de reducción proporcional. Si no caben, se deshabilita PDF/impresión hasta ajustar.
+- PDF usa las mismas medidas y posiciones de la vista previa.
+- Diseño ajustado a móvil y modo oscuro, usando el tema del sistema.
+- El procesamiento de fotos se realiza en el navegador, sin subirlas a un servicio
+  externo. Limpiar vacía fotos, resultado y lienzo de esta sesión.
+
+INSTALACIÓN
+1. Respaldar el código y la base de datos del servidor.
+2. Actualizar los archivos del proyecto con este ZIP, conservando .env, storage,
+   imágenes subidas y la base de datos del servidor.
+3. Ejecutar desde la raíz del proyecto:
+     php artisan optimize:clear
+     php artisan view:cache
+4. Recargar con Ctrl+F5 para cargar CSS y JavaScript actualizados.
+
+No requiere nuevas migraciones ni dependencias. El CSS compilado está incluido.
+Los archivos antiguos siguientes ya no se usan y pueden retirarse del servidor:
+  resources/views/partials/aviso-identidad.blade.php
+  public/js/registro-identidad.js
+Las vistas nuevas no los incluyen aunque permanezcan en el servidor.
+
+Se conservan los 31 diseños de CV y las correcciones de exportaciones anteriores.
+
+VALIDACIÓN
+- 94 pruebas Laravel y 1189 verificaciones, sin fallos ni omisiones.
+- Cinco pruebas de cálculo/imagen ejecutables con npm run test:documentos:
+  perspectiva, bordes completos, nitidez, datos inválidos y distribución de copias.
+- Matriz de 80 combinaciones de papel, orientación, distribución, caras y copias:
+  conserva márgenes y no superpone imágenes.
+- Navegador a 360, 390 y 1280 px: carga, recorte, teclado, zoom, filtros, historial,
+  distribución, descarga PNG/PDF, limpieza y pegado de fotos.
+- Copia real de imagen PNG al portapapeles y recuperación de permisos rechazados.
+- Archivo inválido conserva las caras existentes.
+- PDF real A4 horizontal: una página, cuatro posiciones para dos copias del
+  frente/reverso, tamaño por cara de 8,56 × 5,4 cm. Revisado en imagen renderizada.
+- PNG reales de salida: 1011 × 638 píxeles.
+- Sin desbordamiento horizontal en móvil; comprobación visual de modo oscuro.
+- Compilación Blade, verificación CRC del ZIP y extracción completa.

@@ -69,7 +69,6 @@
         </div>
     </div>
 
-    @include('partials.aviso-identidad', ['cliente' => $cliente])
     @include('partials.generador-cv', ['cliente' => $cliente, 'cv' => $cv, 'paletas' => $paletas, 'cyberColores' => $cyberColores])
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">

@@ -62,10 +62,10 @@
  .doc-tab[aria-pressed=true] { @apply border-azul-800 bg-blue-50 text-azul-800; }
  .doc-grid { @apply grid grid-cols-1 gap-5 xl:grid-cols-[1.65fr_1fr]; }
  .doc-panel h3 { @apply mb-3 flex items-center gap-2 text-sm font-semibold text-azul-950; }
- .doc-fields { @apply grid grid-cols-1 gap-4 sm:grid-cols-2; }
+ .doc-fields { @apply grid grid-cols-2 gap-4; }
  .doc-field { @apply block min-w-0 text-xs font-semibold uppercase text-azul-800; }
  .doc-field input:not([type=range]),.doc-field select { @apply campo mt-1.5 font-normal normal-case; }
- .doc-wide { @apply sm:col-span-2; }
+ .doc-wide { @apply col-span-2; }
  .doc-help,.doc-empty { @apply text-sm text-gray-500; }
  .doc-empty { @apply p-8 text-center; }
  .doc-stage,.doc-sheet-wrap { @apply rounded-lg border border-gray-200 bg-gray-100 p-3; }
@@ -99,7 +99,7 @@
 }
 /* Shared icons and editor geometry. Printable documents keep their own page styles. */
 .jz-icon{display:inline-block;vertical-align:middle;flex-shrink:0}.jz-icon:not([class*="size-"]):not([class*="w-"]):not(.ic){width:20px;height:20px}.jz-icon.hidden{display:none}
-.doc-stage canvas{max-width:100%;max-height:68vh;width:auto;height:auto;display:block;touch-action:none;cursor:crosshair}.doc-sheet{position:relative;background:white;width:100%;aspect-ratio:215.9/279.4;box-shadow:0 3px 12px #173e621c}.doc-sheet img{position:absolute;object-fit:fill;outline:1px solid #eef0f3}.doc-result{max-width:100%;max-height:160px;object-fit:contain;margin-top:10px}.doc-hidden-file{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip-path:inset(50%)}#doc-canvas[hidden],#doc-result[hidden],#doc-reset[hidden]{display:none!important}
+.doc-stage{display:block;height:clamp(280px,48vh,560px);overflow:auto}.doc-stage canvas{max-width:none;max-height:none;display:block;margin:auto;touch-action:none;cursor:crosshair}.doc-sheet{position:relative;background:white;width:100%;aspect-ratio:215.9/279.4;box-shadow:0 3px 12px #173e621c}.doc-sheet img{position:absolute;object-fit:fill;outline:1px solid #eef0f3}.doc-result{max-width:100%;max-height:300px;object-fit:contain;margin-top:10px}.doc-hidden-file{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip-path:inset(50%)}#doc-canvas[hidden],#doc-result[hidden],#doc-reset[hidden]{display:none!important}
 .jz-foto-recorte.sin-guias .cropper-face::before,.jz-foto-recorte.sin-guias .cropper-face::after{display:none}
 .app-brand{min-width:0;max-width:100%;overflow:hidden}.app-brand>div:last-child{min-width:0;flex:1}.app-brand>div:last-child>div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.app-brand img{max-width:90px;flex-shrink:0}main{min-width:0}main h1,main h2{overflow-wrap:anywhere}body>div>div,header,header>div{min-width:0}.app-topbar{gap:10px}.app-topbar>div:first-child{flex:1;min-width:0}.app-topbar>div:last-child{max-width:55%;gap:6px}.app-topbar>div:last-child>span:first-child{display:block;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.app-topbar h1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 :fullscreen #pos{height:100vh!important;max-height:100vh;overflow:auto}:fullscreen #pos>section{height:100%}
@@ -143,3 +143,4 @@
 @media(max-width:420px){.cv-gallery-header{padding:12px}.cv-gallery-header h3{font-size:16px}.cv-gallery-header p{font-size:12px}.cv-choice-button{padding:8px}.cv-choice-button>img{height:140px}.cv-choice-button>small{font-size:11px;line-height:1.4}.cv-gallery-footer>span{display:none}}
 
 @media(max-height:560px){.cv-gallery-header #cv-gallery-help{display:none}.cv-gallery-header{padding-top:8px;padding-bottom:8px}.cv-gallery-header h3{font-size:14px}.cv-gallery-footer{padding-top:6px;padding-bottom:6px}.cv-gallery-header .campo{min-height:36px}}
+@media(max-width:640px){.doc-upload-zone>.btn{width:100%}.doc-upload-zone>div{flex:1 1 160px}.doc-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.doc-controls>.btn{width:100%;min-width:0;padding:10px 8px;font-size:12px;line-height:16px}.doc-stage{height:260px}.doc-tabs .doc-btn{padding:10px 14px}.doc-panel .doc-fields{gap:12px}}

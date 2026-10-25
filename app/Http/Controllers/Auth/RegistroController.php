@@ -36,9 +36,6 @@ class RegistroController extends Controller
         $request->merge(['email' => mb_strtolower(trim((string) $request->input('email')))]);
         $d = $request->validate([
             'pais'            => ['required', Rule::in(Pais::codigos())],
-            'tipo_documento'  => ['required', 'string', Rule::in(array_keys(Pais::todosLosDocumentos()))],
-            'nacionalidad'    => ['required', 'string', 'max:60'],
-            'pais_residencia' => ['required', Rule::in(array_diff(Pais::codigos(), ['OT']))],
             'primer_nombre'   => ['required', 'string', 'max:60'],
             'primer_apellido' => ['required', 'string', 'max:60'],
             'email'           => ['required', 'email', 'max:150', Rule::unique('users', 'email')],
@@ -47,12 +44,7 @@ class RegistroController extends Controller
         ], [
             'email.unique'    => 'Ya existe una cuenta con ese correo. Inicie sesión.',
             'acepto.accepted' => 'Debe aceptar los Términos y condiciones y la Política de privacidad.',
-        ], ['pais' => 'país emisor del documento', 'tipo_documento' => 'tipo de documento', 'pais_residencia' => 'país de residencia actual', 'primer_nombre' => 'nombre', 'primer_apellido' => 'apellido', 'email' => 'correo', 'password' => 'contraseña']);
-
-        if (!array_key_exists($d['tipo_documento'], Pais::de($d['pais'])['documentos'])) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['tipo_documento' => 'El tipo de documento no corresponde al país emisor seleccionado.']);
-        }
-        $d['nacionalidad'] = \App\Support\SituacionLaboral::nacionalidadDeclarada($d['nacionalidad']);
+        ], ['pais' => 'país del documento', 'primer_nombre' => 'nombre', 'primer_apellido' => 'apellido', 'email' => 'correo', 'password' => 'contraseña']);
 
         if (\App\Support\AntiBot::esRobot($request)) {
             \App\Models\Actividad::registrar('robot_bloqueado', 'registro · ' . $request->ip());
@@ -72,9 +64,6 @@ class RegistroController extends Controller
             'email'      => $d['email'],
             'datos'      => [
                 'pais'            => $d['pais'],
-                'tipo_documento'  => $d['tipo_documento'],
-                'nacionalidad'    => $d['nacionalidad'],
-                'pais_residencia' => $d['pais_residencia'],
                 'primer_nombre'   => trim($d['primer_nombre']),
                 'primer_apellido' => trim($d['primer_apellido']),
                 'password'        => Hash::make($d['password']),
@@ -142,15 +131,12 @@ class RegistroController extends Controller
             Cliente::create([
                 'user_id'              => $user->id,
                 'pais'                 => $d['pais'],
-                'tipo_documento'       => $d['tipo_documento'] ?? array_key_first($pais['documentos']),
+                'tipo_documento'       => array_key_first($pais['documentos']),
                 'numero_documento'     => null,
                 'primer_nombre'        => $d['primer_nombre'],
                 'primer_apellido'      => $d['primer_apellido'],
-                // Registros pendientes anteriores pueden no contener estos datos.
-                // Quedan sin declarar hasta que la persona los complete.
-                'nacionalidad'         => $d['nacionalidad'] ?? null,
-                'pais_residencia'      => $d['pais_residencia'] ?? null,
-                'telefono_codigo_pais' => isset($d['pais_residencia']) ? (Pais::de($d['pais_residencia'])['telefono'] ?: null) : null,
+                'nacionalidad'         => null,
+                'telefono_codigo_pais' => $pais['telefono'] ?: null,
                 'correo'               => $p->email,
                 'activo'               => true,
                 'creado_por'           => $user->id,

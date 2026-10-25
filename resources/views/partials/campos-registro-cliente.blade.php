@@ -85,8 +85,8 @@
             <label for="fNacSel" class="{{ $lb }}">Nacionalidad *</label>
             <x-icono name="flag" class="jz-icono size-4" /><x-icono name="check-circle-2" class="jz-check size-4" />
             <select id="fNacSel" data-campo-permiso="nacionalidad" required class="{{ $in }}" data-actual="{{ $nacActual }}"></select>
-            <input type="text" name="nacionalidad" id="fNacionalidad" value="{{ $nacActual }}" maxlength="60" placeholder="Escriba la nacionalidad" class="{{ $in }} mt-2 hidden">
-            <p class="text-xs text-gray-500 mt-1">Elija su nacionalidad real. Un DIMEX de Costa Rica no selecciona «Costarricense».</p>
+            <input type="hidden" name="nacionalidad" id="fNacionalidad" value="{{ $nacActual }}" maxlength="60" placeholder="Escriba la nacionalidad" class="{{ $in }} mt-2 hidden">
+            <p class="text-xs text-gray-500 mt-1">Seleccione su nacionalidad del catálogo.</p>
         </div>
         <div class="jz-campo">
             <label class="{{ $lb }}">Estado civil</label>
@@ -248,34 +248,28 @@ document.addEventListener('DOMContentLoaded', function () {
         selEstado.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
-    // Nacionalidad: se elige de la lista; "Otra" permite escribirla
+    // Nacionalidad: catálogo del sistema. Se conserva un valor antiguo fuera del catálogo.
     function codigoDe(texto) {
         const t = (texto || '').trim().toLowerCase(); if (!t) return '';
-        const n = NAC.find(x => x.m.toLowerCase() === t || x.f.toLowerCase() === t); return n ? n.c : '_otra';
+        const n = NAC.find(x => x.m.toLowerCase() === t || x.f.toLowerCase() === t); return n ? n.c : '_actual';
     }
     function nacionalidades(codigoForzado) {
         if (!selNac) return;
         const actual = codigoForzado !== undefined ? codigoForzado : (selNac.value || codigoDe(txtNac.value));
-        selNac.innerHTML = '<option value="">— Elija —</option>' + NAC.map(n => '<option value="' + n.c + '"' + (n.c === actual ? ' selected' : '') + '>' + n[sexo() === 'F' ? 'f' : 'm'] + ' (' + n.p + ')</option>').join('')
-            + '<option value="_otra"' + (actual === '_otra' ? ' selected' : '') + '>Otra (escribirla)…</option>';
+        selNac.replaceChildren(new Option('— Elija —', ''));
+        for (const n of NAC) selNac.add(new Option(n[sexo() === 'F' ? 'f' : 'm'] + ' (' + n.p + ')', n.c, false, n.c === actual));
+        if (actual === '_actual' && txtNac.value) selNac.add(new Option(txtNac.value, '_actual', true, true));
         sincronizarNac();
     }
     function sincronizarNac() {
         const v = selNac.value;
-        txtNac.classList.toggle('hidden', v !== '_otra');
-        txtNac.required = v === '_otra';
-        if (v === '_otra') {
-            // Si lo escrito ya está en la lista, se elige de la lista (y se adapta a Masculino/Femenino).
-            const c = codigoDe(txtNac.value);
-            if (c && c !== '_otra') { selNac.value = c; return sincronizarNac(); }
-            selNac.closest('.jz-campo').classList.add('jz-lleno'); return;
-        }
+        if (v === '_actual') return;
         const n = NAC.find(x => x.c === v);
         txtNac.value = n ? (sexo() === 'F' ? n.f : n.m) : '';
         selNac.closest('.jz-campo').classList.toggle('jz-lleno', !!v);
     }
     if (selNac) {
-        selNac.addEventListener('change', function () { if (selNac.value === '_otra') { txtNac.value = ''; setTimeout(() => txtNac.focus(), 0); } sincronizarNac(); });
+        selNac.addEventListener('change', sincronizarNac);
         txtNac.addEventListener('change', sincronizarNac);
     }
     if (selSexo) selSexo.addEventListener('change', function () { estados(); nacionalidades(); });

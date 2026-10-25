@@ -1,4 +1,4 @@
-> Documento, nacionalidad y residencia independientes: consulte **LEAME-IDENTIDAD.txt** para actualizar y corregir registros anteriores.
+> Registro sencillo y editor de documentos ampliado: consulte **LEAME-EDITOR-DOCUMENTOS.txt** para esta entrega.
 
 > Galería de CV con desplazamiento continuo: **31 diseños**, incluido ATS en PDF y Word. Consulte **LEAME-ACTUALIZACION.txt** para esta entrega.
 

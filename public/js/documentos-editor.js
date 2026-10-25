@@ -12,6 +12,7 @@
             brillo: 100,
             contraste: 100,
             umbral: 150,
+            nitidez: 0,
         });
     const message = (text, error = false) => {
         $("message").textContent = text;
@@ -25,15 +26,18 @@
         separacion: 10 * +$("gap").value,
         cantidad: state.photos.length || 1,
         ajustar: $("fit").checked,
+        copias: +$("copies").value,
+        orientacion: $("orientation").value,
+        distribucion: $("layout").value,
     });
     function corners(p) {
         const w = p.src.width - 1,
             h = p.src.height - 1;
         return [
-            { x: w * 0.04, y: h * 0.04 },
-            { x: w * 0.96, y: h * 0.04 },
-            { x: w * 0.96, y: h * 0.96 },
-            { x: w * 0.04, y: h * 0.96 },
+            { x: 0, y: 0 },
+            { x: w, y: 0 },
+            { x: w, y: h },
+            { x: 0, y: h },
         ];
     }
     function invalidate(p) {
@@ -68,7 +72,7 @@
             const b = document.createElement("button");
             b.type = "button";
             b.className = "doc-btn doc-tab";
-            b.textContent = "Lado " + (i + 1);
+            b.textContent = i === 0 ? "Frente" : "Reverso";
             b.setAttribute(
                 "aria-pressed",
                 i === state.active ? "true" : "false",
@@ -85,9 +89,18 @@
         const p = actual();
         canvas.hidden = !p;
         $("empty").hidden = !!p;
-        if (!p) return;
+        if (!p) {
+            canvas.width = canvas.height = 1;
+            return;
+        }
         canvas.width = p.src.width;
         canvas.height = p.src.height;
+        const zoom = +$("zoom").value / 100;
+        const fit = Math.min(1, Math.max(100, canvas.parentElement.clientWidth - 26) / canvas.width,
+            Math.max(200, canvas.parentElement.clientHeight - 26) / canvas.height);
+        canvas.style.width = canvas.width * fit * zoom + "px";
+        canvas.style.height = canvas.height * fit * zoom + "px";
+        $("corner").value = String(state.selected);
         ctx.drawImage(p.src, 0, 0);
         const points = p.points;
         ctx.save();
@@ -126,7 +139,7 @@
             try {
                 for (const p of state.photos) process(p, true);
                 preview();
-                message("Vista previa actualizada · exportación a 300 ppp.");
+                message("Vista previa actualizada.");
             } catch (e) {
                 message(e.message, true);
             }
@@ -145,6 +158,7 @@
         $("bright").value = f.brillo;
         $("contrast").value = f.contraste;
         $("threshold").value = f.umbral;
+        $("sharp").value = f.nitidez || 0;
         filterLabels();
         preview();
         updateButtons();
@@ -171,39 +185,56 @@
             "redo",
             "remove",
             "swap",
+            "copy",
+            "natural",
+            "enhance",
+            "monochrome",
+            "corner",
+            "zoom",
         ])
             $(id).disabled = state.busy || !state.photos.length;
+        $("undo").disabled = state.busy || !actual()?.undo?.length;
+        $("redo").disabled = state.busy || !actual()?.redo?.length;
+        $("swap").disabled = state.busy || state.photos.length !== 2;
+        let fits = true;
+        try { C.medidas(settings()); } catch (_) { fits = false; }
+        for (const id of ["pdf", "print"]) $(id).disabled = state.busy || !state.photos.length || !fits;
+        $("app").setAttribute("aria-busy", state.busy ? "true" : "false");
     }
     function filterLabels() {
         $("bright-val").textContent = $("bright").value + "%";
         $("contrast-val").textContent = $("contrast").value + "%";
         $("threshold-val").textContent = $("threshold").value;
+        $("sharp-val").textContent = $("sharp").value + "%";
         $("threshold").disabled = state.busy || $("filter").value !== "bn";
     }
     function preview() {
         const p = actual();
         $("result").hidden = !p?.result;
         if (p?.result) $("result").src = p.result.toDataURL("image/jpeg", 0.88);
+        else $("result").removeAttribute("src");
         const sheet = $("sheet");
         sheet.replaceChildren();
         try {
             const m = C.medidas(settings());
             sheet.style.aspectRatio = m.pw + "/" + m.ph;
-            state.photos.forEach((photo, i) => {
+            m.posiciones.forEach((pos) => {
+                const photo = state.photos[pos.foto];
+                if (!photo) return;
                 if (!photo.result) return;
                 const img = new Image();
                 img.src = photo.result.toDataURL("image/jpeg", 0.85);
-                img.alt = "Lado " + (i + 1);
+                img.alt = pos.foto === 0 ? "Frente" : "Reverso";
                 Object.assign(img.style, {
-                    left: (100 * m.posiciones[i].x) / m.pw + "%",
-                    top: (100 * m.posiciones[i].y) / m.ph + "%",
+                    left: (100 * pos.x) / m.pw + "%",
+                    top: (100 * pos.y) / m.ph + "%",
                     width: (100 * m.ancho) / m.pw + "%",
                     height: (100 * m.alto) / m.ph + "%",
                 });
                 sheet.append(img);
             });
             $("size-info").textContent =
-                `${(m.ancho / 10).toFixed(2)} × ${(m.alto / 10).toFixed(2)} cm por cara · escala ${(m.escala * 100).toFixed(0)}%`;
+                `${(m.ancho / 10).toFixed(2)} × ${(m.alto / 10).toFixed(2)} cm por cara · ${$("copies").value} copia(s) · escala ${(m.escala * 100).toFixed(0)}%`;
         } catch (e) {
             $("size-info").textContent = e.message;
         }
@@ -285,6 +316,14 @@
     $("upload").onclick = () => $("files").click();
     $("upload-zone").onclick = () => $("files").click();
     $("files").addEventListener("change", () => receive([...$("files").files]));
+    document.addEventListener("paste", (e) => {
+        const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith("image/"));
+        if (!files.length || state.busy) return;
+        e.preventDefault();
+        receive(files);
+    });
+    $("corner").addEventListener("change", () => { state.selected = +$("corner").value; paint(); canvas.focus(); });
+    $("zoom").addEventListener("input", () => { $("zoom-val").textContent = $("zoom").value + "%"; paint(); });
     for (const event of ["dragenter", "dragover"])
         $("drop").addEventListener(event, (e) => {
             e.preventDefault();
@@ -332,6 +371,7 @@
         });
         if (nearest < 0) return;
         remember(actual());
+        updateButtons();
         state.drag = nearest;
         state.selected = nearest;
         canvas.setPointerCapture(e.pointerId);
@@ -367,6 +407,7 @@
         }
         e.preventDefault();
         remember(actual());
+        updateButtons();
         const p = actual().points[state.selected],
             step = e.shiftKey ? 10 : 1;
         p.x = Math.max(0, Math.min(canvas.width - 1, p.x + d[0] * step));
@@ -446,11 +487,13 @@
     let filterTimer;
     function changeFilter() {
         if (!actual()) return;
+        updateButtons();
         actual().filters = {
             modo: $("filter").value,
             brillo: +$("bright").value,
             contraste: +$("contrast").value,
             umbral: +$("threshold").value,
+            nitidez: +$("sharp").value,
         };
         filterLabels();
         clearTimeout(filterTimer);
@@ -466,7 +509,7 @@
             }
         }, 100);
     }
-    for (const id of ["filter", "bright", "contrast", "threshold"]) {
+    for (const id of ["filter", "bright", "contrast", "threshold", "sharp"]) {
         $(id).addEventListener("pointerdown", () => {
             if (actual()) remember(actual());
         });
@@ -482,10 +525,21 @@
         if (actual().base) process(actual());
         sync();
     };
+    function preset(filters) {
+        if (!actual() || state.busy) return;
+        remember(actual());
+        actual().filters = { ...defaults(), ...filters };
+        sync();
+    }
+    $("natural").onclick = () => preset({});
+    $("enhance").onclick = () => preset({ modo: "documento", contraste: 110, nitidez: 30 });
+    $("monochrome").onclick = () => preset({ modo: "bn", umbral: 150 });
     for (const id of ["width", "height"])
         $(id).addEventListener("input", () => {
             $("preset").value = "libre";
             for (const p of state.photos) invalidate(p);
+            preview();
+            updateButtons();
             live();
         });
     $("preset").onchange = () => {
@@ -504,10 +558,11 @@
             }
         }
         preview();
+        updateButtons();
         live();
     };
-    for (const id of ["paper", "margin", "gap", "fit"])
-        $(id).addEventListener("change", preview);
+    for (const id of ["paper", "margin", "gap", "fit", "copies", "orientation", "layout"])
+        $(id).addEventListener("input", () => { preview(); updateButtons(); });
     function download(blob, name) {
         const url = URL.createObjectURL(blob),
             a = document.createElement("a");
@@ -533,21 +588,47 @@
     }
     $("jpg").onclick = () => busy(() => image("jpg"));
     $("png").onclick = () => busy(() => image("png"));
+    $("copy").onclick = () => {
+        if (state.busy || !actual()) return;
+        if (!navigator.clipboard?.write || !window.ClipboardItem) {
+            message("Este navegador no permite copiar imágenes. Use Descargar PNG.", true);
+            return;
+        }
+        // Iniciar la escritura durante el clic conserva la activación del usuario.
+        const blob = new Promise((resolve, reject) => {
+            try {
+                process(actual());
+                actual().result.toBlob(b => b ? resolve(b) : reject(Error("No se pudo copiar la imagen.")), "image/png");
+            } catch (e) { reject(e); }
+        });
+        blob.catch(() => {});
+        const writing = navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        writing.catch(() => {});
+        busy(async () => {
+            try { await writing; preview(); message("Imagen copiada. Puede pegarla en otro documento o aplicación."); }
+            catch (_) { throw Error("No se pudo acceder al portapapeles. Use Descargar PNG o permita copiar imágenes en su navegador."); }
+        });
+    };
     async function pdf() {
         if (!state.photos.length) throw Error("Primero cargue una foto.");
         const m = C.medidas(settings());
         const doc = await PDFLib.PDFDocument.create(),
             pt = 72 / 25.4,
             page = doc.addPage([m.pw * pt, m.ph * pt]);
-        for (let i = 0; i < state.photos.length; i++) {
-            const p = state.photos[i];
+        const embedded = new Map();
+        for (const pos of m.posiciones) {
+            const p = state.photos[pos.foto];
+            if (!embedded.has(pos.foto)) {
             process(p);
             const foto = await doc.embedJpg(
                 p.result.toDataURL("image/jpeg", 0.96),
             );
+                embedded.set(pos.foto, foto);
+            }
+            const foto = embedded.get(pos.foto);
             page.drawImage(foto, {
-                x: m.posiciones[i].x * pt,
-                y: (m.ph - m.posiciones[i].y - m.alto) * pt,
+                x: pos.x * pt,
+                y: (m.ph - pos.y - m.alto) * pt,
                 width: m.ancho * pt,
                 height: m.alto * pt,
             });

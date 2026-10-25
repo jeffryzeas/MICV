@@ -27,33 +27,39 @@ class IdentidadClienteTest extends TestCase
             AntiBot::CAMPO=>'', '_t'=>Crypt::encryptString((string)(time()-5))],$extra);
     }
 
-    public function test_registro_y_verificacion_conservan_nacionalidad_dimex_y_residencia_independientes(): void
+    public function test_cuenta_sencilla_y_datos_completados_dentro_de_la_aplicacion(): void
     {
         $this->post(route('registro.guardar'),$this->registro())->assertSessionHasNoErrors()->assertRedirect(route('registro.codigo'));
         $p=RegistroPendiente::firstOrFail();
-        $this->assertSame('Nicaragüense',$p->datos['nacionalidad']);
-        $this->assertSame('dimex',$p->datos['tipo_documento']);
+        $this->assertArrayNotHasKey('nacionalidad',$p->datos);
+        $this->assertArrayNotHasKey('pais_residencia',$p->datos);
         $p->update(['codigo'=>Hash::make('123456')]);
         $this->withSession(['registro_token'=>$p->token])->post(route('registro.codigo.guardar'),['codigo'=>'123456'])->assertRedirect(route('mi-cv.panel'));
         $c=Cliente::firstOrFail();
+        $this->assertNull($c->nacionalidad);
+        $this->assertNull($c->pais_residencia);
+        $this->put(route('mi-cv.actualizar'),['pais'=>'CR','tipo_documento'=>'dimex','numero_documento'=>'12345678901',
+            'fecha_nacimiento'=>'1990-01-01','municipio_nacimiento'=>'Matagalpa','departamento_nacimiento'=>'Matagalpa',
+            'primer_nombre'=>'Persona','primer_apellido'=>'Prueba','nacionalidad'=>'Nicaragüense','pais_residencia'=>'CR','autorizacion_laboral'=>'En trámite'])
+            ->assertSessionHasNoErrors()->assertRedirect(route('mi-cv.panel'));
+        $c->refresh();
         $this->assertSame('Nicaragüense',$c->nacionalidad);
         $this->assertSame('CR',$c->pais);
         $this->assertSame('dimex',$c->tipo_documento);
         $this->assertSame('CR',$c->pais_residencia);
-        $this->assertNull($c->autorizacion_laboral);
-        $this->get(route('mi-cv.panel'))->assertOk()->assertSee('Nacionalidad: Nicaragüense')->assertSee('Reside en: Costa Rica');
+        $this->get(route('mi-cv.panel'))->assertOk()->assertSee('Nacionalidad: Nicaragüense')->assertSee('Reside en: Costa Rica')->assertDontSee('asignaciones automáticas');
     }
 
-    public function test_registro_no_infiere_nacionalidad_o_residencia_ausentes(): void
+    public function test_formulario_publico_no_pide_datos_que_se_completan_dentro(): void
     {
-        $this->post(route('registro.guardar'),$this->registro(['nacionalidad'=>'','pais_residencia'=>'']))->assertSessionHasErrors(['nacionalidad','pais_residencia']);
-        $this->assertDatabaseCount('registros_pendientes',0);
+        $this->get(route('registro.mostrar'))->assertOk()->assertDontSee('name="nacionalidad"',false)->assertDontSee('name="pais_residencia"',false)->assertDontSee('name="tipo_documento"',false);
+        $this->post(route('registro.guardar'),$this->registro(['nacionalidad'=>'','pais_residencia'=>'']))->assertSessionHasNoErrors()->assertRedirect(route('registro.codigo'));
+        $this->assertDatabaseCount('registros_pendientes',1);
     }
 
-    public function test_registro_rechaza_documento_de_otro_emisor_y_nacionalidad_invalida(): void
+    public function test_registro_rechaza_pais_de_documento_invalido(): void
     {
-        $this->post(route('registro.guardar'),$this->registro(['pais'=>'NI','tipo_documento'=>'dimex']))->assertSessionHasErrors('tipo_documento');
-        $this->post(route('registro.guardar'),$this->registro(['nacionalidad'=>'12345']))->assertSessionHasErrors('nacionalidad');
+        $this->post(route('registro.guardar'),$this->registro(['pais'=>'XX']))->assertSessionHasErrors('pais');
         $this->assertDatabaseCount('registros_pendientes',0);
     }
 
@@ -66,15 +72,12 @@ class IdentidadClienteTest extends TestCase
         $this->assertSame('En trámite',$d['autorizacion_laboral']);
     }
 
-    public function test_aviso_antiguo_no_cambia_ni_rechaza_nacionalidad_declarada(): void
+    public function test_panel_no_muestra_avisos_sobre_datos_internos(): void
     {
-        $c=Cliente::create(['pais'=>'CR','tipo_documento'=>'dimex','numero_documento'=>'12345678901','primer_nombre'=>'Persona','primer_apellido'=>'Prueba','nacionalidad'=>'Costarricense','pais_residencia'=>'CR']);
-        $this->assertTrue($c->revisarIdentidad());
-        $this->assertSame('Costarricense',$c->fresh()->nacionalidad);
-        $c->nacionalidad='Nicaragüense';
-        $this->assertFalse($c->revisarIdentidad());
-        $c->nacionalidad=null;
-        $this->assertTrue($c->revisarIdentidad());
+        $u=User::create(['usuario'=>'SINAVISO','name'=>'Persona Prueba','email'=>'sinaviso@example.test','password'=>'Prueba12345678','rol'=>'cliente','activo'=>true]);
+        Cliente::create(['user_id'=>$u->id,'pais'=>'CR','tipo_documento'=>'dimex','numero_documento'=>'12345678901','primer_nombre'=>'Persona','primer_apellido'=>'Prueba','nacionalidad'=>'Costarricense','pais_residencia'=>'CR']);
+        $this->actingAs($u)->get(route('mi-cv.panel'))->assertOk()->assertDontSee('Revise su nacionalidad')->assertDontSee('nacionalidad sugerida automáticamente');
+        $this->get(route('mi-cv.editar'))->assertOk()->assertDontSee('Revise su nacionalidad')->assertSee('id="fNacSel"',false);
     }
 
     public function test_editar_solo_documento_no_reescribe_nacionalidad_ni_residencia(): void

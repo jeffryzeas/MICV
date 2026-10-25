@@ -1,7 +1,6 @@
 @php $paisActual = old('pais', $cliente->pais ?: 'NI'); @endphp
 <x-layout titulo="Mis datos" activo="mi-datos">
     <p class="text-gray-500 mb-4 text-sm">Llene sus datos con calma, paso a paso o saltando al que quiera. Puede guardar en cualquier momento con el botón de abajo.</p>
-    @include('partials.aviso-identidad', ['cliente' => $cliente])
 
     @php($edicion=\App\Support\EdicionCliente::permitidos(auth()->user()))
     <div class="mb-5 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 flex items-start gap-2"><x-icono name="shield-check" class="size-5 shrink-0"/><p>{{ $edicion ? 'Puede editar las secciones habilitadas. Las demás se muestran en modo de consulta.' : 'Su cuenta tiene acceso de consulta. Solicite al administrador o al encargado que habilite la edición.' }}</p></div>

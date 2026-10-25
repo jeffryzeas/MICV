@@ -10,7 +10,6 @@
         </a>
     </div>
 
-    @include('partials.aviso-identidad', ['cliente' => $cliente])
 
     <form method="POST" action="{{ route('clientes.update', $cliente) }}" enctype="multipart/form-data" onsubmit="return confSave(event)" data-pasos="no">
     <div class="bg-white rounded-xl shadow p-4 sm:p-6">

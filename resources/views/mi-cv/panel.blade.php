@@ -44,7 +44,6 @@
         </div>
     </section>
 
-    @include('partials.aviso-identidad', ['cliente' => $cliente])
 
     {{-- Lo que tiene y lo que falta --}}
     <section class="bg-white rounded-xl shadow p-4 sm:p-5 mb-5">
