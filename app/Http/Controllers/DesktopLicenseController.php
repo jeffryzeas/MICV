@@ -18,5 +18,11 @@ class DesktopLicenseController extends Controller {
  }
  public function device(Request $r,DesktopDevice $device){$d=$r->validate(['revoked'=>'required|boolean']);$device->update($d);Actividad::registrar('desktop_equipo_actualizar','#'.$device->id);return back()->with('mensaje','Acceso del equipo actualizado.');}
  public function key(Request $r,DesktopLicense $license){$key='JZDESK-'.strtoupper(bin2hex(random_bytes(20)));$license->update(['key_hash'=>hash('sha256',$key)]);Actividad::registrar('desktop_clave_renovar','#'.$license->id);return back()->with('desktop_key',$key)->with('mensaje','Nueva clave generada. La clave anterior ya no permite activar equipos.');}
- public function profile(){return response()->json(['version'=>1,'server_url'=>rtrim(config('app.url'),'/'),'public_key'=>app(LicenseSigner::class)->publicKey()])->header('Content-Disposition','attachment; filename="MiCV-conexion.json"')->header('Cache-Control','no-store');}
+ public function profile(Request $r){
+  $signer=app(LicenseSigner::class);$diagnostico=$signer->diagnostics();
+  if($r->boolean('diagnostico') || !$diagnostico['ready']){
+   return response()->view('admin.desktop.conexion',compact('diagnostico'),$diagnostico['ready']?200:422)->header('Cache-Control','private, no-store')->header('X-Content-Type-Options','nosniff');
+  }
+  return response()->json(['version'=>1,'server_url'=>rtrim(config('app.url'),'/'),'public_key'=>$signer->publicKey()])->header('Content-Disposition','attachment; filename="MiCV-conexion.json"')->header('Cache-Control','private, no-store');
+ }
 }

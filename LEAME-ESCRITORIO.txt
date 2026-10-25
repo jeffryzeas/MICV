@@ -43,9 +43,10 @@ Consulte desktop/README.md: explica qué conflictos requieren revisión manual y
 las limitaciones de conciliación de esta primera edición.
 
 PRUEBAS COMPLETADAS EN EL ENTORNO DISPONIBLE
-- 101 pruebas Laravel, 1244 verificaciones, sin fallos ni omisiones.
-- 9 pruebas Python: firma, vencimiento, retroceso de reloj, cifrado, PIN, respaldo,
-  reserva local de stock, reintentos, pérdida de confirmación y conflictos.
+- 102 pruebas Laravel, 1259 verificaciones, sin fallos ni omisiones.
+- 11 pruebas Python: firma, vencimiento, retroceso de reloj, cifrado, PIN, respaldo,
+  reserva local de stock, reintentos, pérdida de confirmación, conflictos y cierre
+  de las conexiones del respaldo antes de eliminar archivos temporales.
 - Integración HTTP real PHP/Python: activación, firma PHP verificada en Python,
   operación sin red, reconexión, cliente, caja, venta, gasto, cierre y reintento
   confirmado como la misma venta.

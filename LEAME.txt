@@ -1,0 +1,11 @@
+CORRECCIÓN DE DESCARGA DE CONEXIÓN
+
+1. Haga una copia de los archivos que va a reemplazar.
+2. Descomprima este ZIP y suba las carpetas app, resources y public a la raíz de SU INSTALACIÓN LARAVEL EN EL SERVIDOR (donde está artisan). Conserve sus rutas. No se instala en la carpeta desktop de Windows.
+3. Desde la raíz Laravel del servidor ejecute: php artisan optimize:clear
+4. Entre como administrador y abra:
+https://micv.sistemajz.com/admin/escritorio/conexion?diagnostico=1
+5. Si dice ready, pulse Descargar configuración. Si aparece otro código, comparta el código y mensaje, nunca el archivo privado de firma.
+
+No necesita recompilar el EXE, cambiar MySQL, migrar tablas ni generar otra firma. Conserve su clave privada existente.
+Esta corrección reemplaza el error genérico de la descarga por un diagnóstico limitado al administrador. La causa real depende del PHP y permisos del servidor.
