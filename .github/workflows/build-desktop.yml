@@ -1,0 +1,26 @@
+name: Compilar Mi CV Escritorio para Windows
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar compilador del instalador
+        shell: powershell
+        run: choco install innosetup --yes --no-progress
+      - name: Probar y compilar ejecutable e instalador
+        shell: powershell
+        run: ./desktop/Compilar-Windows.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MiCVDesktop-Windows
+          path: |
+            desktop/dist/installer/MiCVDesktop-Setup.exe
+            desktop/dist/MiCVDesktop/**
+          if-no-files-found: error

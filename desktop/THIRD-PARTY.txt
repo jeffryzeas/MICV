@@ -1,0 +1,6 @@
+Mi CV Escritorio usa PySide6/Qt, cryptography, httpx, openpyxl y sus dependencias.
+Los avisos de licencia de los paquetes instalados se copian al directorio licenses
+durante la compilación de Windows. Conservarlos al distribuir el programa.
+Los SVG de la interfaz proceden del paquete blade-lucide-icons ya usado por el
+proyecto Laravel y de Lucide. Se incluye la licencia del paquete de origen.
+No se incluyen librerías Python binarias en el ZIP de código fuente.

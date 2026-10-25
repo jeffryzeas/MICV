@@ -1,0 +1,62 @@
+MI CV ESCRITORIO — PYTHON + API LARAVEL
+
+ENTREGA
+- Laravel actualizado con panel de licencias, equipos autorizados y API de escritorio.
+- Aplicación Python nativa para Windows, con almacenamiento local y sincronización.
+- Editor de documentos reutilizado en una versión local sin red.
+- Script de compilación de EXE e instalador en Windows y flujo manual de GitHub Actions.
+
+Este ZIP contiene código fuente y herramientas de compilación. NO contiene un
+instalador Windows ya compilado o probado en Windows.
+
+ALCANCE SIN INTERNET
+Clientes (ficha básica), catálogo descargado, POS, caja, ingresos/gastos, reportes
+locales PDF/Excel y editor de documentos. CV, tarjetas, fotos de carnet, chat y
+los demás módulos originales se abren en la web con conexión. No es una réplica
+completa de todo Laravel sin internet.
+
+PASOS
+1. Respaldar servidor, .env, base de datos y storage.
+2. Actualizar Laravel conservando los datos.
+3. Ejecutar en el servidor:
+     php artisan migrate --force
+     php artisan desktop:keys
+     php artisan optimize:clear
+     php artisan view:cache
+4. Usar APP_URL con HTTPS real y PHP con extensión sodium.
+5. Entrar como admin a Licencias de escritorio: registrar licencia y descargar
+   configuración de conexión. Guardar la clave de activación mostrada una vez.
+6. En Windows, seguir desktop/README.md para compilar o ejecutar desde Python.
+   El cliente importa el JSON de conexión y se activa con cuenta + licencia.
+7. Completar la primera sincronización antes de trabajar desconectado.
+
+La primera activación requiere internet. Después funciona durante el plazo
+sin conexión autorizado por el administrador (1 a 30 días, máximo el vencimiento).
+La revocación se aplica al reconectarse o al vencer la autorización ya emitida.
+No se entregan credenciales MySQL ni claves privadas al programa de escritorio.
+
+Los datos locales y la cola se conservan si falla internet. Cada operación tiene
+un UUID y recibo de importación para impedir duplicados. Las ventas pasan por
+el servicio original de Laravel y las escrituras respetan negocio y permisos.
+Conflictos de caja, precio, inventario o ficha no se sobrescriben silenciosamente.
+Consulte desktop/README.md: explica qué conflictos requieren revisión manual y
+las limitaciones de conciliación de esta primera edición.
+
+PRUEBAS COMPLETADAS EN EL ENTORNO DISPONIBLE
+- 101 pruebas Laravel, 1244 verificaciones, sin fallos ni omisiones.
+- 9 pruebas Python: firma, vencimiento, retroceso de reloj, cifrado, PIN, respaldo,
+  reserva local de stock, reintentos, pérdida de confirmación y conflictos.
+- Integración HTTP real PHP/Python: activación, firma PHP verificada en Python,
+  operación sin red, reconexión, cliente, caja, venta, gasto, cierre y reintento
+  confirmado como la misma venta.
+- Interfaz Qt nativa: seis pantallas renderizadas en Linux, arranque y cierre.
+- PDF y Excel reales desde Qt; editor de documentos local con PDF sin conexión.
+- Panel de licencias revisado a 390 y 1280 px; compilación de vistas Blade.
+- Cinco pruebas del cálculo/imagen del editor de documentos.
+- Verificación CRC y extracción completa del ZIP.
+
+PENDIENTE FUERA DE ESTE ENTORNO
+Compilar y probar instalación en Windows, verificar DPAPI en Windows real,
+probar dispositivos/impresoras del negocio y ejecutar una prueba piloto antes
+de reemplazar una caja de producción. Los scripts y el flujo Windows están
+incluidos. No se afirma que el EXE ya se haya generado.

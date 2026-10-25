@@ -34,6 +34,14 @@ class ClienteGuardar
         'linkedin', 'sitio_web', 'github', 'telefono_whatsapp', 'profesion_en', 'perfil_en',
     ];
 
+    /** Valida la ficha básica sin reemplazar estudios, experiencia ni archivos. */
+    public function validarEscritorio(Request $request): array
+    {
+        $request->merge(['numero_documento'=>\App\Support\Documentos::limpiar($request->input('tipo_documento'),$request->input('numero_documento'))]);
+        $datos=$request->validate($this->reglas(true),$this->mensajes(),$this->atributos());
+        return $this->completarSegunDocumento(\App\Support\SituacionLaboral::validar($datos));
+    }
+
     /**
      * @return array{cliente: Cliente, ya_existia: bool}
      */

@@ -1,3 +1,5 @@
+> **Mi CV Escritorio (Python):** integración de licencias, trabajo local y sincronización. Consulte **desktop/README.md** para alcance, instalación y compilación del instalador Windows.
+
 > Registro sencillo y editor de documentos ampliado: consulte **LEAME-EDITOR-DOCUMENTOS.txt** para esta entrega.
 
 > Galería de CV con desplazamiento continuo: **31 diseños**, incluido ATS en PDF y Word. Consulte **LEAME-ACTUALIZACION.txt** para esta entrega.

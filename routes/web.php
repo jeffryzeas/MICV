@@ -684,6 +684,12 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
             ->prefix("admin")
             ->name("admin.")
             ->group(function () {
+                Route::get('escritorio', [\App\Http\Controllers\DesktopLicenseController::class,'index'])->name('desktop.index');
+                Route::post('escritorio', [\App\Http\Controllers\DesktopLicenseController::class,'store'])->name('desktop.store');
+                Route::post('escritorio/licencia/{license}/clave', [\App\Http\Controllers\DesktopLicenseController::class,'key'])->name('desktop.key');
+                Route::put('escritorio/licencia/{license}', [\App\Http\Controllers\DesktopLicenseController::class,'update'])->name('desktop.update');
+                Route::put('escritorio/equipo/{device}', [\App\Http\Controllers\DesktopLicenseController::class,'device'])->name('desktop.device');
+                Route::get('escritorio/conexion', [\App\Http\Controllers\DesktopLicenseController::class,'profile'])->name('desktop.profile');
                 Route::get("supervision/mensajes", [
                     \App\Http\Controllers\ChatSupervisionController::class,
                     "index",

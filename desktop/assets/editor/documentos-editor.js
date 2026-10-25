@@ -1,0 +1,696 @@
+(() => {
+    "use strict";
+    const C = window.DocumentosCore,
+        $ = (id) => document.getElementById("doc-" + id);
+    if (!$("app")) return;
+    const state = { photos: [], active: 0, drag: -1, selected: 0, busy: false },
+        canvas = $("canvas"),
+        ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const actual = () => state.photos[state.active],
+        defaults = () => ({
+            modo: "color",
+            brillo: 100,
+            contraste: 100,
+            umbral: 150,
+            nitidez: 0,
+        });
+    const message = (text, error = false) => {
+        $("message").textContent = text;
+        $("message").classList.toggle("error", error);
+    };
+    const settings = () => ({
+        papel: $("paper").value,
+        ancho: 10 * +$("width").value,
+        alto: 10 * +$("height").value,
+        margen: 10 * +$("margin").value,
+        separacion: 10 * +$("gap").value,
+        cantidad: state.photos.length || 1,
+        ajustar: $("fit").checked,
+        copias: +$("copies").value,
+        orientacion: $("orientation").value,
+        distribucion: $("layout").value,
+    });
+    function corners(p) {
+        const w = p.src.width - 1,
+            h = p.src.height - 1;
+        return [
+            { x: 0, y: 0 },
+            { x: w, y: 0 },
+            { x: w, y: h },
+            { x: 0, y: h },
+        ];
+    }
+    function invalidate(p) {
+        p.base = null;
+    }
+    function snapshot(p) {
+        return {
+            src: p.src,
+            points: p.points.map((q) => ({ ...q })),
+            filters: { ...p.filters },
+        };
+    }
+    function remember(p) {
+        p.undo ||= [];
+        p.undo.push(snapshot(p));
+        if (p.undo.length > 20) p.undo.shift();
+        p.redo = [];
+    }
+    function history(from, to) {
+        const p = actual();
+        if (!p || state.busy || !p[from]?.length) return;
+        p[to] ||= [];
+        p[to].push(snapshot(p));
+        Object.assign(p, p[from].pop());
+        invalidate(p);
+        sync();
+    }
+    function updateTabs() {
+        const box = $("tabs");
+        box.replaceChildren();
+        state.photos.forEach((p, i) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "doc-btn doc-tab";
+            b.textContent = i === 0 ? "Frente" : "Reverso";
+            b.setAttribute(
+                "aria-pressed",
+                i === state.active ? "true" : "false",
+            );
+            b.addEventListener("click", () => {
+                state.active = i;
+                state.selected = 0;
+                sync();
+            });
+            box.append(b);
+        });
+    }
+    function paint() {
+        const p = actual();
+        canvas.hidden = !p;
+        $("empty").hidden = !!p;
+        if (!p) {
+            canvas.width = canvas.height = 1;
+            return;
+        }
+        canvas.width = p.src.width;
+        canvas.height = p.src.height;
+        const zoom = +$("zoom").value / 100;
+        const fit = Math.min(1, Math.max(100, canvas.parentElement.clientWidth - 26) / canvas.width,
+            Math.max(200, canvas.parentElement.clientHeight - 26) / canvas.height);
+        canvas.style.width = canvas.width * fit * zoom + "px";
+        canvas.style.height = canvas.height * fit * zoom + "px";
+        $("corner").value = String(state.selected);
+        ctx.drawImage(p.src, 0, 0);
+        const points = p.points;
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        points.slice(1).forEach((q) => ctx.lineTo(q.x, q.y));
+        ctx.closePath();
+        ctx.fillStyle = "#0f7e7922";
+        ctx.fill();
+        const scale =
+            canvas.width /
+            (canvas.getBoundingClientRect().width || canvas.width);
+        ctx.strokeStyle = C.valido(points) ? "#0f9c90" : "#d12d27";
+        ctx.lineWidth = 2.5 * scale;
+        ctx.stroke();
+        points.forEach((q, i) => {
+            ctx.beginPath();
+            ctx.arc(q.x, q.y, 13 * scale, 0, Math.PI * 2);
+            ctx.fillStyle = i === state.selected ? "#153d62" : "#fff";
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = i === state.selected ? "#fff" : "#153d62";
+            ctx.font = `bold ${12 * scale}px Arial`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(String(i + 1), q.x, q.y);
+        });
+        ctx.restore();
+    }
+    let liveTimer;
+    function live() {
+        if (liveTimer) return;
+        liveTimer = setTimeout(() => {
+            liveTimer = null;
+            if (state.busy || !actual()) return;
+            try {
+                for (const p of state.photos) process(p, true);
+                preview();
+                message("Vista previa actualizada.");
+            } catch (e) {
+                message(e.message, true);
+            }
+        }, 100);
+    }
+    function sync() {
+        $("file-status").textContent = state.photos.length
+            ? state.photos.length +
+              " foto(s) cargada(s). Puede ajustar las esquinas."
+            : "JPG, PNG o WebP · hasta 50 MB por foto";
+        const p = actual();
+        updateTabs();
+        paint();
+        const f = p?.filters || defaults();
+        $("filter").value = f.modo;
+        $("bright").value = f.brillo;
+        $("contrast").value = f.contraste;
+        $("threshold").value = f.umbral;
+        $("sharp").value = f.nitidez || 0;
+        filterLabels();
+        preview();
+        updateButtons();
+        live();
+    }
+    function updateButtons() {
+        $("upload").disabled = state.busy;
+        $("upload-zone").disabled = state.busy;
+        for (const input of $("app").querySelectorAll("input,select"))
+            input.disabled = state.busy;
+        $("clear").disabled = state.busy;
+        filterLabels();
+        for (const id of [
+            "rotate-left",
+            "rotate-right",
+            "reset",
+            "crop",
+            "jpg",
+            "png",
+            "pdf",
+            "print",
+            "filter-reset",
+            "undo",
+            "redo",
+            "remove",
+            "swap",
+            "copy",
+            "natural",
+            "enhance",
+            "monochrome",
+            "corner",
+            "zoom",
+        ])
+            $(id).disabled = state.busy || !state.photos.length;
+        $("undo").disabled = state.busy || !actual()?.undo?.length;
+        $("redo").disabled = state.busy || !actual()?.redo?.length;
+        $("swap").disabled = state.busy || state.photos.length !== 2;
+        let fits = true;
+        try { C.medidas(settings()); } catch (_) { fits = false; }
+        for (const id of ["pdf", "print"]) $(id).disabled = state.busy || !state.photos.length || !fits;
+        $("app").setAttribute("aria-busy", state.busy ? "true" : "false");
+    }
+    function filterLabels() {
+        $("bright-val").textContent = $("bright").value + "%";
+        $("contrast-val").textContent = $("contrast").value + "%";
+        $("threshold-val").textContent = $("threshold").value;
+        $("sharp-val").textContent = $("sharp").value + "%";
+        $("threshold").disabled = state.busy || $("filter").value !== "bn";
+    }
+    function preview() {
+        const p = actual();
+        $("result").hidden = !p?.result;
+        if (p?.result) $("result").src = p.result.toDataURL("image/jpeg", 0.88);
+        else $("result").removeAttribute("src");
+        const sheet = $("sheet");
+        sheet.replaceChildren();
+        try {
+            const m = C.medidas(settings());
+            sheet.style.aspectRatio = m.pw + "/" + m.ph;
+            m.posiciones.forEach((pos) => {
+                const photo = state.photos[pos.foto];
+                if (!photo) return;
+                if (!photo.result) return;
+                const img = new Image();
+                img.src = photo.result.toDataURL("image/jpeg", 0.85);
+                img.alt = pos.foto === 0 ? "Frente" : "Reverso";
+                Object.assign(img.style, {
+                    left: (100 * pos.x) / m.pw + "%",
+                    top: (100 * pos.y) / m.ph + "%",
+                    width: (100 * m.ancho) / m.pw + "%",
+                    height: (100 * m.alto) / m.ph + "%",
+                });
+                sheet.append(img);
+            });
+            $("size-info").textContent =
+                `${(m.ancho / 10).toFixed(2)} × ${(m.alto / 10).toFixed(2)} cm por cara · ${$("copies").value} copia(s) · escala ${(m.escala * 100).toFixed(0)}%`;
+        } catch (e) {
+            $("size-info").textContent = e.message;
+        }
+    }
+    async function busy(fn) {
+        if (state.busy) return;
+        state.busy = true;
+        updateButtons();
+        message("Procesando…");
+        try {
+            await new Promise(requestAnimationFrame);
+            await fn();
+        } catch (e) {
+            message(e.message || "No se pudo procesar la imagen.", true);
+        } finally {
+            state.busy = false;
+            updateButtons();
+        }
+    }
+    async function cargar(file) {
+        if (!/^image\/(jpeg|png|webp)$/.test(file.type))
+            throw Error("Use una foto JPG, PNG o WebP.");
+        if (file.size > 50 * 1024 * 1024)
+            throw Error("Cada foto debe pesar como máximo 50 MB.");
+        let image;
+        if (window.createImageBitmap) image = await createImageBitmap(file);
+        else {
+            const url = URL.createObjectURL(file);
+            try {
+                image = await new Promise((resolve, reject) => {
+                    const i = new Image();
+                    i.onload = () => resolve(i);
+                    i.onerror = () =>
+                        reject(Error("No se pudo abrir esta foto."));
+                    i.src = url;
+                });
+            } finally {
+                URL.revokeObjectURL(url);
+            }
+        }
+        const scale = Math.min(1, 2400 / Math.max(image.width, image.height)),
+            src = document.createElement("canvas");
+        src.width = Math.max(2, Math.round(image.width * scale));
+        src.height = Math.max(2, Math.round(image.height * scale));
+        const g = src.getContext("2d");
+        g.fillStyle = "white";
+        g.fillRect(0, 0, src.width, src.height);
+        g.drawImage(image, 0, 0, src.width, src.height);
+        image.close?.();
+        const p = { src, filters: defaults(), base: null, result: null };
+        p.points = corners(p);
+        return p;
+    }
+    function receive(files) {
+        return busy(async () => {
+            if (files.length > 2) throw Error("Seleccione una o dos fotos.");
+            const loaded = [];
+            for (const f of files) loaded.push(await cargar(f));
+            if (loaded.length === 2) {
+                state.photos = loaded;
+                state.active = 0;
+            } else if (loaded.length === 1) {
+                if (state.photos.length < 2) {
+                    state.photos.push(loaded[0]);
+                    state.active = state.photos.length - 1;
+                } else state.photos[state.active] = loaded[0];
+            }
+            state.active = Math.min(state.active, state.photos.length - 1);
+            $("files").value = "";
+            $("file-status").textContent =
+                state.photos.length +
+                " foto(s) cargada(s). Puede ajustar las esquinas.";
+            sync();
+            message(
+                "Arrastre las esquinas: la vista se actualiza automáticamente.",
+            );
+        });
+    }
+    $("upload").onclick = () => $("files").click();
+    $("upload-zone").onclick = () => $("files").click();
+    $("files").addEventListener("change", () => receive([...$("files").files]));
+    document.addEventListener("paste", (e) => {
+        const files = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith("image/"));
+        if (!files.length || state.busy) return;
+        e.preventDefault();
+        receive(files);
+    });
+    $("corner").addEventListener("change", () => { state.selected = +$("corner").value; paint(); canvas.focus(); });
+    $("zoom").addEventListener("input", () => { $("zoom-val").textContent = $("zoom").value + "%"; paint(); });
+    for (const event of ["dragenter", "dragover"])
+        $("drop").addEventListener(event, (e) => {
+            e.preventDefault();
+            if (!state.busy) $("drop").classList.add("dragging");
+        });
+    for (const event of ["dragleave", "drop"])
+        $("drop").addEventListener(event, (e) => {
+            e.preventDefault();
+            $("drop").classList.remove("dragging");
+        });
+    $("drop").addEventListener("drop", (e) => {
+        if (!state.busy) receive([...e.dataTransfer.files]);
+    });
+    function sourcePoint(e) {
+        const r = canvas.getBoundingClientRect();
+        return {
+            x: Math.max(
+                0,
+                Math.min(
+                    canvas.width - 1,
+                    ((e.clientX - r.left) * canvas.width) / r.width,
+                ),
+            ),
+            y: Math.max(
+                0,
+                Math.min(
+                    canvas.height - 1,
+                    ((e.clientY - r.top) * canvas.height) / r.height,
+                ),
+            ),
+        };
+    }
+    canvas.addEventListener("pointerdown", (e) => {
+        if (state.busy || !actual()) return;
+        const q = sourcePoint(e),
+            scale = canvas.width / canvas.getBoundingClientRect().width;
+        let nearest = -1,
+            distance = 32 * scale;
+        actual().points.forEach((p, i) => {
+            const d = Math.hypot(p.x - q.x, p.y - q.y);
+            if (d < distance) {
+                distance = d;
+                nearest = i;
+            }
+        });
+        if (nearest < 0) return;
+        remember(actual());
+        updateButtons();
+        state.drag = nearest;
+        state.selected = nearest;
+        canvas.setPointerCapture(e.pointerId);
+        e.preventDefault();
+        paint();
+    });
+    canvas.addEventListener("pointermove", (e) => {
+        if (state.drag < 0 || state.busy) return;
+        actual().points[state.drag] = sourcePoint(e);
+        invalidate(actual());
+        paint();
+        live();
+    });
+    for (const ev of ["pointerup", "pointercancel"])
+        canvas.addEventListener(ev, () => {
+            state.drag = -1;
+            preview();
+        });
+    canvas.addEventListener("keydown", (e) => {
+        if (!actual() || state.busy) return;
+        const d = {
+            ArrowLeft: [-1, 0],
+            ArrowRight: [1, 0],
+            ArrowUp: [0, -1],
+            ArrowDown: [0, 1],
+        }[e.key];
+        if (!d) {
+            if (/^[1-4]$/.test(e.key)) {
+                state.selected = +e.key - 1;
+                paint();
+            }
+            return;
+        }
+        e.preventDefault();
+        remember(actual());
+        updateButtons();
+        const p = actual().points[state.selected],
+            step = e.shiftKey ? 10 : 1;
+        p.x = Math.max(0, Math.min(canvas.width - 1, p.x + d[0] * step));
+        p.y = Math.max(0, Math.min(canvas.height - 1, p.y + d[1] * step));
+        invalidate(actual());
+        paint();
+        live();
+        preview();
+    });
+    function rotate(direction) {
+        const p = actual();
+        if (!p || state.busy) return;
+        remember(p);
+        const src = document.createElement("canvas");
+        src.width = p.src.height;
+        src.height = p.src.width;
+        const g = src.getContext("2d");
+        g.translate(src.width / 2, src.height / 2);
+        g.rotate((direction * Math.PI) / 2);
+        g.drawImage(p.src, -p.src.width / 2, -p.src.height / 2);
+        p.src = src;
+        p.points = corners(p);
+        invalidate(p);
+        sync();
+    }
+    $("rotate-left").onclick = () => rotate(-1);
+    $("rotate-right").onclick = () => rotate(1);
+    $("reset").onclick = () => {
+        const p = actual();
+        if (!p) return;
+        remember(p);
+        p.points = corners(p);
+        invalidate(p);
+        sync();
+    };
+    function process(p, quick = false) {
+        const s = settings();
+        if (
+            ![s.ancho, s.alto].every(
+                (v) => Number.isFinite(v) && v >= 10 && v <= 500,
+            )
+        )
+            throw Error("Indique ancho y alto entre 1 y 50 cm.");
+        if (!p.base || (!quick && p.quick)) {
+            if (!C.valido(p.points))
+                throw Error("Ajuste las esquinas: no deben cruzarse.");
+            const ratio = s.ancho / s.alto;
+            let w = Math.round((s.ancho / 25.4) * 300),
+                h = Math.round(w / ratio);
+            const scale = Math.min(1, (quick ? 650 : 2400) / Math.max(w, h));
+            w = Math.max(2, Math.round(w * scale));
+            h = Math.max(2, Math.round(h * scale));
+            const src = p.src
+                .getContext("2d", { willReadFrequently: true })
+                .getImageData(0, 0, p.src.width, p.src.height);
+            p.base = C.transformar(src, p.points, w, h);
+            p.quick = quick;
+        }
+        const out = C.filtrar(p.base, p.filters),
+            result = document.createElement("canvas");
+        result.width = out.width;
+        result.height = out.height;
+        result
+            .getContext("2d")
+            .putImageData(new ImageData(out.data, out.width, out.height), 0, 0);
+        p.result = result;
+    }
+    $("crop").onclick = () =>
+        busy(async () => {
+            if (!actual()) return;
+            process(actual());
+            preview();
+            message(
+                "Foto enderezada. Puede ajustar los filtros o preparar el PDF.",
+            );
+        });
+    let filterTimer;
+    function changeFilter() {
+        if (!actual()) return;
+        updateButtons();
+        actual().filters = {
+            modo: $("filter").value,
+            brillo: +$("bright").value,
+            contraste: +$("contrast").value,
+            umbral: +$("threshold").value,
+            nitidez: +$("sharp").value,
+        };
+        filterLabels();
+        clearTimeout(filterTimer);
+        filterTimer = setTimeout(() => {
+            const p = actual();
+            if (p && !state.busy) {
+                try {
+                    process(p, true);
+                    preview();
+                } catch (e) {
+                    message(e.message, true);
+                }
+            }
+        }, 100);
+    }
+    for (const id of ["filter", "bright", "contrast", "threshold", "sharp"]) {
+        $(id).addEventListener("pointerdown", () => {
+            if (actual()) remember(actual());
+        });
+        $(id).addEventListener("keydown", () => {
+            if (actual()) remember(actual());
+        });
+        $(id).addEventListener("input", changeFilter);
+    }
+    $("filter-reset").onclick = () => {
+        if (!actual()) return;
+        remember(actual());
+        actual().filters = defaults();
+        if (actual().base) process(actual());
+        sync();
+    };
+    function preset(filters) {
+        if (!actual() || state.busy) return;
+        remember(actual());
+        actual().filters = { ...defaults(), ...filters };
+        sync();
+    }
+    $("natural").onclick = () => preset({});
+    $("enhance").onclick = () => preset({ modo: "documento", contraste: 110, nitidez: 30 });
+    $("monochrome").onclick = () => preset({ modo: "bn", umbral: 150 });
+    for (const id of ["width", "height"])
+        $(id).addEventListener("input", () => {
+            $("preset").value = "libre";
+            for (const p of state.photos) invalidate(p);
+            preview();
+            updateButtons();
+            live();
+        });
+    $("preset").onchange = () => {
+        if ($("preset").value === "tarjeta") {
+            $("width").value = 8.56;
+            $("height").value = 5.4;
+            for (const p of state.photos) invalidate(p);
+        } else {
+            const sizes = { pasaporte: [12.5, 8.8], a5: [14.8, 21] }[
+                $("preset").value
+            ];
+            if (sizes) {
+                $("width").value = sizes[0];
+                $("height").value = sizes[1];
+                for (const p of state.photos) invalidate(p);
+            }
+        }
+        preview();
+        updateButtons();
+        live();
+    };
+    for (const id of ["paper", "margin", "gap", "fit", "copies", "orientation", "layout"])
+        $(id).addEventListener("input", () => { preview(); updateButtons(); });
+    function download(blob, name) {
+        const url = URL.createObjectURL(blob),
+            a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+    async function image(format) {
+        if (!actual()) return;
+        process(actual());
+        const blob = await new Promise((resolve) =>
+            actual().result.toBlob(
+                resolve,
+                format === "jpg" ? "image/jpeg" : "image/png",
+                0.96,
+            ),
+        );
+        if (!blob) throw Error("No se pudo crear la foto.");
+        download(blob, "Documento_lado_" + (state.active + 1) + "." + format);
+        preview();
+        message("Foto lista.");
+    }
+    $("jpg").onclick = () => busy(() => image("jpg"));
+    $("png").onclick = () => busy(() => image("png"));
+    $("copy").onclick = () => {
+        if (state.busy || !actual()) return;
+        if (!navigator.clipboard?.write || !window.ClipboardItem) {
+            message("Este navegador no permite copiar imágenes. Use Descargar PNG.", true);
+            return;
+        }
+        // Iniciar la escritura durante el clic conserva la activación del usuario.
+        const blob = new Promise((resolve, reject) => {
+            try {
+                process(actual());
+                actual().result.toBlob(b => b ? resolve(b) : reject(Error("No se pudo copiar la imagen.")), "image/png");
+            } catch (e) { reject(e); }
+        });
+        blob.catch(() => {});
+        const writing = navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        writing.catch(() => {});
+        busy(async () => {
+            try { await writing; preview(); message("Imagen copiada. Puede pegarla en otro documento o aplicación."); }
+            catch (_) { throw Error("No se pudo acceder al portapapeles. Use Descargar PNG o permita copiar imágenes en su navegador."); }
+        });
+    };
+    async function pdf() {
+        if (!state.photos.length) throw Error("Primero cargue una foto.");
+        const m = C.medidas(settings());
+        const doc = await PDFLib.PDFDocument.create(),
+            pt = 72 / 25.4,
+            page = doc.addPage([m.pw * pt, m.ph * pt]);
+        const embedded = new Map();
+        for (const pos of m.posiciones) {
+            const p = state.photos[pos.foto];
+            if (!embedded.has(pos.foto)) {
+            process(p);
+            const foto = await doc.embedJpg(
+                p.result.toDataURL("image/jpeg", 0.96),
+            );
+                embedded.set(pos.foto, foto);
+            }
+            const foto = embedded.get(pos.foto);
+            page.drawImage(foto, {
+                x: pos.x * pt,
+                y: (m.ph - pos.y - m.alto) * pt,
+                width: m.ancho * pt,
+                height: m.alto * pt,
+            });
+        }
+        doc.setTitle("Copia de documento");
+        doc.setCreator("Mi CV");
+        preview();
+        return new Blob([await doc.save()], { type: "application/pdf" });
+    }
+    $("pdf").onclick = () =>
+        busy(async () => {
+            download(await pdf(), "Copia_documento.pdf");
+            message("PDF listo. Imprima al 100% para conservar las medidas.");
+        });
+    $("print").onclick = () => {
+        if (state.busy || !state.photos.length) return;
+        const viewer = window.open("about:blank", "_blank");
+        if (!viewer) {
+            message(
+                "Permita abrir la pestaña de impresión o descargue el PDF.",
+                true,
+            );
+            return;
+        }
+        busy(async () => {
+            try {
+                const url = URL.createObjectURL(await pdf());
+                viewer.location.href = url;
+                setTimeout(() => URL.revokeObjectURL(url), 120000);
+                message(
+                    "PDF abierto. Seleccione tamaño real / 100% al imprimir.",
+                );
+            } catch (e) {
+                viewer.close();
+                throw e;
+            }
+        });
+    };
+    $("undo").onclick = () => history("undo", "redo");
+    $("redo").onclick = () => history("redo", "undo");
+    $("remove").onclick = () => {
+        if (state.busy) return;
+        state.photos.splice(state.active, 1);
+        state.active = 0;
+        sync();
+    };
+    $("swap").onclick = () => {
+        if (state.busy) return;
+        state.photos.reverse();
+        state.active = Math.max(0, state.photos.length - 1 - state.active);
+        sync();
+    };
+    $("clear").onclick = () => {
+        if (state.busy) return;
+        state.photos = [];
+        state.active = 0;
+        $("files").value = "";
+        sync();
+        message("Sesión limpia. Puede cargar otras fotos.");
+    };
+    window.addEventListener("resize", () => {
+        if (state.drag < 0) paint();
+    });
+    sync();
+})();

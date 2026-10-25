@@ -197,6 +197,7 @@ class Menu
         if ($u->esAdmin()) {
             $items = array_merge($items, [
                 ['id'=>'supervision','url'=>route('admin.chat.supervision'),'icon'=>'shield-check','label'=>'Supervisión de mensajes'],
+                ['id'=>'desktop','url'=>route('admin.desktop.index'),'icon'=>'monitor','label'=>'Licencias de escritorio'],
                 [
                     "id" => "cybers",
                     "url" => route("admin.cybers.index"),
