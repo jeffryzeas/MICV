@@ -1,0 +1,37 @@
+CORRECCIÓN DE EXPORTACIONES PDF Y EXCEL
+
+Se corrige el error «Formato es obligatorio» al usar los botones de exportación
+de clientes, reportes de ventas y contabilidad.
+
+CAUSA Y CORRECCIÓN
+El indicador de carga global desactivaba los botones de envío antes de que el
+navegador construyera la solicitud. Esto eliminaba el campo formato del botón
+seleccionado. Ahora el bloqueo de formularios normales se retrasa hasta después
+de construir el envío. Las exportaciones no bloquean la pantalla ni sus botones,
+porque una descarga mantiene abierta la página y permite descargar otro formato.
+Se conservan orientación, filtros, permisos y validación del formato en servidor.
+
+INSTALACIÓN
+Este ZIP contiene el proyecto completo y conserva los 31 diseños de CV.
+Si ya tiene la entrega anterior, los únicos archivos funcionales modificados son:
+  resources/views/components/layout.blade.php
+  resources/views/components/exportar.blade.php
+
+Copiar esos archivos al servidor y ejecutar desde la raíz del proyecto:
+  php artisan optimize:clear
+  php artisan view:cache
+
+Después recargar la página. No requiere migraciones, dependencias nuevas ni
+recompilar CSS. Conservar .env, storage y la base de datos del servidor.
+
+VALIDACIÓN
+- Reproducción en navegador del fallo anterior: 54 envíos perdían formato.
+- Corrección en navegador: PDF/Excel, tres módulos, tres orientaciones, toque
+  móvil, teclado y requestSubmit; 54 envíos correctos y 54 descargas sucesivas.
+- Los filtros con espacios, tildes y & permanecen en la solicitud.
+- Formularios normales GET y POST conservan el valor del botón pulsado.
+- Generación real desde los tres controladores: tres PDF válidos horizontales
+  y tres libros Excel válidos, con encabezados de descarga correctos.
+- 87 pruebas de Laravel, 1137 verificaciones, sin fallos ni omisiones.
+- Compilación de todas las vistas Blade correcta.
+- ZIP con comprobación CRC y extracción completa antes de entregar.

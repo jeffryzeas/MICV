@@ -570,11 +570,15 @@
         if (form.hasAttribute('data-sin-cargando')) return;
         if (form.getAttribute('target') === '_blank') return;
 
-        form.querySelectorAll('button[type="submit"]').forEach(function (b) {
-            b.disabled = true;
-            b.style.opacity = '.6';
-            b.setAttribute('data-jz-bloqueado', '1');
-        });
+        // El navegador debe construir primero los datos del formulario.
+        // Desactivar el botón durante submit elimina su name/value del envío.
+        setTimeout(function () {
+            form.querySelectorAll('button[type="submit"]').forEach(function (b) {
+                b.disabled = true;
+                b.style.opacity = '.6';
+                b.setAttribute('data-jz-bloqueado', '1');
+            });
+        }, 0);
 
         jzMostrarCargando(frasePara(form));
     }

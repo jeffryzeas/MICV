@@ -1,4 +1,5 @@
 @props(['ruta','parametros'=>[]])
-<form action="{{ $ruta }}" method="GET" class="panel mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+{{-- Las descargas conservan la página abierta: no bloquear botones ni pantalla. --}}
+<form action="{{ $ruta }}" method="GET" data-sin-cargando class="panel mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
 @foreach(array_merge(request()->except(['page','formato','orientacion']),$parametros) as $key=>$value)@if(is_scalar($value))<input type="hidden" name="{{ $key }}" value="{{ $value }}">@endif @endforeach
 <div class="w-full sm:w-auto sm:min-w-[190px]"><label class="label-campo">Orientación del reporte<select name="orientacion" class="campo mt-1.5"><option value="auto">Automática</option><option value="vertical" @selected(request('orientacion')==='vertical')>Vertical</option><option value="horizontal" @selected(request('orientacion')==='horizontal')>Horizontal</option></select></label></div><div class="flex flex-wrap gap-2"><x-ui.button type="submit" name="formato" value="pdf" icon="file-down">Exportar PDF</x-ui.button><x-ui.button type="submit" name="formato" value="excel" variant="secondary" icon="file-spreadsheet">Exportar Excel</x-ui.button></div></form>
