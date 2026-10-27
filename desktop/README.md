@@ -1,4 +1,4 @@
-# Mi CV Escritorio — Python + Laravel
+# Mi CV Escritorio 1.2 — Acceso por tipo de cuenta
 
 Aplicación nativa de escritorio en Python/PySide6, conectada por API al Laravel incluido.
 
@@ -38,8 +38,8 @@ php artisan view:cache
 5. Comprobar que `APP_URL` en `.env` es la dirección HTTPS real, por ejemplo el dominio donde instaló el sistema. Si está detrás de un proxy, conservar la configuración de proxies confiables de su instalación.
 6. Como administrador, entrar a **Licencias de escritorio** desde el menú. Crear una licencia para el negocio, elegir módulos, vencimiento, número de equipos y días sin conexión.
 7. Guardar la clave que se muestra una sola vez. Se puede generar otra clave después desde el panel; la anterior deja de servir para nuevas activaciones.
-8. Descargar **configuración de conexión**. Ese JSON contiene la URL y clave pública; no contiene contraseñas de base de datos ni la firma privada.
-9. El encargado necesita una cuenta activa de su negocio con los permisos correspondientes. Las cuentas de clientes del portal no pueden activar una caja de escritorio.
+8. Abrir el programa y activar con usuario, contraseña y clave de licencia. La versión 1.1 obtiene automáticamente la configuración por HTTPS; no necesita importar JSON. La descarga manual sigue disponible para versiones anteriores.
+9. Todos los roles pueden iniciar sesión. Solo las empresas y sus empleados requieren licencia. Los clientes acceden únicamente a sus datos; los administradores eligen el área de trabajo sin licencia comercial.
 
 La firma privada se crea en `storage/app/private/desktop-signing.key`. Respaldarla junto con la instalación; **no copiarla al programa ni a una carpeta pública**. El comando conserva la clave si ya existe. Si se pierde o cambia, los clientes configurados con la clave pública anterior necesitarán un procedimiento de renovación de confianza.
 
@@ -47,6 +47,7 @@ Variables opcionales:
 
 ```dotenv
 DESKTOP_REQUIRE_HTTPS=true
+DESKTOP_SERVER_URL=https://micv.sistemajz.com
 # DESKTOP_SIGNING_KEY_PATH=/ruta/privada/desktop-signing.key
 ```
 
@@ -67,8 +68,8 @@ En Linux/macOS, activar el entorno y usar `python -m pip install -r requirements
 
 En la primera apertura:
 
-1. Importar el JSON descargado de Laravel.
-2. Introducir usuario/correo, contraseña del sistema y clave de licencia.
+1. Abrir Mi CV Escritorio. El servidor predeterminado es `https://micv.sistemajz.com`.
+2. Introducir usuario/correo y contraseña. Después del login se pide la licencia solo a cuentas de empresa; administradores y clientes continúan sin ella.
 3. Definir un PIN local de al menos seis caracteres. No reutilizar la contraseña del servidor como PIN.
 4. Activar con internet y completar la primera sincronización de catálogos.
 5. En aperturas posteriores basta el PIN local mientras siga vigente la autorización sin conexión.
@@ -82,7 +83,7 @@ La contraseña del sistema no se guarda. Los datos quedan en `%LOCALAPPDATA%\Equ
 En Windows 10/11 de 64 bits:
 
 1. Usar CPython estándar 3.12, 3.13 o 3.14 de 64 bits. Si ya tiene Python 3.14.7 no necesita instalar 3.12. El lanzador `py` es opcional: el script busca también el intérprete directo, el Registro de Windows y las carpetas habituales.
-2. Instalar Inno Setup 6 desde su sitio oficial.
+2. Tener Inno Setup 6 o 7 instalado; el compilador detecta ambas versiones.
 3. Abrir PowerShell en `desktop/` y ejecutar:
 
 ```powershell
@@ -165,3 +166,32 @@ npm run test:documentos
 Se verificó en el entorno disponible: pruebas Python, arranque e interfaz Qt en Linux, exportación real PDF/Excel, editor HTML sin red y API Laravel real. La prueba integrada activó una licencia firmada por PHP, la verificó en Python, guardó operaciones durante un corte y sincronizó clientes, caja, venta y contabilidad; un reintento confirmó la misma venta. Además se instalaron las dependencias, se ejecutaron las once pruebas Python y se comprobó el arranque Qt con CPython 3.14.8 en Linux. El detector PowerShell admite 3.12, 3.13 y 3.14 x64 estándar. La ejecución e instalación nativas de Windows quedan pendientes de la compilación en Windows.
 
 Fuentes de herramientas: https://pyinstaller.org/en/stable/ · https://jrsoftware.org/isinfo.php · https://doc.qt.io/qtforpython-6/deployment/
+
+## Actualizar desde la edición anterior
+
+Lea `../ACTUALIZAR-ESCRITORIO-1.2.txt`. Esta versión requiere `php artisan migrate --force` y `php artisan optimize:clear` después de subir el parche; después compile e instale el escritorio nuevo. No genere otra firma.
+
+La aplicación conserva los datos de `%LOCALAPPDATA%\EquipoJZ\MiCVDesktop`. El instalador conserva su AppId. Si ya está activada, continúa con su PIN y perfil guardado. La firma del servidor debe seguir siendo la misma.
+
+La conexión inicial usa HTTPS con verificación de certificado y obtiene únicamente la URL y clave pública desde `/api/desktop/v1/connection`. No sigue redirecciones ni acepta que el servidor cambie la dirección esperada. Guarda la firma pública después de validar la licencia; si una instalación existente recibe otra firma, detiene la activación y conserva sus datos. La contraseña y clave de licencia no se guardan.
+
+El dominio de escritorio se configura en `config/desktop.php` (`DESKTOP_SERVER_URL`, predeterminado micv.sistemajz.com). Debe coincidir con la dirección incluida en la aplicación. `APP_URL` sigue configurándose con el dominio real para los demás módulos de Laravel.
+
+## Interfaz local y atajos
+
+Menús Archivo, Módulos, Herramientas y Ayuda; barra de acceso rápido; estado de pendientes; tablas y formularios Qt. POS en dos paneles ajustables: productos y venta actual.
+
+- Ctrl+1 a Ctrl+6: módulos.
+- F5: sincronizar.
+- F8: cobrar, cuando está en POS y tiene permiso.
+- Ctrl+Mayús+B: copia de seguridad.
+
+Pruebas de esta entrega: PHP/Laravel y Python, pruebas de ventana Qt y simulación de conexión. La compilación y prueba final del instalador se realizan en Windows; este paquete no contiene un EXE ya compilado.
+
+## Cuentas y licencias en 1.2
+
+El rol se obtiene del servidor después de verificar usuario y contraseña. No se envía un rol para solicitar privilegios. Administradores y clientes reciben una autorización firmada de 30 días renovable con internet, sin licencia comercial. Empresas y empleados siguen sujetos a módulos, vencimiento, límite de equipos y permisos de la licencia.
+
+Archivo > Cambiar de cuenta permite perfiles locales aislados. La copia de seguridad guarda la cuenta abierta. Los permisos se vuelven a comprobar en cada operación del servidor. Los dispositivos revocados o cuyo rol cambió no renuevan su acceso.
+
+La ficha de cliente es de consulta en el escritorio actual. Las operaciones empresariales, datos de otros clientes y catálogos POS están bloqueados para ese rol. La administración general y el resto de módulos aún pendientes no se presentan como una réplica offline completa.

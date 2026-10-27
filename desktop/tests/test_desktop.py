@@ -122,4 +122,50 @@ class DesktopTests(unittest.TestCase):
         data={'pais':'CR','tipo_documento':'dimex','numero_documento':'12345678901','primer_nombre':'Persona','primer_apellido':'Prueba','nacionalidad':'Nicaragüense','pais_residencia':'CR','autorizacion_laboral':'En trámite'}
         op=self.service.client(data);self.assertEqual(op['data']['client']['nacionalidad'],'Nicaragüense');self.assertEqual(op['data']['client']['pais'],'CR')
 
+    def direct_fixture(self):
+        import httpx
+        from micv_desktop.api import Api
+        from micv_desktop.sync import DEFAULT_SERVER_URL
+        store=Store(Path(self.tmp.name)/'fresh')
+        profile=dict(self.profile,server_url=DEFAULT_SERVER_URL)
+        response=dict(self.response,lease=self.sign(dict(self.claims,device=store.meta('device_uuid'),issuer=DEFAULT_SERVER_URL)))
+        calls=[]
+        def handler(request):
+            calls.append(request)
+            return httpx.Response(200,json=profile if request.url.path.endswith('/connection') else response)
+        def factory(*args):return Api(*args,transport=httpx.MockTransport(handler))
+        return store,profile,response,calls,factory
+    def test_direct_first_activation_without_json_then_offline_pin(self):
+        store,profile,response,calls,factory=self.direct_fixture()
+        Sync(store,factory).activate_direct('demo','password-test','LICENSE-TEST','123456')
+        self.assertEqual([(r.method,r.url.path) for r in calls],[('GET','/api/desktop/v1/connection'),('POST','/api/desktop/v1/activate')])
+        self.assertEqual(calls[0].content,b'');self.assertEqual(calls[0].url.host,'micv.sistemajz.com')
+        self.assertEqual(store.meta('profile'),profile);store.unlock('123456');self.assertIsNone(store.meta('password'));self.assertIsNone(store.meta('license_key'))
+        self.assertEqual(Service(store).claims(valid=True)['tenant_id'],1)
+    def test_direct_wrong_origin_never_sends_credentials(self):
+        store,profile,response,calls,factory=self.direct_fixture();profile['server_url']='https://other.example.test'
+        with self.assertRaisesRegex(AccessError,'dirección'):Sync(store,factory).activate_direct('demo','password-test','LICENSE','123456')
+        self.assertEqual(len(calls),1);self.assertIsNone(store.meta('token'))
+    def test_direct_changed_key_preserves_existing_data(self):
+        from micv_desktop.api import Api
+        import httpx
+        original=self.store.meta('profile');self.store.queue('ledger.create',{'concepto':'Pending'})
+        def factory(*args):return Api(*args,transport=httpx.MockTransport(lambda r:httpx.Response(200,json=dict(original,public_key=base64.b64encode(b'x'*32).decode()))))
+        with self.assertRaisesRegex(AccessError,'firma'):Sync(self.store,factory).activate_direct('demo','password-test','LICENSE','123456')
+        self.assertEqual(self.store.meta('profile'),original);self.assertEqual(len(self.store.operations()),1)
+    def test_direct_forged_lease_never_activates(self):
+        store,profile,response,calls,factory=self.direct_fixture();response['lease']=dict(response['lease'],signature=base64.b64encode(b'x'*64).decode())
+        with self.assertRaises(AccessError):Sync(store,factory).activate_direct('demo','password-test','LICENSE','123456')
+        self.assertIsNone(store.meta('token'));self.assertIsNone(store.meta('profile'))
+    def test_direct_missing_endpoint_and_timeout_can_retry(self):
+        from micv_desktop.api import Api
+        import httpx
+        store,profile,response,calls,factory=self.direct_fixture()
+        def missing(*args):return Api(*args,transport=httpx.MockTransport(lambda r:httpx.Response(404,json={})))
+        with self.assertRaisesRegex(AccessError,'Actualice'):Sync(store,missing).activate_direct('demo','password-test','LICENSE','123456')
+        def handler(r):raise httpx.ConnectTimeout('timeout',request=r)
+        def offline(*args):return Api(*args,transport=httpx.MockTransport(handler))
+        with self.assertRaises(OfflineError):Sync(store,offline).activate_direct('demo','password-test','LICENSE','123456')
+        self.assertIsNone(store.meta('token'));Sync(store,factory).activate_direct('demo','password-test','LICENSE','123456');store.unlock('123456')
+
 if __name__=='__main__':unittest.main()

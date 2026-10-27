@@ -1,5 +1,5 @@
 #define MyAppName "Mi CV Escritorio"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.2.0"
 [Setup]
 AppId={{D783DB38-37CE-47E0-BA4A-621A168F7D09}
 AppName={#MyAppName}

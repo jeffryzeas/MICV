@@ -22,9 +22,9 @@ class SyncOperations {
   abort_unless(is_numeric($value)&&(int)$value>0,422,'La referencia no es válida.');return (int)$value;
  }
  public function run(DesktopDevice $device,array $op): int {
-  $p=$op['data'];$cy=$device->license->cyber;$u=$device->user;$cfg=PosConfig::para($cy);
+  $p=$op['data'];$cy=$device->negocio();$u=$device->user;abort_unless($cy && !$u->esCliente(),403,'Esta cuenta no puede modificar operaciones empresariales.');$cfg=PosConfig::para($cy);
   $occurred=\Carbon\Carbon::parse($op['occurred_at'])->utc();
-  abort_unless($occurred->lte(now()->addMinutes(5)) && $occurred->gte($device->license->created_at->copy()->subMinutes(5)),422,'Revise la fecha declarada de la operación local.');
+  abort_unless($occurred->lte(now()->addMinutes(5)) && $occurred->gte(($device->license?->created_at??$device->created_at)->copy()->subMinutes(5)),422,'Revise la fecha declarada de la operación local.');
   if(in_array($op['type'],['client.create','client.update'],true)){
    $this->permit($device,'clientes.editar');
    abort_unless(is_array($p['client']??null),422,'Faltan los datos del cliente.');

@@ -1,0 +1,48 @@
+MI CV ESCRITORIO 1.1 — ACTUALIZACIÓN
+
+NOVEDADES
+Activación directa con usuario, contraseña, licencia y PIN. No hay que importar JSON.
+Conecta automáticamente a https://micv.sistemajz.com.
+Menús y controles de programa local, atajos y POS en dos paneles.
+Corregido el bloqueo de Validando acceso por conflicto con la señal de la ventana.
+Compilador compatible con Inno Setup 6 y 7.
+
+1. ACTUALIZAR LARAVEL EN EL SERVIDOR
+Haga una copia de los archivos que va a reemplazar. Suba los cinco archivos del parche, conservando las carpetas, a /var/www/micv:
+app/Http/Controllers/DesktopApiController.php
+app/Http/Controllers/DesktopLicenseController.php
+app/Services/Desktop/LicenseSigner.php
+config/desktop.php
+routes/desktop.php
+
+En la terminal del servidor:
+cd /var/www/micv
+php artisan optimize:clear
+
+No sustituya su .env ni la firma existente. No requiere migraciones.
+El dominio de escritorio ya viene configurado. Si existe DESKTOP_SERVER_URL en su .env, debe ser https://micv.sistemajz.com.
+Puede abrir https://micv.sistemajz.com/api/desktop/v1/connection: debe mostrar version, server_url y public_key. Son datos públicos de conexión.
+
+2. COMPILAR EN WINDOWS
+Cierre Mi CV Escritorio. Extraiga el proyecto completo en una carpeta nueva.
+Abra PowerShell dentro de mi-cv\desktop y ejecute:
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Compilar-Windows.ps1
+
+Use el script de ESTA versión. Detecta Python 3.12, 3.13 o 3.14 x64 e Inno Setup 6 o 7.
+El instalador se genera en desktop\dist\installer\MiCVDesktop-Setup.exe.
+Instálelo sobre la versión anterior con el mismo usuario de Windows.
+Si solo desea generar la carpeta ejecutable, añada -PortableOnly; conserve juntos todos los archivos de dist\MiCVDesktop.
+Este ZIP contiene fuentes; el EXE debe compilarse y comprobarse en Windows.
+
+3. ACTIVAR
+Abra el programa actualizado. Ingrese usuario o correo de Laravel, contraseña y clave de licencia del negocio. Cree y confirme su PIN local. Pulse Activar este equipo.
+No necesita descargar ni importar archivos JSON. Necesita internet en la primera activación.
+Después entra con su PIN mientras esté vigente la autorización sin conexión. Los equipos ya activados conservan su PIN y datos.
+
+CONSERVACIÓN DE DATOS
+No borre %LOCALAPPDATA%\EquipoJZ\MiCVDesktop. Contiene datos, clave local y operaciones pendientes. Haga una copia desde Archivo > Copia de seguridad antes de actualizar un equipo en uso.
+No regenere ni borre storage/app/private/desktop-signing.key.
+MySQL continúa en Laravel; SQLite se utiliza solo en el equipo para trabajar sin internet.
+
+ALCANCE LOCAL
+Clientes, ventas, caja y contabilidad; editor local de documentos. CV, tarjetas y chat siguen disponibles desde el sistema web.

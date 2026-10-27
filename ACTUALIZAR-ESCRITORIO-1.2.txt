@@ -1,0 +1,38 @@
+MI CV ESCRITORIO 1.2 — ACCESO SEGÚN EL TIPO DE CUENTA
+
+TODOS INICIAN SESIÓN CON USUARIO Y CONTRASEÑA
+Empresa y empleados de empresa: después del login se solicita la licencia empresarial.
+Cliente: entra sin licencia, con acceso a su propia ficha descargada.
+Administrador: entra sin licencia; puede elegir administración general o un negocio para las operaciones locales disponibles.
+Cada cuenta configura su PIN local. La autorización firmada de clientes y administradores se renueva con conexión; no es una licencia de pago. Su vigencia sin conexión es de 30 días.
+Archivo > Cambiar de cuenta permite usar perfiles separados en el mismo Windows. No se mezclan datos entre usuarios ni entre los negocios seleccionados por un administrador.
+
+ACTUALIZAR EL SERVIDOR
+1. Respalde código y base de datos.
+2. Suba las carpetas del parche a la raíz Laravel /var/www/micv, conservando las rutas.
+3. En la terminal del servidor ejecute:
+cd /var/www/micv
+php artisan migrate --force
+php artisan optimize:clear
+
+La migración permite equipos sin licencia comercial y registra su rol y negocio. Conserve su archivo .env y storage/app/private/desktop-signing.key. No genere otra firma.
+En Licencias de escritorio aparece un listado independiente de accesos de administradores y clientes para revocar o volver a autorizar equipos.
+
+ACTUALIZAR WINDOWS
+1. Cierre el programa y descomprima el proyecto completo nuevo.
+2. Abra PowerShell dentro de mi-cv\desktop.
+3. Ejecute:
+powershell -NoProfile -ExecutionPolicy Bypass -File .\Compilar-Windows.ps1
+4. Instale desktop\dist\installer\MiCVDesktop-Setup.exe.
+Se detectan Python 3.12–3.14 x64 e Inno Setup 6 o 7. Esta entrega contiene código fuente: la compilación final del EXE se hace en Windows.
+
+DATOS EXISTENTES
+Se conserva el perfil de la versión anterior. Las cuentas nuevas se guardan separadas en %LOCALAPPDATA%\EquipoJZ\MiCVDesktop\accounts. Cada copia de seguridad corresponde a la cuenta abierta. No borre esta carpeta.
+Los equipos empresariales ya activados siguen sujetos a su licencia. Si un administrador estaba activado con licencia, puede usar Cuenta y respaldo > Reactivar / renovar acceso con mi cuenta; seleccione el mismo negocio para conservar sus operaciones.
+
+ALCANCE DE ESTA ENTREGA
+Se actualiza el acceso, los roles y la separación de cuentas. La réplica local de todos los módulos web todavía no está completa.
+Empresa: clientes, POS, caja, contabilidad y editor de documentos que ya incluye el escritorio, según permisos y licencia.
+Administrador: consulta global de clientes; las operaciones locales empresariales requieren seleccionar el negocio. La administración completa continúa en la web.
+Cliente: consulta/exportación de su propia ficha descargada. CV, tarjetas, edición completa del perfil, cartas, chat y otros módulos pendientes continúan en la web.
+El servidor comprueba el rol real, la pertenencia al negocio, permisos, revocaciones y licencia empresarial en las solicitudes; no confía en un rol enviado por el programa.

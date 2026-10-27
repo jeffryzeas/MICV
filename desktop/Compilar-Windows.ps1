@@ -81,9 +81,11 @@ function Find-InnoCompiler {
     $Command = Get-Command 'ISCC.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($Command) { return $Command.Source }
     $Paths = @()
-    if (${env:ProgramFiles(x86)}) { $Paths += Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe' }
-    if ($env:ProgramFiles) { $Paths += Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe' }
-    if ($env:LOCALAPPDATA) { $Paths += Join-Path $env:LOCALAPPDATA 'Programs\Inno Setup 6\ISCC.exe' }
+    foreach ($InnoVersion in @('7','6')) {
+        if (${env:ProgramFiles(x86)}) { $Paths += Join-Path ${env:ProgramFiles(x86)} "Inno Setup $InnoVersion\ISCC.exe" }
+        if ($env:ProgramFiles) { $Paths += Join-Path $env:ProgramFiles "Inno Setup $InnoVersion\ISCC.exe" }
+        if ($env:LOCALAPPDATA) { $Paths += Join-Path $env:LOCALAPPDATA "Programs\Inno Setup $InnoVersion\ISCC.exe" }
+    }
     foreach ($Path in $Paths) { if (Test-Path -LiteralPath $Path -PathType Leaf) { return $Path } }
     return $null
 }
@@ -109,7 +111,7 @@ if (-not $PortableOnly) {
     $Compiler = Find-InnoCompiler -Override $InnoPath
     if (-not $Compiler) {
         throw @'
-Se encontro Python, pero falta Inno Setup 6 para crear el instalador.
+Se encontro Python, pero falta Inno Setup 6 o 7 para crear el instalador.
 Instalelo desde https://jrsoftware.org/isdl.php y vuelva a ejecutar este script.
 Para crear solamente el EXE portable, use -PortableOnly.
 Si ya esta instalado en otra carpeta, indique -InnoPath "C:\ruta\ISCC.exe".

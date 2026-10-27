@@ -1,7 +1,9 @@
 from __future__ import annotations
 import socket, time
-from .api import Api, RemoteError
+from .api import Api, RemoteError, OfflineError
 from .security import AccessError, check_profile, pin_hash, verify_lease
+
+DEFAULT_SERVER_URL = 'https://micv.sistemajz.com'
 
 class Sync:
     def __init__(self, store, api_factory=Api, allow_local=False):
@@ -22,7 +24,7 @@ class Sync:
             raise AccessError('La respuesta no corresponde al negocio autorizado.')
         return claims
 
-    def activate(self, profile, user, password, key, pin):
+    def activate(self, profile, user, password, key, pin, business_id=None):
         profile = check_profile(profile, allow_local=self.allow_local)
         previous = self.store.meta('profile')
         if previous and previous != profile:
@@ -30,11 +32,42 @@ class Sync:
         saved_pin = pin_hash(pin)
         api = self.factory(profile)
         try:
-            result = api.call('POST', 'activate', json={'usuario': user, 'password': password, 'license_key': key.strip(), 'device_uuid': self.store.meta('device_uuid'), 'device_name': socket.gethostname()[:100]})
+            result = api.call('POST', 'activate', json={'usuario': user, 'password': password, 'license_key': key.strip(), 'device_uuid': self.store.meta('device_uuid'), 'device_name': socket.gethostname()[:100], 'business_id': business_id})
             self._validate(result, profile)
             self.store.activate(profile, result, saved_pin)
         finally:
             api.close()
+
+    def access_direct(self, user, password):
+        origin=(self.store.meta('profile') or {}).get('server_url',DEFAULT_SERVER_URL)
+        api=self.factory({'server_url':origin})
+        try:
+            account=api.call('POST','access',json={'usuario':user.strip(),'password':password})
+            if account.get('role') not in ('admin','cliente','cyber') or not isinstance(account.get('user_id'),int):
+                raise AccessError('El servidor devolvió una cuenta no válida.')
+            return account
+        finally:
+            api.close()
+
+    def activate_direct(self, user, password, key, pin, business_id=None):
+        previous = self.store.meta('profile')
+        origin = previous['server_url'] if previous else DEFAULT_SERVER_URL
+        api = self.factory({'server_url': origin})
+        try:
+            profile = check_profile(api.call('GET', 'connection'), allow_local=self.allow_local)
+        except RemoteError as exc:
+            if exc.status == 404:
+                raise AccessError('Actualice los archivos de Laravel: falta la conexión automática de escritorio en el servidor.') from exc
+            raise
+        except OfflineError as exc:
+            raise OfflineError('No se pudo conectar al servidor. Compruebe su conexión y la fecha del equipo; después vuelva a intentar.') from exc
+        finally:
+            api.close()
+        if profile['server_url'] != origin:
+            raise AccessError('La configuración del servidor no coincide con su dirección. El administrador debe revisar DESKTOP_SERVER_URL en Laravel.')
+        if previous and previous != profile:
+            raise AccessError('La firma del servidor cambió. Se conservaron sus datos; consulte al administrador antes de continuar.')
+        return self.activate(profile, user, password, key, pin, business_id)
 
     def _metadata(self, response, profile):
         claims = self._validate(response, profile)

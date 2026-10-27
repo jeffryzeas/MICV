@@ -31,17 +31,25 @@ class LicenseSigner {
  }
  public function publicKey(): string {return base64_encode(sodium_crypto_sign_publickey_from_secretkey($this->secret()));}
  public function scopes(DesktopDevice $device): array {
-  $u=$device->user;$l=$device->license;$cy=$l->cyber;
+  $u=$device->user;$cy=$device->negocio();
+  if($u->esCliente())return ['clientes.ver'];
+  if($u->esAdmin())return $cy?array_merge(self::PERMISSIONS,['admin']):['clientes.ver','admin'];
+  $l=$device->license;
+  if(!$l||!$cy)return [];
   return array_values(array_filter(self::PERMISSIONS,function($p)use($u,$l,$cy){$m=strtok($p,'.');return in_array($m,$l->modulos,true)&&$cy->moduloHabilitado($m)&&$u->tienePermiso($p);}));
  }
  public function lease(DesktopDevice $device): array {
-  $l=$device->license;
-  $claims=['version'=>1,'issuer'=>rtrim(config('app.url'),'/'),'device'=>$device->uuid,'license_id'=>$l->id,'tenant_id'=>$l->cyber_id,'user_id'=>$device->user_id,'issued_at'=>now()->timestamp,'valid_until'=>min($l->expires_at->timestamp,now()->addDays($l->offline_days)->timestamp),'scopes'=>$this->scopes($device),'nombre'=>$device->user->name,'negocio'=>$l->cyber->nombre];
+  $u=$device->user;$l=$u->esCyber()?$device->license:null;$cy=$device->negocio();
+  $until=$l?min($l->expires_at->timestamp,now()->addDays($l->offline_days)->timestamp):now()->addDays(30)->timestamp;
+  $claims=['version'=>1,'issuer'=>rtrim(config('desktop.server_url'),'/'),'device'=>$device->uuid,'license_id'=>$l?->id,'license_required'=>$u->esCyber(),'role'=>$u->rol,'tenant_id'=>$cy?->id??0,'user_id'=>$device->user_id,'issued_at'=>now()->timestamp,'valid_until'=>$until,'scopes'=>$this->scopes($device),'nombre'=>$u->name,'negocio'=>$cy?->nombre??($u->esAdmin()?'Administración general':'Mi cuenta')];
   $payload=json_encode($claims,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
   return ['payload'=>base64_encode($payload),'signature'=>base64_encode(sodium_crypto_sign_detached($payload,$this->secret()))];
  }
  public function authorize(DesktopDevice $device): void {
   $u=$device->user;$l=$device->license;
-  abort_unless(!$device->revoked && $l->activa && $l->expires_at->isFuture() && $u->activo && !$u->esCliente() && $l->cyber?->activo && ($u->esAdmin() || (int)$u->cyber_id===(int)$l->cyber_id),403,'El acceso de escritorio fue desactivado o su licencia venció.');
+  abort_unless($u && $u->activo && !$device->revoked && (!$device->access_role || $device->access_role===$u->rol),403,'El acceso fue desactivado o cambió el rol de su cuenta.');
+  if($u->esAdmin()){abort_if($device->negocio() && !$device->negocio()->activo,403,'El negocio fue desactivado.');return;}
+  if($u->esCliente()){abort_unless($device->access_role==='cliente' && !$device->license_id && !$device->business_id,403,'Acceso de cliente no válido.');return;}
+  abort_unless($u->esCyber() && $l && $l->activa && $l->expires_at->isFuture() && $l->cyber?->activo && (int)$u->cyber_id===(int)$l->cyber_id,403,'La licencia de la empresa venció o fue desactivada.');
  }
 }

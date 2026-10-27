@@ -5,7 +5,7 @@ use App\Services\Desktop\LicenseSigner;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 class DesktopLicenseController extends Controller {
- public function index(){return view('admin.desktop.index',['licencias'=>DesktopLicense::with('cyber','devices.user')->latest()->paginate(20),'negocios'=>Cyber::where('activo',true)->orderBy('nombre')->get()]);}
+ public function index(){return view('admin.desktop.index',['accesos'=>DesktopDevice::with('user')->whereNull('license_id')->latest()->paginate(20,['*'],'accesos'),'licencias'=>DesktopLicense::with('cyber','devices.user')->latest()->paginate(20),'negocios'=>Cyber::where('activo',true)->orderBy('nombre')->get()]);}
  public function store(Request $r){
   $d=$r->validate(['cyber_id'=>'required|exists:cybers,id','nombre'=>'required|string|max:100','expires_at'=>'required|date|after:now','device_limit'=>'required|integer|min:1|max:100','offline_days'=>'required|integer|min:1|max:30','modulos'=>'required|array|min:1','modulos.*'=>[Rule::in(['clientes','pos','contabilidad','documentos'])]]);
   $key='JZDESK-'.strtoupper(bin2hex(random_bytes(20)));$l=DesktopLicense::create($d+['key_hash'=>hash('sha256',$key),'created_by'=>$r->user()->id]);
@@ -23,6 +23,6 @@ class DesktopLicenseController extends Controller {
   if($r->boolean('diagnostico') || !$diagnostico['ready']){
    return response()->view('admin.desktop.conexion',compact('diagnostico'),$diagnostico['ready']?200:422)->header('Cache-Control','private, no-store')->header('X-Content-Type-Options','nosniff');
   }
-  return response()->json(['version'=>1,'server_url'=>rtrim(config('app.url'),'/'),'public_key'=>$signer->publicKey()])->header('Content-Disposition','attachment; filename="MiCV-conexion.json"')->header('Cache-Control','private, no-store');
+  return response()->json(['version'=>1,'server_url'=>rtrim(config('desktop.server_url'),'/'),'public_key'=>$signer->publicKey()])->header('Content-Disposition','attachment; filename="MiCV-conexion.json"')->header('Cache-Control','private, no-store');
  }
 }
