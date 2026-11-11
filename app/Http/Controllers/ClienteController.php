@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Actividad;
+use App\Models\{Actividad, AutoservicioSolicitud};
 use App\Models\Cliente;
 use App\Models\Configuracion;
 use App\Models\Cyber;
 use App\Services\ClienteGuardar;
+use App\Services\Desktop\{LocalBusinessJournal, LocalClientJournal};
 use App\Support\Archivos;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ClienteController extends Controller
 {
@@ -103,9 +105,17 @@ class ClienteController extends Controller
         // Atender un turno del autoservicio: el formulario se abre lleno con lo que la persona escribió.
         $solicitud = null;
         if ($request->filled('autoservicio')) {
-            $solicitud = \App\Models\AutoservicioSolicitud::query()->de($u)->where('estado', 'pendiente')->find($request->integer('autoservicio'));
-            if ($solicitud) {
-                $request->session()->now('_old_input', $solicitud->datos + ['autoservicio_id' => $solicitud->id, 'cyber_id' => $solicitud->cyber_id]);
+            abort_unless($u->tienePermiso('autoservicio'), 403);
+            $local = $request->attributes->has('local_permissions');
+            $solicitud = AutoservicioSolicitud::query()->de($u)->where('estado', 'pendiente')
+                ->when($local, fn ($q) => $q->where('cyber_id', (int) getenv('MICV_LOCAL_TENANT')))
+                ->find($request->integer('autoservicio'));
+            abort_unless($solicitud, 409, 'El turno ya no está pendiente en este negocio.');
+            if ((int) $request->session()->getOldInput('autoservicio_id') !== $solicitud->id) {
+                $request->session()->now('_old_input', [
+                    'autoservicio_id' => $solicitud->id,
+                    'cyber_id' => $solicitud->cyber_id,
+                ] + $solicitud->datos);
             }
         }
 
@@ -118,12 +128,41 @@ class ClienteController extends Controller
 
     public function store(Request $request, ClienteGuardar $guardar)
     {
-        $r = $guardar->registrar($request);
-        $c = $r['cliente'];
-        if ($request->filled('autoservicio_id')) {
-            \App\Models\AutoservicioSolicitud::query()->de($request->user())->whereKey($request->integer('autoservicio_id'))
-                ->update(['estado' => 'atendida', 'cliente_id' => $c->id, 'atendida_por' => $request->user()->id, 'atendida_en' => now()]);
+        $local = $request->attributes->has('local_permissions');
+        $tenant = (int) getenv('MICV_LOCAL_TENANT');
+        $request->validate(['autoservicio_id' => 'nullable|integer|min:1']);
+        $turno = $request->integer('autoservicio_id');
+        $user = $request->user();
+        abort_if($turno && !$user->tienePermiso('autoservicio'), 403);
+
+        if ($local) {
+            abort_unless($tenant > 0, 422, 'Use el espacio del negocio para registrar una ficha nueva.');
+            if ($user->esAdmin()) {
+                $request->merge(['cyber_id' => $tenant]);
+            }
+            $request->attributes->set('desktop_create_only', true);
         }
+        $r = DB::transaction(function () use ($request, $guardar, $local, $tenant, $turno, $user) {
+            $solicitud = $turno
+                ? AutoservicioSolicitud::bloquearPendiente($turno, $user, $local ? $tenant : null)
+                : null;
+            if ($solicitud && $user->esAdmin()) {
+                $request->merge(['cyber_id' => $solicitud->cyber_id]);
+            }
+            $payload = $local ? LocalClientJournal::payload($request) : [];
+            $resultado = $guardar->registrar($request);
+            $cliente = $resultado['cliente'];
+            $solicitud?->resolver($user, $cliente);
+            if ($local) {
+                $payload['local_client_id'] = $cliente->id;
+                if ($solicitud) {
+                    $payload['autoservicio_id'] = $solicitud->id;
+                }
+                LocalBusinessJournal::record($request, $tenant, 'client.full.create', $cliente->id, $payload);
+            }
+            return $resultado;
+        });
+        $c = $r['cliente'];
         Actividad::registrar($r['ya_existia'] ? 'cliente_vincular' : 'cliente_crear', "#{$c->id} {$c->nombreCompleto()}");
 
         $msg = $r['ya_existia']

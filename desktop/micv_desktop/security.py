@@ -4,6 +4,7 @@ import base64, ctypes, hashlib, hmac, json, os, secrets, sys, time
 from pathlib import Path
 from urllib.parse import urlsplit
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 class AccessError(Exception):
@@ -85,6 +86,7 @@ class Vault:
         else:
             raise AccessError('La clave local pertenece a otra plataforma o perfil. No se borraron sus datos.')
         self.cipher = AESGCM(key)
+        self.algorithm = algorithms.AES(key)
 
     def pack(self, context: str, value) -> bytes:
         nonce = secrets.token_bytes(12)
@@ -92,6 +94,29 @@ class Vault:
 
     def unpack(self, context: str, value: bytes):
         return json.loads(self.cipher.decrypt(value[:12], value[12:], context.encode()))
+
+    def seal_backup(self, source, target):
+        nonce = secrets.token_bytes(12)
+        cipher = Cipher(self.algorithm, modes.GCM(nonce)).encryptor()
+        cipher.authenticate_additional_data(b'micv-profile-backup-v1')
+        target.write(nonce)
+        while chunk := source.read(1024 * 1024):
+            target.write(cipher.update(chunk))
+        target.write(cipher.finalize())
+        target.write(cipher.tag)
+
+    def open_backup(self, source, target):
+        nonce, tail = source.read(12), source.read(16)
+        if len(nonce) != 12 or len(tail) != 16:
+            raise AccessError('El respaldo está incompleto.')
+        cipher = Cipher(self.algorithm, modes.GCM(nonce)).decryptor()
+        cipher.authenticate_additional_data(b'micv-profile-backup-v1')
+        while chunk := source.read(1024 * 1024):
+            block = tail + chunk
+            target.write(cipher.update(block[:-16]))
+            tail = block[-16:]
+        target.write(cipher.finalize_with_tag(tail))
+
 
 def pin_hash(pin: str, salt: str | None = None) -> dict:
     if len(pin) < 6 or len(pin) > 64:

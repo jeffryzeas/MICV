@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers\Pos;
 
-use App\Models\Actividad;
+use App\Models\{Actividad, ContableMovimiento};
+use App\Models\Pos\{PosConfig, PosVenta};
+use App\Services\Desktop\{FullClientSync, LocalBusinessJournal};
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use App\Support\Pais;
 use App\Support\PosPaises;
 use Illuminate\Http\Request;
@@ -20,6 +24,18 @@ class ConfigController extends PosBase
     public function actualizar(Request $request)
     {
         $cfg = $this->config($request);
+        $this->aplicar($request, $cfg);
+        Actividad::registrar('pos_config', $cfg->cyber->nombre);
+        return back()->with('mensaje', 'Configuración del punto de venta guardada.');
+    }
+
+    public static function revision(PosConfig $config): string
+    {
+        return FullClientSync::fingerprint($config->only(array_diff($config->getFillable(), ['cyber_id'])));
+    }
+
+    public function aplicar(Request $request, PosConfig $config, ?string $revision = null): void
+    {
         $d = $request->validate([
             'pais' => ['required', 'string', 'size:2'],
             'moneda' => ['required', 'string', 'size:3'],
@@ -44,14 +60,6 @@ class ConfigController extends PosBase
             'metodos.*.nombre' => ['required', 'string', 'max:30'],
         ], ['prefijo.regex' => 'El prefijo solo puede tener letras, números, guion o barra.'], ['impuesto_tasa' => 'tasa', 'siguiente_numero' => 'siguiente número']);
 
-        if (($d['moneda'] !== $cfg->moneda || $d['pais'] !== $cfg->pais) && (\App\Models\Pos\PosVenta::where('cyber_id',$cfg->cyber_id)->exists() || \App\Models\ContableMovimiento::where('cyber_id',$cfg->cyber_id)->exists())) {
-            throw \Illuminate\Validation\ValidationException::withMessages(['moneda'=>'No se puede cambiar país o moneda cuando hay movimientos registrados.']);
-        }
-        // El consecutivo nunca puede bajar a uno ya usado.
-        $ultimo = (int) \App\Models\Pos\PosVenta::where('cyber_id', $cfg->cyber_id)->max('consecutivo');
-        if ($d['siguiente_numero'] <= $ultimo) {
-            return back()->withInput()->withErrors(['siguiente_numero' => "El último comprobante fue el $ultimo: el siguiente debe ser mayor."]);
-        }
         $metodos = [];
         foreach (PosPaises::metodos() as $m) {
             $metodos[] = ['clave' => $m['clave'], 'nombre' => $d['metodos'][$m['clave']]['nombre'] ?? $m['nombre'], 'activo' => $m['clave'] === 'efectivo' || $request->boolean("metodos.{$m['clave']}.activo")];
@@ -59,9 +67,29 @@ class ConfigController extends PosBase
         $d['metodos'] = $metodos;
         $d['precios_con_impuesto'] = $request->boolean('precios_con_impuesto');
         $d['prefijo'] = $d['prefijo'] ?? '';
-        $d['locale'] = $d['locale'] ?: (PosPaises::PAISES[$d['pais']][6] ?? 'es');
-        \Illuminate\Support\Facades\DB::transaction(function()use($cfg,$d){$cfg->update($d);$cfg->cyber->update(['pais'=>$d['pais']]);});
-        Actividad::registrar('pos_config', $cfg->cyber->nombre);
-        return back()->with('mensaje', 'Configuración del punto de venta guardada.');
+        $d['locale'] = ($d['locale'] ?? null) ?: (PosPaises::PAISES[$d['pais']][6] ?? 'es');
+        DB::transaction(function () use ($request, $config, $revision, $d) {
+            $cfg = PosConfig::query()->whereKey($config->id)->lockForUpdate()->firstOrFail();
+            $actual = self::revision($cfg);
+            abort_if($revision !== null && !hash_equals($actual, $revision), 409,
+                'La configuración del punto de venta cambió en la web. Revise los valores antes de sincronizar.');
+            if (($d['moneda'] !== $cfg->moneda || $d['pais'] !== $cfg->pais)
+                && (PosVenta::where('cyber_id', $cfg->cyber_id)->exists()
+                    || ContableMovimiento::where('cyber_id', $cfg->cyber_id)->exists())) {
+                throw ValidationException::withMessages(['moneda' => 'No se puede cambiar país o moneda cuando hay movimientos registrados.']);
+            }
+            $ultimo = (int) PosVenta::where('cyber_id', $cfg->cyber_id)->max('consecutivo');
+            if ($d['siguiente_numero'] <= $ultimo) {
+                throw ValidationException::withMessages(['siguiente_numero' => "El último comprobante fue el $ultimo: el siguiente debe ser mayor."]);
+            }
+            $cfg->update($d);
+            $cfg->cyber->update(['pais' => $d['pais']]);
+            if ($actual !== self::revision($cfg->refresh())) {
+                LocalBusinessJournal::record($request, $cfg->cyber_id, 'pos.config.update', $cfg->id, [
+                    'revision' => $actual,
+                    'config' => array_replace($d, ['metodos' => array_column($d['metodos'], null, 'clave')]),
+                ]);
+            }
+        });
     }
 }

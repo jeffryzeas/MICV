@@ -200,7 +200,7 @@
             </div>
         </header>
 
-        <main class="flex-1 p-5">
+        <main id="appMain" class="flex-1 p-5">
             @if(session('mensaje'))
                 <div class="mb-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm">
                     {{ session('mensaje') }}

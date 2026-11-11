@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$PythonPath,
+    [string]$RuntimePath,
     [string]$InnoPath,
     [switch]$PortableOnly,
     [switch]$CheckPrerequisites
@@ -135,12 +136,35 @@ if (Test-Path -LiteralPath $Venv) {
 $Python = $Venv
 & $Python -m pip install --upgrade pip
 Check-Exit 'Actualizar pip'
-& $Python -m pip install -r requirements.txt 'pyinstaller>=6.22,<7'
+& $Python -m pip install -r requirements-local.txt 'pyinstaller>=6.22,<7'
 Check-Exit 'Instalar dependencias'
 & $Python -m unittest discover -s tests -v
 Check-Exit 'Pruebas Python'
-& $Python -m PyInstaller --noconfirm --clean --windowed --onedir --name MiCVDesktop --add-data 'assets;assets' --collect-data openpyxl main.py
+$RuntimeArguments = @()
+$RuntimeOutput = Join-Path $env:TEMP ('micv-runtime-' + [guid]::NewGuid().ToString())
+if ($RuntimePath) {
+    & $Python -m micv_desktop.package_runtime --project (Split-Path $PSScriptRoot -Parent) --engines $RuntimePath --output $RuntimeOutput
+    Check-Exit 'Preparar motor local'
+    $BundleOutput = $RuntimeOutput
+} else {
+    & (Join-Path $PSScriptRoot 'Preparar-Motor.ps1') -Python $Python -Destination $RuntimeOutput
+    $BundleOutput = Join-Path $RuntimeOutput 'bundle'
+}
+$PreviousTestBundle = $env:MICV_TEST_BUNDLE
+$PreviousTestUpload = $env:MICV_TEST_UPLOAD
+try {
+    $env:MICV_TEST_BUNDLE = $BundleOutput
+    $env:MICV_TEST_UPLOAD = '1'
+    & $Python -m unittest discover -s tests -p test_workspace_import.py -v
+    Check-Exit 'Pruebas de SQLite, sincronizacion y recuperacion con el motor Windows'
+} finally {
+    $env:MICV_TEST_BUNDLE = $PreviousTestBundle
+    $env:MICV_TEST_UPLOAD = $PreviousTestUpload
+}
+$RuntimeArguments = @('--add-data', ($BundleOutput + ';runtime-bundle'))
+& $Python -m PyInstaller @RuntimeArguments --noconfirm --clean --windowed --onedir --name MiCVDesktop --icon 'assets\micv.ico' --add-data 'assets;assets' --collect-data openpyxl --collect-all reportlab main.py
 Check-Exit 'Compilar ejecutable'
+Remove-Item -LiteralPath $RuntimeOutput -Recurse -Force
 $NoticeDir = Join-Path $PSScriptRoot 'dist\MiCVDesktop\licenses'
 New-Item -ItemType Directory -Force -Path $NoticeDir | Out-Null
 Copy-Item 'THIRD-PARTY.txt' $NoticeDir
@@ -164,6 +188,8 @@ if ($PortableOnly) {
     Write-Host 'Distribuya toda la carpeta MiCVDesktop, no solo el archivo EXE.'
     return
 }
-& $Compiler 'installer\setup.iss'
+$Version = & $Python -c 'from micv_desktop import __version__; print(__version__)'
+Check-Exit 'Leer version del instalador'
+& $Compiler "/DMyAppVersion=$Version" 'installer\setup.iss'
 Check-Exit 'Generar instalador'
 Write-Host 'Instalador generado: desktop\dist\installer\MiCVDesktop-Setup.exe'

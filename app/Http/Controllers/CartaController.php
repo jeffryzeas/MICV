@@ -17,6 +17,15 @@ class CartaController extends Controller
 {
     public function index(Request $request)
     {
+        if ($request->expectsJson()) {
+            $cliente = $request->user()->esCliente() ? $request->user()->cliente : null;
+            return response()->json([
+                'tipos' => CartaGenerator::TIPOS,
+                'modelos' => CartaGenerator::CANTIDAD_MODELOS,
+                'cliente' => $cliente ? ['id' => $cliente->id, 'texto' => $cliente->nombreCompleto()] : null,
+                'csrf' => csrf_token(),
+            ])->header('Cache-Control', 'private, no-store');
+        }
         return view('cartas.index', ['tipos' => CartaGenerator::TIPOS]);
     }
 
@@ -61,7 +70,11 @@ class CartaController extends Controller
     public function previsualizar(Request $request, string $tipo)
     {
         [$cliente, $datos] = $this->preparar($request, $tipo);
-        return response((new CartaGenerator($cliente, $tipo, $datos))->html(true));
+        $carta = new CartaGenerator($cliente, $tipo, $datos);
+        if ($request->expectsJson()) {
+            return response()->json(['html' => $carta->html()])->header('Cache-Control', 'private, no-store');
+        }
+        return response($carta->html(true));
     }
 
     public function generar(Request $request, string $tipo)

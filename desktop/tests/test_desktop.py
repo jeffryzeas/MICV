@@ -63,7 +63,7 @@ class DesktopTests(unittest.TestCase):
             return write(archive,*args,**kwargs)
         try:
             with patch('micv_desktop.storage.sqlite3.connect',side_effect=tracked), patch.object(zipfile.ZipFile,'write',checked_write):
-                self.store.backup(Path(self.tmp.name)/'closed-backup.zip')
+                self.store.backup_catalogs(Path(self.tmp.name)/'closed-backup.zip')
         finally:
             for connection in connections:connection.close()
     def test_backup_closes_source_if_destination_cannot_open(self):
@@ -75,7 +75,7 @@ class DesktopTests(unittest.TestCase):
         try:
             with patch('micv_desktop.storage.sqlite3.connect',side_effect=failing):
                 with self.assertRaisesRegex(OSError,'forced destination failure'):
-                    self.store.backup(Path(self.tmp.name)/'failed-backup.zip')
+                    self.store.backup_catalogs(Path(self.tmp.name)/'failed-backup.zip')
             self.assertEqual(len(connections),1)
             with self.assertRaises(sqlite3.ProgrammingError):connections[0].execute('SELECT 1')
         finally:

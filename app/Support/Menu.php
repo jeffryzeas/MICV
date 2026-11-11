@@ -33,6 +33,32 @@ class Menu
 
     public static function para(?User $u): array
     {
+        $items=self::base($u);
+        $device=request()->attributes->get('desktop_device');
+        if(!$device || !$u?->esCyber())return $items;
+        return self::filtrarEscritorio($items,$device);
+    }
+
+    private static function filtrarEscritorio(array $items,\App\Models\DesktopDevice $device): array
+    {
+        $visible=[];
+        foreach($items as $item){
+            if(!empty($item['hijos'])){
+                $item['hijos']=self::filtrarEscritorio($item['hijos'],$device);
+                if($item['hijos'])$visible[]=$item;
+                continue;
+            }
+            if(empty($item['url']))continue;
+            try{
+                $route=app('router')->getRoutes()->match(\Illuminate\Http\Request::create($item['url'],'GET'));
+                if(\App\Services\Desktop\DesktopWebPolicy::allows($device,$route->getName()))$visible[]=$item;
+            }catch(\Symfony\Component\HttpKernel\Exception\HttpException){}
+        }
+        return $visible;
+    }
+
+    private static function base(?User $u): array
+    {
         if (!$u) {
             return [];
         }

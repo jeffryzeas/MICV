@@ -36,6 +36,54 @@ class Ventas
         return ['base' => round($total - $impuesto, 2), 'impuesto' => $impuesto, 'total' => $total, 'descuento' => $descuento];
     }
 
+    public static function calcularLineas(array $d, PosConfig $cfg, User $u, bool $bloquear = false): array
+    {
+        if (!$u->tienePermiso('pos.descuentos') && ((float)($d['descuento_pct']??0)>0 || collect($d['items'])->contains(fn ($it)=>(float)($it['descuento']??0)>0))) {
+            throw ValidationException::withMessages(['items'=>'Su cuenta no tiene permiso para aplicar descuentos.']);
+        }
+        $dec = (int) $cfg->decimales;
+        $pct = max(0, min(100, (float) ($d['descuento_pct'] ?? 0)));
+        $productos = PosProducto::where('cyber_id', $cfg->cyber_id)->whereIn('id', collect($d['items'])->pluck('producto_id')->filter())->where('activo', true)->orderBy('id')->when($bloquear, fn ($q) => $q->lockForUpdate())->get()->keyBy('id');
+
+        $lineas = [];
+        foreach ($d['items'] as $i => $it) {
+            $p = !empty($it['producto_id']) ? $productos->get((int) $it['producto_id']) : null;
+            if (!empty($it['producto_id']) && !$p) {
+                throw ValidationException::withMessages(["items.$i" => 'Un producto del carrito ya no existe. Recargue la página.']);
+            }
+            $cant = round((float) $it['cantidad'], 2);
+            $precio = round((float) ($it['precio'] ?? $p?->precio ?? 0), 2);
+            if (!$u->tienePermiso('pos.precios') && (!$p || abs($precio-(float)$p->precio)>0.004)) {
+                throw ValidationException::withMessages(['items'=>'Su cuenta no puede cambiar precios ni agregar artículos libres.']);
+            }
+            $tasa = $p ? $p->tasa($cfg) : (float) $cfg->impuesto_tasa;
+            $bruto = $precio * $cant;
+            $desc = (float) ($it['descuento'] ?? 0);
+            $desc += ($bruto - $desc) * $pct / 100; // el descuento general se reparte en cada línea
+            $c = self::linea($precio, $cant, $desc, $tasa, (bool) $cfg->precios_con_impuesto, $dec);
+            $lineas[] = [
+                'producto' => $p, 'descripcion' => mb_substr(trim($it['descripcion'] ?? '') ?: ($p?->nombre ?? 'Artículo'), 0, 150),
+                'cantidad' => $cant, 'precio' => $precio, 'descuento' => $c['descuento'], 'impuesto_tasa' => $tasa,
+                'impuesto' => $c['impuesto'], 'total' => $c['total'], 'base' => $c['base'], 'costo' => round((float) ($p?->costo ?? 0) * $cant, 2),
+            ];
+        }
+        return $lineas;
+    }
+
+    public static function reglasItems(): array
+    {
+        return [
+            'items' => ['required', 'array', 'min:1', 'max:200'],
+            'items.*' => ['array:producto_id,descripcion,cantidad,precio,descuento'],
+            'items.*.producto_id' => ['nullable', 'integer'],
+            'items.*.descripcion' => ['nullable', 'string', 'max:150'],
+            'items.*.cantidad' => ['required', 'numeric', 'min:0.01', 'max:100000'],
+            'items.*.precio' => ['required', 'numeric', 'min:0', 'max:999999999'],
+            'items.*.descuento' => ['nullable', 'numeric', 'min:0'],
+            'descuento_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ];
+    }
+
     /**
      * @param array $d items[{producto_id?, descripcion, cantidad, precio, descuento}], descuento_pct, pagos[{metodo, monto, referencia}], cliente_id, cliente_nombre, notas
      */
@@ -56,35 +104,8 @@ class Ventas
             if ($caja->estado !== 'abierta') {
                 throw ValidationException::withMessages(['pagos' => 'La caja se cerró. Ábrala antes de vender.']);
             }
-            if (!$u->tienePermiso('pos.descuentos') && ((float)($d['descuento_pct']??0)>0 || collect($d['items'])->contains(fn ($it)=>(float)($it['descuento']??0)>0))) {
-                throw ValidationException::withMessages(['items'=>'Su cuenta no tiene permiso para aplicar descuentos.']);
-            }
             $dec = (int) $cfg->decimales;
-            $pct = max(0, min(100, (float) ($d['descuento_pct'] ?? 0)));
-            $productos = PosProducto::where('cyber_id', $cfg->cyber_id)->whereIn('id', collect($d['items'])->pluck('producto_id')->filter())->where('activo', true)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
-
-            $lineas = [];
-            foreach ($d['items'] as $i => $it) {
-                $p = !empty($it['producto_id']) ? $productos->get((int) $it['producto_id']) : null;
-                if (!empty($it['producto_id']) && !$p) {
-                    throw ValidationException::withMessages(["items.$i" => 'Un producto del carrito ya no existe. Recargue la página.']);
-                }
-                $cant = round((float) $it['cantidad'], 2);
-                $precio = round((float) ($it['precio'] ?? $p?->precio ?? 0), 2);
-                if (!$u->tienePermiso('pos.precios') && (!$p || abs($precio-(float)$p->precio)>0.004)) {
-                    throw ValidationException::withMessages(['items'=>'Su cuenta no puede cambiar precios ni agregar artículos libres.']);
-                }
-                $tasa = $p ? $p->tasa($cfg) : (float) $cfg->impuesto_tasa;
-                $bruto = $precio * $cant;
-                $desc = (float) ($it['descuento'] ?? 0);
-                $desc += ($bruto - $desc) * $pct / 100; // el descuento general se reparte en cada línea
-                $c = self::linea($precio, $cant, $desc, $tasa, (bool) $cfg->precios_con_impuesto, $dec);
-                $lineas[] = [
-                    'producto' => $p, 'descripcion' => mb_substr(trim($it['descripcion'] ?? '') ?: ($p?->nombre ?? 'Artículo'), 0, 150),
-                    'cantidad' => $cant, 'precio' => $precio, 'descuento' => $c['descuento'], 'impuesto_tasa' => $tasa,
-                    'impuesto' => $c['impuesto'], 'total' => $c['total'], 'base' => $c['base'], 'costo' => round((float) ($p?->costo ?? 0) * $cant, 2),
-                ];
-            }
+            $lineas = self::calcularLineas($d, $cfg, $u, bloquear: true);
 
             $total = round(array_sum(array_column($lineas, 'total')), $dec);
             $impuesto = round(array_sum(array_column($lineas, 'impuesto')), 2);
@@ -113,13 +134,16 @@ class Ventas
 
             // Existencias suficientes.
             $porProducto = [];
+            $productos = [];
             foreach ($lineas as $l) {
                 if ($l['producto']?->controla_stock) {
-                    $porProducto[$l['producto']->id] = ($porProducto[$l['producto']->id] ?? 0) + $l['cantidad'];
+                    $id = $l['producto']->id;
+                    $productos[$id] = $l['producto'];
+                    $porProducto[$id] = ($porProducto[$id] ?? 0) + $l['cantidad'];
                 }
             }
             foreach ($porProducto as $id => $cant) {
-                $p = $productos->get($id);
+                $p = $productos[$id];
                 if ((float) $p->stock < $cant) {
                     throw ValidationException::withMessages(['items' => "No alcanza: de «{$p->nombre}» quedan " . rtrim(rtrim(number_format((float) $p->stock, 2, '.', ''), '0'), '.') . ' (' . rtrim($p->unidad, '.') . ')']);
                 }

@@ -12,6 +12,9 @@ class DesktopAuth {
   app(LicenseSigner::class)->authorize($device);
   $r->attributes->set('desktop_device',$device);$r->setUserResolver(fn()=>$device->user);
   $device->forceFill(['last_seen_at'=>now()])->save();
-  return $next($r)->header('Cache-Control','private, no-store')->header('X-Content-Type-Options','nosniff');
+  $response=$next($r);
+  $response->headers->set('Cache-Control','private, no-store');
+  $response->headers->set('X-Content-Type-Options','nosniff');
+  return $response;
  }
 }

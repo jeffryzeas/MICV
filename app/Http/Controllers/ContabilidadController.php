@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 use App\Models\{Cyber, ContableMovimiento, Actividad};
 use App\Models\Pos\PosConfig;
+use App\Services\Desktop\LocalBusinessJournal;
 use App\Services\{LibroIngresosGastos,CvPdf,Nodo};
 use App\Support\{Archivos,Exportacion};
 use Illuminate\Http\Request;
@@ -40,13 +41,18 @@ class ContabilidadController extends Controller {
  public function store(Request $r) {
   $cy=$this->negocio($r,'contabilidad.registrar');
   $d=$r->validate(['clave_operacion'=>'required|uuid','fecha'=>'required|date_format:Y-m-d','tipo'=>'required|in:ingreso,gasto','categoria'=>'required|string|max:80','concepto'=>'required|string|max:250','monto'=>['required','numeric','min:0.01','max:999999999999.99','regex:/^\d{1,12}(\.\d{1,2})?$/'],'referencia'=>'nullable|string|max:100']);
-  $m=LibroIngresosGastos::manual($cy,$r->user(),$d);Actividad::registrar('contabilidad_registro','#'.$m->id.' · '.$m->tipo);
+  $m=LibroIngresosGastos::manual($cy,$r->user(),$d);
+  LocalBusinessJournal::record($r,$cy->id,'ledger.create',$m->id,$d+['moneda'=>$m->moneda],$d['clave_operacion']);
+  Actividad::registrar('contabilidad_registro','#'.$m->id.' · '.$m->tipo);
   return redirect()->route('contabilidad.index',['negocio'=>$cy->id])->with('mensaje','Movimiento registrado.');
  }
  public function anular(Request $r, ContableMovimiento $movimiento) {
   $cy=$this->negocio($r,'contabilidad.anular');abort_unless((int)$movimiento->cyber_id===(int)$cy->id,404);
   $d=$r->validate(['motivo'=>'required|string|min:8|max:500']);
   DB::transaction(function()use($movimiento,$r,$d){$m=ContableMovimiento::whereKey($movimiento->id)->lockForUpdate()->firstOrFail();abort_unless($m->origen==='manual',422,'Las ventas se anulan desde el POS para mantener ambos módulos consistentes.');abort_unless($m->estado==='activo',422,'Este movimiento ya fue anulado.');$m->update(['estado'=>'anulado','motivo_anulacion'=>$d['motivo'],'anulada_por'=>$r->user()->id,'anulada_en'=>now()]);});
+  LocalBusinessJournal::record($r,$cy->id,'ledger.void',$movimiento->id,[
+   'id'=>LocalBusinessJournal::reference($r,'ledger.create',$movimiento->id),'motivo'=>$d['motivo'],
+  ]);
   Actividad::registrar('contabilidad_anular','#'.$movimiento->id);return back()->with('mensaje','Movimiento anulado; se conserva su historial.');
  }
  public function exportar(Request $r) {

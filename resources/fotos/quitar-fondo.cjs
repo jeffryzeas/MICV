@@ -28,7 +28,7 @@ const LADO = CONF.lado;
 if(!native){
  if(nombreModelo.includes('birefnet'))throw new Error('BiRefNet requiere onnxruntime-node. Instale ese motor o seleccione U2Net/ISNet.');
  ort.env.wasm.numThreads = Math.max(1, Math.min(4, require('os').cpus().length));
- ort.env.wasm.wasmPaths = path.join(path.dirname(require.resolve('onnxruntime-web')), path.sep);
+ // ONNX Runtime resolves the packaged .mjs and .wasm next to its Node bundle.
 }
 
 (async () => {

@@ -29,7 +29,7 @@ class DesktopApiController extends Controller {
  private function metadata(DesktopDevice $device): array {
   $signer=app(LicenseSigner::class);$scopes=$signer->scopes($device);$cy=$device->negocio();$cfg=$cy?PosConfig::para($cy):null;
   $cash=$cy&&in_array('pos.caja',$scopes,true)?PosCaja::abiertaDe($cy->id):null;
-  return ['lease'=>$signer->lease($device),'server_time'=>now()->timestamp,'catalogs'=>['countries'=>\App\Support\Pais::paraJs(),'nationalities'=>\App\Support\Nacionalidades::paraJs()],
+  return ['capabilities'=>['full_client_sync'=>1,'dossiers'=>1,'desktop_session'=>1,'workspace_snapshot'=>1],'lease'=>$signer->lease($device),'server_time'=>now()->timestamp,'catalogs'=>['countries'=>\App\Support\Pais::paraJs(),'nationalities'=>\App\Support\Nacionalidades::paraJs()],
    'business'=>['id'=>$cy?->id??0,'nombre'=>$cy?->nombre??($device->user->esAdmin()?'Administración general':'Mi cuenta'),'pais'=>$cy?->pais??'NI','moneda'=>$cfg?->moneda??'NIO','simbolo'=>$cfg?->simbolo??'C$','contabilidad_pos'=>(bool)$cy?->contabilidad_pos,'decimales'=>$cfg?->decimales??2,'impuesto_tasa'=>$cfg?->impuesto_tasa??0,'precios_con_impuesto'=>$cfg?->precios_con_impuesto??true,'metodos'=>$cfg?->metodosActivos()??[]],
    'cash'=>$cash?['id'=>$cash->id,'monto_inicial'=>$cash->monto_inicial,'esperado'=>$cash->resumen()['esperado']]:null];
  }
@@ -71,7 +71,7 @@ class DesktopApiController extends Controller {
   return response()->json(['rows'=>$rows,'next'=>count($rows)===250?$rows->last()['id']:null]);
  }
  public function push(Request $r){
-  $d=$r->validate(['operations'=>'required|array|min:1|max:20','operations.*.uuid'=>'required|uuid|distinct','operations.*.type'=>'required|in:client.create,client.update,ledger.create,cash.open,cash.close,sale.create','operations.*.occurred_at'=>'required|date','operations.*.data'=>'required|array']);
+  $d=$r->validate(['operations'=>'required|array|min:1|max:20','operations.*.uuid'=>'required|uuid|distinct','operations.*.type'=>'required|in:client.create,client.update,client.full.create,client.full.update,ledger.create,ledger.void,cash.open,cash.move,cash.close,sale.create,sale.void,purchase.create,purchase.void,stock.adjust,product.create,product.update,product.delete,category.create,category.update,category.delete,supplier.create,supplier.update,supplier.delete,autoservicio.discard,pos.config.update,brand.update,client.permissions.update,team.update','operations.*.occurred_at'=>'required|date','operations.*.data'=>'required|array']);
   abort_if(strlen(json_encode($d))>1024*1024,413,'El lote es demasiado grande.');$device=$r->attributes->get('desktop_device');$results=[];
   foreach($d['operations'] as $op){
    try{$results[]=DB::transaction(function()use($device,$op){
@@ -80,10 +80,13 @@ class DesktopApiController extends Controller {
     $canonical=function($v)use(&$canonical){if(!is_array($v))return $v;if(!array_is_list($v))ksort($v);return array_map($canonical,$v);};
     $hash=hash('sha256',json_encode($canonical($op),JSON_THROW_ON_ERROR));
     $receipt=DB::table('desktop_receipts')->where('device_id',$device->id)->where('operation_uuid',$op['uuid'])->first();
-    if($receipt){abort_unless(hash_equals($receipt->payload_hash,$hash),409,'La misma referencia se recibió con datos diferentes.');return ['uuid'=>$op['uuid'],'status'=>'accepted','entity_id'=>$receipt->entity_id];}
+    if($receipt){abort_unless(hash_equals($receipt->payload_hash,$hash),409,'La misma referencia se recibió con datos diferentes.');return ['uuid'=>$op['uuid'],'status'=>'accepted','entity_id'=>$receipt->entity_id,'revision'=>$receipt->entity_revision];}
     $id=app(SyncOperations::class)->run($locked,$op);
-    DB::table('desktop_receipts')->insert(['device_id'=>$device->id,'operation_uuid'=>$op['uuid'],'payload_hash'=>$hash,'tipo'=>$op['type'],'entity_id'=>$id,'occurred_at'=>\Carbon\Carbon::parse($op['occurred_at'])->utc(),'created_at'=>now(),'updated_at'=>now()]);
-    return ['uuid'=>$op['uuid'],'status'=>'accepted','entity_id'=>$id];
+    $revision=in_array($op['type'],['client.full.create','client.full.update'],true)
+     ? \App\Services\Desktop\FullClientSync::revision(Cliente::findOrFail($id))
+     : null;
+    DB::table('desktop_receipts')->insert(['device_id'=>$device->id,'operation_uuid'=>$op['uuid'],'payload_hash'=>$hash,'tipo'=>$op['type'],'entity_id'=>$id,'entity_revision'=>$revision,'occurred_at'=>\Carbon\Carbon::parse($op['occurred_at'])->utc(),'created_at'=>now(),'updated_at'=>now()]);
+    return ['uuid'=>$op['uuid'],'status'=>'accepted','entity_id'=>$id,'revision'=>$revision];
    });}catch(ValidationException $e){$results[]=['uuid'=>$op['uuid'],'status'=>'conflict','message'=>collect($e->errors())->flatten()->implode(' ')];}
    catch(\Throwable $e){if($e instanceof HttpExceptionInterface && $e->getStatusCode()<500)$msg=$e->getMessage()?:'Revise los datos y permisos de esta operación.';else{report($e);$msg='No se pudo aplicar la operación. Se conserva para reintentar.';}$results[]=['uuid'=>$op['uuid'],'status'=>'conflict','message'=>$msg];}
   }

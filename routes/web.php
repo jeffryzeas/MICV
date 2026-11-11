@@ -512,6 +512,10 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                     Route::post("ventas", [$P . "VenderController", "guardar"])
                         ->name("ventas.guardar")
                         ->middleware("throttle:guardar");
+                    Route::get('pendientes', [$P . 'PendienteController', 'index'])->name('pendientes.index');
+                    Route::post('pendientes', [$P . 'PendienteController', 'guardar'])->name('pendientes.guardar')->middleware('throttle:guardar');
+                    Route::get('pendientes/{pendiente}/pdf', [$P . 'PendienteController', 'pdf'])->whereUuid('pendiente')->name('pendientes.pdf')->middleware('throttle:pdf');
+                    Route::post('pendientes/{pendiente}/descartar', [$P . 'PendienteController', 'descartar'])->whereUuid('pendiente')->name('pendientes.descartar');
                     Route::post("caja/abrir", [
                         $P . "CajaController",
                         "abrir",
@@ -903,3 +907,5 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
             });
     },
 );
+
+Route::post('desktop/session',[\App\Http\Controllers\DesktopSessionController::class,'open'])->middleware([\App\Http\Middleware\DesktopAuth::class,'throttle:20,1'])->name('desktop.session');

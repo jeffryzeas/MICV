@@ -8,9 +8,12 @@
                     <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Logo</label>
                     <div class="flex flex-wrap items-center gap-4">
                         @if($cyber->logoUrl())<img src="{{ $cyber->logoUrl() }}" class="h-14 object-contain bg-gray-50 border rounded p-1" alt="">@endif
-                        <input type="file" name="logo" accept="image/*" class="text-sm">
+                        <input type="file" name="logo" accept="{{ request()->attributes->has('local_permissions') ? 'image/jpeg,image/png,image/webp' : 'image/*' }}" class="text-sm">
                         @if($cyber->logoUrl())<label class="inline-flex items-center gap-2 text-sm"><input type="checkbox" name="quitar_logo" value="1"> Quitar logo</label>@endif
                     </div>
+                    @if(request()->attributes->has('local_permissions'))
+                        <p class="mt-2 text-xs text-gray-500">JPG, PNG o WEBP de hasta 600 KB para sincronizar desde este equipo.</p>
+                    @endif
                 </div>
                 <div><label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Color primario</label>
                     <input type="color" name="color_primario" value="{{ old('color_primario', $cyber->color_primario) }}" class="w-full h-10 border border-gray-300 rounded-lg"></div>

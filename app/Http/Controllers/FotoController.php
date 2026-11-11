@@ -101,9 +101,10 @@ class FotoController extends Controller
         if (!$img) {
             return response()->json(['ok' => false, 'mensaje' => 'La foto no llegó bien.'], 422);
         }
-        Archivos::borrar($cliente->foto);
+        $anterior = $cliente->foto;
         $cliente->foto = Archivos::guardarBinario($img[0], 'fotos', $img[1]);
         $cliente->save();
+        \Illuminate\Support\Facades\DB::afterCommit(fn () => Archivos::borrar($anterior));
         Actividad::registrar('foto_cv', '#' . $cliente->id);
         return response()->json(['ok' => true, 'mensaje' => 'Listo: es la nueva foto del CV de ' . $cliente->nombreCompleto() . '.']);
     }

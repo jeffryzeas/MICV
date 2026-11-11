@@ -1,4 +1,8 @@
-# Mi CV Escritorio 1.2 — Acceso por tipo de cuenta
+# Mi CV Escritorio
+
+La versión 2.0.0-beta.6 se compila y se prueba siguiendo [LEAME-VERSION-2.0-BETA.md](../LEAME-VERSION-2.0-BETA.md). Consulte `RUNTIME-ESTADO.md` para ver las funciones locales implementadas.
+
+## Guía de referencia de la versión 1.3
 
 Aplicación nativa de escritorio en Python/PySide6, conectada por API al Laravel incluido.
 
@@ -21,7 +25,11 @@ La API utiliza los modelos y transacciones de Laravel sin fijar otra conexión. 
 
 El error WinError 32 al respaldar correspondía al archivo SQLite temporal del equipo. Se corrigió el cierre explícito de las conexiones antes de crear el ZIP y limpiar ese temporal. Se conserva la base local y la cola de operaciones.
 
-## Preparar Laravel
+## Actualizar desde 1.2
+
+Si la conexión ya funciona, actualice únicamente desktop y vuelva a compilar. No regenere firmas ni ejecute migraciones por esta entrega. Consulte ACTUALIZAR-ESCRITORIO-1.3.txt. Incluye formularios adaptables, botones fijos, historial de ventas del equipo y reportes PDF/Excel mejorados.
+
+## Preparar Laravel (primera instalación)
 
 1. Respaldar base de datos, `.env`, archivos y código del servidor.
 2. Actualizar Laravel con el proyecto incluido, conservando los datos del servidor.
@@ -152,7 +160,11 @@ Al vencer, se conserva la información local y se bloquean operaciones nuevas; e
 
 ## Respaldo
 
-Usar **Licencia y respaldo → Crear copia de seguridad cifrada**. El archivo incluye una instantánea consistente de SQLite y la clave protegida. Guardarlo en un lugar privado. Para restaurar: cerrar la aplicación, respaldar la carpeta actual y restaurar ambos archivos con el mismo perfil de Windows. No reemplazar una instalación con pendientes sin conservarla.
+Guarde los cambios y cierre la ventana del espacio local. En el panel de escritorio, use **Licencia y respaldo → Crear copia de seguridad cifrada**. Si el espacio local está preparado, el ZIP incluye su base de datos, fotos, archivos y operaciones pendientes. Se puede crear aunque el servidor esté apagado.
+
+En la lista de cuentas seleccione **Recuperar un respaldo…**, elija el ZIP completo y escriba el PIN de la cuenta respaldada. En Windows, utilice el mismo perfil de usuario con el que se creó la copia. El respaldo se verifica antes de publicar el perfil recuperado. Si ya existe ese perfil, conserve su carpeta actual antes de recuperar la copia. Para volver a trabajar sin conexión, el acceso firmado debe seguir vigente.
+
+Los respaldos anteriores que contienen solo `micv.sqlite` y `local.key` se restauran manualmente en su perfil de origen, con la aplicación cerrada. Esos archivos contienen el catálogo y la cola de sincronización de esa versión.
 
 ## Pruebas
 
@@ -195,3 +207,5 @@ El rol se obtiene del servidor después de verificar usuario y contraseña. No s
 Archivo > Cambiar de cuenta permite perfiles locales aislados. La copia de seguridad guarda la cuenta abierta. Los permisos se vuelven a comprobar en cada operación del servidor. Los dispositivos revocados o cuyo rol cambió no renuevan su acceso.
 
 La ficha de cliente es de consulta en el escritorio actual. Las operaciones empresariales, datos de otros clientes y catálogos POS están bloqueados para ese rol. La administración general y el resto de módulos aún pendientes no se presentan como una réplica offline completa.
+
+Para incluir el motor local de desarrollo, Compilar-Windows.ps1 acepta -RuntimePath con una carpeta de motores Windows que contenga php/php.exe, node/node.exe y chrome/chrome.exe junto a sus bibliotecas. El proyecto debe tener vendor y node_modules instalados para Windows. El compilador arma runtime-bundle en una carpeta temporal y lo incluye en PyInstaller. Al compilar sin -RuntimePath, Preparar-Motor.ps1 descarga y verifica PHP y Node, instala las dependencias de Composer y npm en una copia temporal, descarga Chromium y el modelo de fondo e incluye Microsoft Visual C++ x64. La primera compilación requiere Internet y puede solicitar elevación para el componente de Microsoft.

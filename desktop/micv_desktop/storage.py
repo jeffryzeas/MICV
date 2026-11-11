@@ -1,7 +1,7 @@
 from __future__ import annotations
 from contextlib import contextmanager, closing
 from pathlib import Path
-import json, sqlite3, time, uuid, zipfile, tempfile
+import json, os, sqlite3, time, uuid, zipfile, tempfile
 from .security import Vault, AccessError, pin_valid
 
 class Store:
@@ -45,7 +45,7 @@ class Store:
 
     def activate(self, profile, response, pin):
         with self.connection() as db:
-            for key, value in {'profile': profile, 'token': response['token'], 'lease': response['lease'], 'business': response['business'], 'catalogs': response['catalogs'], 'cash': response['cash'], 'pin': pin, 'blocked': False, 'last_clock': response['server_time']}.items():
+            for key, value in {'capabilities': response.get('capabilities', {}), 'profile': profile, 'token': response['token'], 'lease': response['lease'], 'business': response['business'], 'catalogs': response['catalogs'], 'cash': response['cash'], 'pin': pin, 'blocked': False, 'last_clock': response['server_time']}.items():
                 self._set_meta(db, key, value)
 
     def unlock(self, pin):
@@ -82,6 +82,18 @@ class Store:
             db.execute('INSERT INTO outbox VALUES(?,?,?,?,?,?,?)', (identifier, 'pending', self.vault.pack('op:' + identifier, op), None, None, time.time(), None))
         return op
 
+    def import_operations(self, operations):
+        with self.connection() as db:
+            for op in operations:
+                identifier = op['uuid']
+                existing = db.execute('SELECT value FROM outbox WHERE uuid=?', (identifier,)).fetchone()
+                if existing:
+                    if self.vault.unpack('op:' + identifier, existing['value']) != op:
+                        raise ValueError('La operación local cambió después de guardarse.')
+                    continue
+                db.execute('INSERT INTO outbox VALUES(?,?,?,?,?,?,?)',
+                           (identifier, 'pending', self.vault.pack('op:' + identifier, op), None, None, time.time(), None))
+
     def operations(self, *, include_accepted=False):
         with self.connection() as db:
             rows = db.execute('SELECT * FROM outbox ' + ('' if include_accepted else "WHERE status != 'accepted' ") + 'ORDER BY created,uuid').fetchall()
@@ -98,6 +110,9 @@ class Store:
         with self.connection() as db:
             if result['status'] == 'accepted':
                 db.execute("UPDATE outbox SET status='accepted',remote_id=?,error=NULL,ack_at=? WHERE uuid=?", (int(result['entity_id']), time.time(), result['uuid']))
+                revision = result.get('revision')
+                if isinstance(revision, str) and len(revision) == 64 and all(c in '0123456789abcdef' for c in revision):
+                    self._set_meta(db, 'cv_receipt:' + result['uuid'], revision)
             else:
                 db.execute("UPDATE outbox SET status='conflict',error=? WHERE uuid=?", (self.vault.pack('error:' + result['uuid'], result.get('message', 'Revise la operación.')), result['uuid']))
 
@@ -106,6 +121,15 @@ class Store:
             db.execute("UPDATE outbox SET status='pending',error=NULL WHERE uuid=? AND status='conflict'", (identifier,))
 
     def backup(self, destination: Path):
+        destination = Path(destination).resolve()
+        if destination in (self.path.resolve(), self.vault.path.resolve()):
+            raise AccessError('Seleccione otro archivo para guardar el respaldo.')
+        if self.meta('workspace_active'):
+            from .profile_backup import backup_workspace
+            return backup_workspace(self, destination)
+        self.backup_catalogs(destination)
+
+    def backup_catalogs(self, destination: Path):
         # SQLite.backup incluye una instantánea consistente incluso usando WAL.
         with tempfile.TemporaryDirectory() as tmp:
             snap = Path(tmp) / 'micv.sqlite'
@@ -113,7 +137,13 @@ class Store:
             # la conexion. Windows exige cerrar ambos archivos antes de borrarlos.
             with closing(sqlite3.connect(self.path)) as source, closing(sqlite3.connect(snap)) as target:
                 source.backup(target)
-            with zipfile.ZipFile(destination, 'w', zipfile.ZIP_DEFLATED) as archive:
-                archive.write(snap, 'micv.sqlite')
-                archive.write(self.vault.path, 'local.key')
-                archive.writestr('LEAME.txt', 'Copia cifrada local. Restaurar con el mismo perfil de Windows. No reemplazar una instalación con pendientes sin respaldarla primero.\n')
+            with tempfile.NamedTemporaryFile(dir=destination.parent, delete=False) as handle:
+                temporary = Path(handle.name)
+            try:
+                with zipfile.ZipFile(temporary, 'w', zipfile.ZIP_DEFLATED) as archive:
+                    archive.write(snap, 'micv.sqlite')
+                    archive.write(self.vault.path, 'local.key')
+                    archive.writestr('LEAME.txt', 'Copia cifrada local. Restaurar con el mismo perfil de Windows. No reemplazar una instalación con pendientes sin respaldarla primero.\n')
+                os.replace(temporary, destination)
+            finally:
+                temporary.unlink(missing_ok=True)

@@ -1,5 +1,8 @@
 <x-layout titulo="Punto de venta" activo="pos-vender">
     @include('pos._barra')
+    <div class="mb-4">
+        <a class="btn btn-sec" href="{{ route('pos.pendientes.index') }}"><x-icono name="list"/> Ventas en espera y cotizaciones</a>
+    </div>
     <div class="max-w-md mx-auto mt-6">
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-900/5 p-6 text-center">
             <div class="mx-auto size-16 rounded-2xl bg-gradient-to-br from-azul-800 to-[#1d5fa8] text-white flex items-center justify-center shadow"><x-icono name="wallet" class="size-8" /></div>
@@ -8,6 +11,9 @@
             @if($ultima)<p class="text-xs text-gray-400 mt-2">El último cierre fue el {{ $ultima->cerrada_en?->format('d/m/Y H:i') }} con {{ $cfg->dinero($ultima->efectivo_contado) }} contados.</p>@endif
             <form method="POST" action="{{ route('pos.caja.abrir') }}" class="mt-5 space-y-4">
                 @csrf
+                @if($pendiente)
+                    <input type="hidden" name="pendiente" value="{{ $pendiente }}">
+                @endif
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-gray-400">{{ $cfg->simbolo }}</span>
                     <input type="number" name="monto_inicial" min="0" step="{{ $cfg->decimales ? '0.01' : '1' }}" value="{{ old('monto_inicial', 0) }}" required autofocus

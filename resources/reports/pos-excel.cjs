@@ -24,6 +24,9 @@ async function generar(d,salida){
   return s;
  }
  const ventas=d.ventas||[];const pagadas=ventas.filter(v=>v.estado==='pagada');
+ hoja('Ventas por hora', [
+  {nombre:'Franja',ancho:25}, {nombre:'Ventas pagadas',ancho:23,tipo:'entero'}, {nombre:'Total',ancho:24,tipo:'dinero'}
+ ], (d.horas||[]).map(h=>[h.franja,h.cantidad,h.total])).getColumn(2).numFmt='#,##0';
  const dt=s=>new Date(s.endsWith('Z')?s:s+'Z');
  hoja('Ventas',[['Comprobante',20],['Fecha',23,'fecha'],['Cliente',32],['Cajero',26],['Subtotal',19,'dinero'],['Descuento',18,'dinero'],['Impuesto',18,'dinero'],['Total',20,'dinero'],['Costo',19,'dinero'],['Ganancia sin impuesto',24,'dinero'],['Estado',16],['Motivo de anulación',38]].map(([nombre,ancho,tipo])=>({nombre,ancho,tipo})),ventas.map((v,i)=>[v.numero,dt(v.fecha),v.cliente,v.cajero,v.subtotal,v.descuento,v.impuesto,v.total,v.costo,{formula:`H${i+6}-G${i+6}-I${i+6}`,result:Math.round((v.total-v.impuesto-v.costo)*100)/100},v.estado,v.motivo||'']));
  const pagos=[];

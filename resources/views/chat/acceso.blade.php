@@ -1,11 +1,17 @@
+@php
+    $local = request()->attributes->has('local_permissions');
+    $permisoLocal = !$local || (int) getenv('MICV_LOCAL_TENANT') > 0;
+@endphp
 <x-layout titulo="Cuenta y permisos del cliente" activo="clientes">
 <div class="mb-5 flex flex-wrap items-center justify-between gap-3"><p class="text-sm text-gray-500 break-words">{{ $cliente->nombreCompleto() }}</p><x-ui.button :href="route('clientes.show',$cliente)" variant="secondary" icon="arrow-left">Volver a la ficha</x-ui.button></div>
 <div class="grid grid-cols-1 gap-5 xl:grid-cols-2"><x-ui.panel title="Cuenta personal" icon="user-round" description="El cliente establece su contraseña y verifica su correo.">
 @if(session('invitacion'))<div class="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm"><strong>Enlace privado · un solo uso · 24 horas</strong><input readonly value="{{ session('invitacion') }}" onclick="this.select()" class="campo mt-3" aria-label="Enlace privado de activación"><p class="mt-2 text-xs">Entréguelo únicamente al titular.</p></div>
 @elseif($cliente->user_id)<p class="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">Ya tiene cuenta personal. Puede ingresar con su correo o recuperar su contraseña.</p><x-ui.button :href="route('chat.index')" variant="secondary" icon="messages-square">Abrir mensajes</x-ui.button>
+@elseif($local)<p class="text-sm text-gray-500">Para generar un acceso, abra la sesión conectada.</p>
 @elseif(auth()->user()->tienePermiso('clientes.acceso'))<form method="POST" action="{{ route('clientes.acceso.crear',$cliente) }}" class="space-y-5">@csrf<x-ui.field label="Correo personal del cliente" for="acceso-email"><input id="acceso-email" type="email" name="email" value="{{ old('email',$cliente->correo) }}" required class="campo" autocomplete="email"></x-ui.field><x-ui.button type="submit" icon="user-plus">Generar acceso del cliente</x-ui.button></form>@else<p class="text-sm text-gray-500">Solicite a un encargado autorizado que cree la cuenta personal.</p>@endif
 </x-ui.panel>
 <x-ui.panel title="Edición de su ficha" icon="shield-check" description="Controle lo que esta persona puede editar desde su portal.">
-@if($cliente->user_id && auth()->user()->tienePermiso('clientes.permisos'))<form method="POST" action="{{ route('clientes.acceso.permisos',$cliente) }}" class="space-y-5">@csrf @method('PUT')<x-permisos-cliente :usuario="\App\Models\User::find($cliente->user_id)"/><x-ui.button type="submit" icon="save">Guardar permisos de edición</x-ui.button></form>
+@if($cliente->user_id && $permisoLocal && auth()->user()->tienePermiso('clientes.permisos'))<form method="POST" action="{{ route('clientes.acceso.permisos',$cliente) }}" class="space-y-5">@csrf @method('PUT')<x-permisos-cliente :usuario="\App\Models\User::find($cliente->user_id)"/><x-ui.button type="submit" icon="save">Guardar permisos de edición</x-ui.button></form>
+@elseif(!$permisoLocal)<p class="text-sm text-gray-500">Abra el espacio del negocio para modificar estos permisos.</p>
 @elseif(!$cliente->user_id)<p class="text-sm text-gray-500">Primero genere la cuenta personal del cliente.</p>@else<p class="text-sm text-gray-500">Su usuario no tiene permiso para administrar la edición de este cliente.</p>@endif
 </x-ui.panel></div></x-layout>

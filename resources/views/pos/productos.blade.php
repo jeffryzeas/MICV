@@ -34,6 +34,13 @@
                         <td class="p-3 text-right tabular-nums text-gray-500">{{ (float) $p->costo ? $cfg->dinero($p->costo) : '—' }}</td>
                         <td class="p-3 text-right">@if($p->controla_stock)<span class="font-semibold tabular-nums {{ $p->stockBajo() ? 'text-red-600' : 'text-azul-950' }}">{{ $cant($p->stock) }}</span> <span class="text-xs text-gray-400">{{ $p->unidad }}</span>@else<span class="text-xs text-gray-300">No se controla</span>@endif</td>
                         <td class="p-3 text-right whitespace-nowrap">
+                            @php $faltan = round((float) $p->stock_minimo - (float) $p->stock, 2); @endphp
+                            @if($p->activo && $p->tipo === 'producto' && $p->controla_stock && $faltan > 0)
+                                <span class="block text-xs text-gray-500">Faltan {{ $cant($faltan) }} para el mínimo</span>
+                                @if(auth()->user()->tienePermiso('pos.compras.editar'))
+                                    <a href="{{ route('pos.compras.crear', ['reponer' => $p->id]) }}" class="block text-xs font-semibold text-azul-800 hover:underline"><x-icono name="truck" class="size-4"/> Reponer</a>
+                                @endif
+                            @endif
                             @if($p->tipo === 'producto')<button type="button" class="jz-ajuste text-xs font-semibold text-azul-800 hover:underline mr-2" data-url="{{ route('pos.productos.ajuste', $p) }}" data-nombre="{{ $p->nombre }}" data-stock="{{ $cant($p->stock) }}">Ajustar</button>
                             <a href="{{ route('pos.productos.kardex', $p) }}" class="text-xs font-semibold text-azul-800 hover:underline mr-2">Movimientos</a>@endif
                             <a href="{{ route('pos.productos.editar', $p) }}" class="text-xs font-semibold text-azul-800 hover:underline">Editar</a>

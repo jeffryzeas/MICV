@@ -35,6 +35,27 @@ class AutoservicioSolicitud extends Model
         return $u->esAdmin() ? $q : $q->where('cyber_id', $u->cyber_id);
     }
 
+    /** La transición y los cambios asociados se ejecutan en la misma transacción. */
+    public static function bloquearPendiente(int $id, User $user, ?int $negocio = null): self
+    {
+        $solicitud = static::query()->de($user)
+            ->when($negocio !== null, fn ($q) => $q->where('cyber_id', $negocio))
+            ->whereKey($id)->lockForUpdate()->first();
+        abort_unless($solicitud && $solicitud->estado === 'pendiente', 409,
+            'El turno ya no está pendiente en este negocio.');
+        return $solicitud;
+    }
+
+    public function resolver(User $usuario, ?Cliente $cliente = null): void
+    {
+        $this->update([
+            'estado' => $cliente ? 'atendida' : 'descartada',
+            'cliente_id' => $cliente?->id,
+            'atendida_por' => $usuario->id,
+            'atendida_en' => now(),
+        ]);
+    }
+
     public static function siguienteTurno(int $cyberId): int
     {
         return (int) static::where('cyber_id', $cyberId)->whereDate('fecha', today())->max('turno') + 1;

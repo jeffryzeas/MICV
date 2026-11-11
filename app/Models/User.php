@@ -98,6 +98,10 @@ class User extends Authenticatable
 
     public function tienePermiso(string $permiso): bool
     {
+        $localPermissions = request()->attributes->get('local_permissions');
+        if (is_array($localPermissions) && !in_array($permiso, $localPermissions, true)) {
+            return false;
+        }
         if ($this->esAdmin()) {
             return true;
         }

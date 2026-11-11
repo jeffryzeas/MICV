@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Actividad;
 use App\Models\Cliente;
 use App\Models\User;
+use App\Services\Desktop\{FullClientSync, LocalBusinessJournal};
+use App\Support\EdicionCliente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -36,13 +38,41 @@ class AccesoClienteController extends Controller
 
     public function permisos(Request $r, Cliente $cliente)
     {
-        $this->autorizar($r,$cliente,'clientes.permisos');
-        $d=$r->validate(['edicion_cliente'=>'nullable|array|max:4','edicion_cliente.*'=>['string',Rule::in(array_keys(\App\Support\EdicionCliente::GRUPOS))]]);
-        $cuenta=User::find($cliente->user_id);
-        abort_unless($cuenta && $cuenta->esCliente(),422,'El cliente necesita una cuenta personal antes de configurar su edición.');
-        $cuenta->update(['edicion_cliente'=>array_values(array_unique($d['edicion_cliente']??[]))]);
-        Actividad::registrar('cliente_permisos_edicion','#'.$cliente->id);
-        return back()->with('mensaje','Permisos de edición del cliente actualizados.');
+        $this->aplicarPermisos($r, $cliente);
+        Actividad::registrar('cliente_permisos_edicion', '#'.$cliente->id);
+        return back()->with('mensaje', 'Permisos de edición del cliente actualizados.');
+    }
+
+    public function aplicarPermisos(Request $r, Cliente $cliente, ?array $base = null): void
+    {
+        $this->autorizar($r, $cliente, 'clientes.permisos');
+        $d = $r->validate([
+            'edicion_cliente' => 'nullable|array|max:4',
+            'edicion_cliente.*' => ['string', Rule::in(array_keys(EdicionCliente::GRUPOS))],
+        ]);
+        $local = $r->attributes->has('local_permissions');
+        $tenant = (int) getenv('MICV_LOCAL_TENANT');
+        if ($local) {
+            abort_unless($tenant > 0 && $cliente->cybers()->whereKey($tenant)->exists(), 403,
+                'Abra el espacio del negocio para modificar los permisos.');
+        }
+        DB::transaction(function () use ($r, $cliente, $base, $local, $tenant, $d) {
+            $ficha = Cliente::query()->whereKey($cliente->id)->lockForUpdate()->firstOrFail();
+            $cuenta = User::query()->whereKey($ficha->user_id)->lockForUpdate()->first();
+            abort_unless($cuenta && $cuenta->esCliente(), 422,
+                'El cliente necesita una cuenta personal antes de configurar su edición.');
+            $anterior = EdicionCliente::permitidos($cuenta);
+            $revision = FullClientSync::fingerprint($anterior);
+            abort_if($base && ((int) $base['user_id'] !== $cuenta->id || !hash_equals($revision, $base['revision'])), 409,
+                'La cuenta o sus permisos de edición cambiaron en la web.');
+            $grupos = array_values(array_intersect(array_keys(EdicionCliente::GRUPOS), $d['edicion_cliente'] ?? []));
+            $cuenta->update(['edicion_cliente' => $grupos]);
+            if ($local && $anterior !== $grupos) {
+                LocalBusinessJournal::record($r, $tenant, 'client.permissions.update', $ficha->id, [
+                    'id' => LocalBusinessJournal::reference($r, 'client.full.create', $ficha->id), 'user_id' => $cuenta->id, 'revision' => $revision, 'edicion_cliente' => $grupos,
+                ]);
+            }
+        });
     }
 
     public function crear(Request $r, Cliente $cliente)

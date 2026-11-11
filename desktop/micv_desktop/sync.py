@@ -1,9 +1,27 @@
 from __future__ import annotations
-import socket, time
+import json, socket, time
 from .api import Api, RemoteError, OfflineError
 from .security import AccessError, check_profile, pin_hash, verify_lease
 
 DEFAULT_SERVER_URL = 'https://micv.sistemajz.com'
+
+def push_batches(operations):
+    batch = []
+    size = 32
+    for operation in operations:
+        item = {key:operation[key] for key in ('uuid', 'type', 'occurred_at', 'data')}
+        encoded_size = len(json.dumps(item, ensure_ascii=True).replace('/', '\\/')) + 1
+        if encoded_size > 1000000:
+            raise AccessError('Una operación excede el tamaño admitido por el servidor.')
+        if batch and (len(batch) == 20 or size + encoded_size > 1000000):
+            yield batch
+            batch = []
+            size = 32
+        batch.append(item)
+        size += encoded_size
+    if batch:
+        yield batch
+
 
 class Sync:
     def __init__(self, store, api_factory=Api, allow_local=False):
@@ -75,7 +93,38 @@ class Sync:
             self.store.set_meta(key, response[key])
         self.store.set_meta('last_clock', max(time.time(), response['server_time'], self.store.meta('last_clock', 0)))
         self.store.set_meta('blocked', False)
+        self.store.set_meta('capabilities', response.get('capabilities', {}))
         return claims
+
+    def prepare_workspace(self):
+        """Prepare an encrypted snapshot without applying it to the active workspace."""
+        from .workspace_snapshot import stage_snapshot
+        profile = self.store.meta('profile')
+        if not profile:
+            raise AccessError('Primero inicie sesión en este equipo.')
+        api = self.factory(profile, self.store.meta('token'))
+        try:
+            claims = self._metadata(api.call('POST', 'renew'), profile)
+            if self.store.meta('capabilities', {}).get('workspace_snapshot') != 1:
+                raise AccessError('El servidor necesita la actualización del espacio local.')
+            return stage_snapshot(self.store, api, claims)
+        except RemoteError as exc:
+            if exc.status in (401, 403):
+                self.store.set_meta('blocked', True)
+            raise
+        finally:
+            api.close()
+
+    def provision_workspace(self, bundle):
+        """Build a separate local workspace after renewing and downloading access."""
+        from .workspace_import import provision_workspace
+        from .workspace_access import ensure_no_pos_drafts, import_workspace_edits
+        ensure_no_pos_drafts(self.store)
+        self.prepare_workspace()
+        import_workspace_edits(self.store, bundle)
+        if self.store.operations():
+            raise AccessError('Sincronice los cambios pendientes y resuelva sus conflictos antes de actualizar la copia.')
+        return provision_workspace(self.store, bundle)
 
     def run(self):
         profile = self.store.meta('profile')
@@ -84,9 +133,11 @@ class Sync:
         api = self.factory(profile, self.store.meta('token'))
         try:
             claims = self._metadata(api.call('POST', 'renew'), profile)
+            from pathlib import Path
+            from .workspace_access import import_workspace_edits
+            import_workspace_edits(self.store, Path(__file__).resolve().parent.parent/'runtime-bundle')
             pending = [op for op in self.store.operations() if op['status'] == 'pending']
-            for start in range(0, len(pending), 20):
-                batch = [{key: op[key] for key in ('uuid', 'type', 'occurred_at', 'data')} for op in pending[start:start+20]]
+            for batch in push_batches(pending):
                 answer = api.call('POST', 'push', json={'operations': batch})
                 expected = {op['uuid'] for op in batch}; seen = set()
                 for result in answer['results']:
@@ -95,7 +146,13 @@ class Sync:
                     seen.add(result['uuid']); self.store.ack(result)
                 if seen != expected:
                     raise RemoteError(502, 'Faltan confirmaciones del servidor. Se conservan las operaciones sin confirmar.')
+            import_workspace_edits(self.store, Path(__file__).resolve().parent.parent/'runtime-bundle')
             claims = self._metadata(api.call('POST', 'renew'), profile)
+            if 'clientes.ver' in claims['scopes'] and self.store.meta('capabilities', {}).get('dossiers') == 1:
+                from .dossiers import download_dossiers
+                download_dossiers(self.store, api, claims)
+            else:
+                self.store.replace('dossiers', [])
             for entity, permission in [('clients', 'clientes.ver'), ('products', 'pos.vender'), ('ledger', 'contabilidad.ver')]:
                 if permission not in claims['scopes']:
                     self.store.replace(entity, []); continue

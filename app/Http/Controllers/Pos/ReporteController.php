@@ -45,6 +45,7 @@ class ReporteController extends PosBase
         return view('pos.reportes', $c + [
             'desde' => $desde, 'hasta' => $hasta, 'tot' => $tot, 'porMetodo' => $porMetodo, 'dias' => $dias, 'top' => $top, 'porUsuario' => $porUsuario,
             'ganancia' => $base - (float) $tot->costo, 'base' => $base,
+            'horas' => $this->horas($ventas),
             'anuladas' => PosVenta::where('cyber_id', $id)->where('estado', 'anulada')->whereBetween('created_at', [$desde, $hasta])->count(),
             'bajos' => PosProducto::where('cyber_id', $id)->where('activo', true)->where('controla_stock', true)->whereColumn('stock', '<=', 'stock_minimo')->orderBy('stock')->limit(15)->get(),
         ]);
@@ -69,11 +70,13 @@ class ReporteController extends PosBase
     public function excel(Request $request)
     {
         $cfg=$this->config($request); [$desde,$hasta]=$this->rango($request);
-        $ventas=PosVenta::where('cyber_id',$cfg->cyber_id)->whereBetween('created_at',[$desde,$hasta])->with('pagos','usuario','cliente')->orderBy('id')->get();
+        $consulta = PosVenta::where('cyber_id', $cfg->cyber_id)->whereBetween('created_at', [$desde, $hasta]);
+        $ventas=(clone $consulta)->with('pagos','usuario','cliente')->orderBy('id')->get();
         $datos=[
             'orientacion'=>\App\Support\Exportacion::orientacion($request,8),
             'negocio'=>$cfg->nombre_comercial ?: $cfg->cyber->nombre, 'moneda'=>$cfg->moneda, 'simbolo'=>$cfg->simbolo,
             'periodo'=>$desde->format('d/m/Y').' al '.$hasta->format('d/m/Y'), 'generado'=>now()->format('d/m/Y H:i'),
+            'horas'=>$this->horas($consulta->where('estado', 'pagada')),
             'ventas'=>$ventas->map(fn($v)=>[
                 'numero'=>$v->numero,'fecha'=>$v->created_at->format('Y-m-d\TH:i:s'),'cliente'=>$v->nombreCliente(),'cajero'=>$v->usuario?->name??'',
                 'subtotal'=>(float)$v->subtotal,'descuento'=>(float)$v->descuento,'impuesto'=>(float)$v->impuesto,'total'=>(float)$v->total,'costo'=>(float)$v->costo_total,'cambio'=>(float)$v->cambio,
@@ -99,6 +102,17 @@ class ReporteController extends PosBase
     public function csv(Request $request)
     {
         return $this->excel($request);
+    }
+
+    private function horas(\Illuminate\Database\Eloquent\Builder $ventas): array
+    {
+        return (clone $ventas)->selectRaw('SUBSTR(created_at, 12, 2) hora, COUNT(*) cantidad, SUM(total) total')
+            ->groupByRaw('SUBSTR(created_at, 12, 2)')->orderByDesc('cantidad')->orderBy('hora')
+            ->get()->map(fn ($fila) => [
+                'franja' => sprintf('%02d:00–%02d:59', (int) $fila->hora, (int) $fila->hora),
+                'cantidad' => (int) $fila->cantidad,
+                'total' => round((float) $fila->total, 2),
+            ])->all();
     }
 
     /** @return array{0: Carbon, 1: Carbon} */

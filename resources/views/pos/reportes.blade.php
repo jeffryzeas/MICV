@@ -44,6 +44,17 @@
             </div>
         </section>
         <section class="{{ $card }} p-4 sm:p-5">
+            <h2 class="font-semibold text-azul-950 mb-2"><x-icono name="clock" class="size-4"/> Horas con más ventas</h2>
+            @forelse(array_slice($horas, 0, 3) as $hora)
+                <div class="flex justify-between gap-2 text-sm py-1">
+                    <span class="tabular-nums">{{ $hora['franja'] }}</span>
+                    <span>{{ $hora['cantidad'] }} {{ $hora['cantidad'] === 1 ? 'venta' : 'ventas' }}</span>
+                    <span class="font-semibold tabular-nums">{{ $cfg->dinero($hora['total']) }}</span>
+                </div>
+            @empty
+                <p class="text-sm text-gray-500">Sin ventas pagadas en el período.</p>
+            @endforelse
+            <hr class="my-4">
             <h2 class="font-semibold text-azul-950 mb-3">Por forma de pago</h2>
             @php $sumM = max(0.01, array_sum($porMetodo)); @endphp
             @forelse($porMetodo as $m => $monto)

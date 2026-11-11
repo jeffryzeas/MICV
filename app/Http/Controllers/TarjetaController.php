@@ -83,7 +83,7 @@ class TarjetaController extends Controller
     {
         $this->autorizar($request, $cliente);
         $t = $this->llenar($request, $cliente, true);
-        $t->save();
+        $this->guardarTarjeta($t);
         Actividad::registrar("tarjeta_guardar", "#" . $cliente->id);
 
         return $request->expectsJson()
@@ -99,9 +99,18 @@ class TarjetaController extends Controller
     ) {
         $this->autorizar($request, $cliente);
         abort_unless(in_array($formato, ["png", "pdf", "hoja"], true), 404);
+        $local = $request->attributes->has('local_permissions');
         $t = $this->llenar($request, $cliente, true);
-        $t->save();
-        [$contenido, $tipo, $nombre] = $this->archivo($t, $formato);
+        try {
+            if (!$local) {
+                $this->guardarTarjeta($t);
+            }
+            [$contenido, $tipo, $nombre] = $this->archivo($t, $formato);
+        } finally {
+            if ($local && $t->isDirty('logo')) {
+                Archivos::borrar($t->logo);
+            }
+        }
         Actividad::registrar("tarjeta_" . $formato, "#" . $cliente->id);
 
         return response($contenido, 200, [
@@ -142,7 +151,7 @@ class TarjetaController extends Controller
             );
         }
         $t = $this->llenar($request, $cliente, true);
-        $t->save();
+        $this->guardarTarjeta($t);
         try {
             $png = $this->archivo($t, "png");
             $hoja = $this->archivo($t, "hoja");
@@ -217,11 +226,20 @@ class TarjetaController extends Controller
         };
     }
 
+    private function guardarTarjeta(Tarjeta $tarjeta): void
+    {
+        $anterior = $tarjeta->getOriginal('logo');
+        $tarjeta->save();
+        if ($anterior !== $tarjeta->logo) {
+            \Illuminate\Support\Facades\DB::afterCommit(fn () => Archivos::borrar($anterior));
+        }
+    }
+
     protected function llenar(
         Request $request,
         Cliente $cliente,
         bool $guardarArchivos,
-    ): Tarjeta {
+        ): Tarjeta {
         $d = $request->validate(
             [
                 "diseno" => [
@@ -307,7 +325,6 @@ class TarjetaController extends Controller
         ]);
         if ($guardarArchivos) {
             if ($request->hasFile("logo")) {
-                Archivos::borrar($t->logo);
                 $t->logo = Archivos::guardarImagen(
                     $request->file("logo"),
                     "tarjetas",
@@ -315,7 +332,6 @@ class TarjetaController extends Controller
                     true,
                 );
             } elseif ($request->boolean("quitar_logo")) {
-                Archivos::borrar($t->logo);
                 $t->logo = null;
             }
         }

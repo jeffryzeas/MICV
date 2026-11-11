@@ -31,6 +31,10 @@
         unread = false,
         infoVersion = 0;
     const nodes = new Map();
+    app.querySelectorAll("[data-chat-rail]").forEach((button) => {
+        button.addEventListener("click", () => $(button.dataset.chatRail)?.click());
+    });
+
     function fit() {
         const v=window.visualViewport, height=Math.round(v?v.height:innerHeight),top=Math.round(v?v.offsetTop:0);
         document.documentElement.style.setProperty('--app-h',height+'px');
@@ -46,8 +50,9 @@
     document.addEventListener('focusout',()=>setTimeout(fit,250));
     fit();
     function status(text, error = false) {
-        $("estado").textContent = text;
-        $("estado").classList.toggle("error", error);
+        const notice = boot.local ? $("estado-local") : $("estado");
+        notice.textContent = text;
+        notice.classList.toggle("error", error);
     }
     async function api(path, method = "GET", body) {
         const headers = {
@@ -207,7 +212,7 @@
                     "",
                     unread
                         ? "No tiene conversaciones sin leer."
-                        : "Busque un contacto o pulse Nuevo chat.",
+                        : (boot.local ? "No se encontraron conversaciones guardadas." : "Busque un contacto o pulse Nuevo chat."),
                 ),
             );
             $("lista").append(e);
@@ -323,13 +328,15 @@
                 a.click();
                 a.remove();
             });
-        if (m.mio && !m.eliminado)
+        if (!boot.local && m.mio && !m.eliminado)
             action("Editar mensaje", "pencil", () => editMessage(m));
-        action("Eliminar para mí", "eye-off", () => confirmDelete(m, "mi"));
-        if (m.mio && !m.eliminado)
+        if (!boot.local)
+            action("Eliminar para mí", "eye-off", () => confirmDelete(m, "mi"));
+        if (!boot.local && m.mio && !m.eliminado)
             action("Eliminar para todos", "trash-2", () =>
                 confirmDelete(m, "todos"),
             );
+        if (!menu.children.length) return;
         document.body.append(menu);
         contextMenu = menu;
         const r = menu.getBoundingClientRect();
@@ -501,7 +508,7 @@
                 actions.getBoundingClientRect().bottom,
             );
         };
-        bubble.append(actions);
+        if (!boot.local || (m.archivo && !m.eliminado)) bubble.append(actions);
         row.oncontextmenu = (e) => {
             if (e.target.closest("a")) return;
             e.preventDefault();
@@ -659,7 +666,7 @@
         clearTimeout(searchTimer);
         renderList();
         const q = $("buscar").value.trim();
-        if (!q) {
+        if (!q || boot.local) {
             $("resultados").hidden = true;
             $("lista").hidden = false;
             return;
@@ -704,6 +711,9 @@
         tabs();
     };
     function tabs() {
+        for (const button of app.querySelectorAll('[data-chat-rail="todos"], [data-chat-rail="no-leidos"]')) {
+            button.setAttribute("aria-pressed", String((button.dataset.chatRail === "no-leidos") === unread));
+        }
         for (const id of ["todos", "no-leidos"]) {
             $(id).classList.toggle("active", (id === "no-leidos") === unread);
             $(id).setAttribute(
@@ -771,9 +781,16 @@
         file.accept = "image/jpeg,image/png,image/webp";
         file.hidden = true;
         choose.append(file);
-        wrap.append(photo, choose);
+        wrap.append(photo);
+        if (!boot.local) wrap.append(choose);
         art.append(wrap);
         body.append(art);
+        if (boot.local) {
+            body.append(element("h3", "profile-help", me.nombre));
+            if (me.info) body.append(element("p", "profile-help", me.info));
+            body.append(element("p", "profile-help", "Abra la sesión conectada para cambiar su perfil."));
+            return;
+        }
         const section = element("div", "sheet-section pf-list"),
             form = element("form", "");
         const name = element("input", "profile-input");

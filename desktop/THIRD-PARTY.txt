@@ -4,3 +4,5 @@ durante la compilación de Windows. Conservarlos al distribuir el programa.
 Los SVG de la interfaz proceden del paquete blade-lucide-icons ya usado por el
 proyecto Laravel y de Lucide. Se incluye la licencia del paquete de origen.
 No se incluyen librerías Python binarias en el ZIP de código fuente.
+
+ReportLab: BSD license. DejaVu fonts: license included in assets/fonts/LICENSE.txt.

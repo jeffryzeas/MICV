@@ -1,5 +1,7 @@
 #define MyAppName "Mi CV Escritorio"
-#define MyAppVersion "1.2.0"
+#ifndef MyAppVersion
+#define MyAppVersion "2.0.0-beta.6"
+#endif
 [Setup]
 AppId={{D783DB38-37CE-47E0-BA4A-621A168F7D09}
 AppName={#MyAppName}
@@ -17,6 +19,7 @@ OutputBaseFilename=MiCVDesktop-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=..\assets\micv.ico
 UninstallDisplayIcon={app}\MiCVDesktop.exe
 CloseApplications=yes
 [Languages]
@@ -29,5 +32,7 @@ Source: "..\dist\MiCVDesktop\*"; DestDir: "{app}"; Flags: ignoreversion recurses
 Name: "{group}\Mi CV Escritorio"; Filename: "{app}\MiCVDesktop.exe"
 Name: "{autodesktop}\Mi CV Escritorio"; Filename: "{app}\MiCVDesktop.exe"; Tasks: desktopicon
 [Run]
+Filename: "{app}\_internal\runtime-bundle\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; Flags: shellexec waituntilterminated; Check: FileExists(ExpandConstant('{app}\_internal\runtime-bundle\vc_redist.x64.exe')) and not RegValueExists(HKLM64, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64', 'Installed')
+
 Filename: "{app}\MiCVDesktop.exe"; Description: "Abrir Mi CV Escritorio"; Flags: nowait postinstall skipifsilent
 ; Los datos en %LOCALAPPDATA%\EquipoJZ\MiCVDesktop NO se eliminan al desinstalar.

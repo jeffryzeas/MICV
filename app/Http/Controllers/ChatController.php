@@ -25,10 +25,18 @@ class ChatController extends Controller
     private function autorizar(Request $r, JzChat $chat): void
     {
         abort_unless(
-            $chat->miembro($r->user()) &&
-                ChatAcceso::puede($r->user(), $chat->otro($r->user())),
+            $chat->miembro($r->user()) && $this->puedeVerConversacion($r, $chat),
             403,
         );
+    }
+
+    private function puedeVerConversacion(Request $request, JzChat $chat): bool
+    {
+        if ($request->attributes->has('local_permissions')) {
+            // La copia firmada solo incluye las conversaciones autorizadas de la cuenta.
+            return ChatAcceso::habilitado($request->user());
+        }
+        return ChatAcceso::puede($request->user(), $chat->otro($request->user()));
     }
 
     public function lista(Request $r)
@@ -43,7 +51,7 @@ class ChatController extends Controller
             )
             ->orderByDesc("updated_at")
             ->get()
-            ->filter(fn($c) => ChatAcceso::puede($u, $c->otro($u)));
+            ->filter(fn($c) => $this->puedeVerConversacion($r, $c));
         \Illuminate\Support\Facades\Cache::put(
             "jz-online-" . $u->id,
             true,

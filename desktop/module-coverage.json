@@ -1,0 +1,3622 @@
+{
+  "format": 1,
+  "release_ready": false,
+  "note": "Inventario de cobertura, no evidencia de funcionamiento. No marcar verificado por la sola presencia de rutas o por pruebas unitarias.",
+  "route_count": 228,
+  "controllers": {
+    "AccesoClienteController": [
+      {
+        "name": "acceso.activar",
+        "uri": "activar-acceso/{token}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\AccesoClienteController@activar",
+        "middleware": [
+          "web",
+          "throttle:20,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "acceso.guardar",
+        "uri": "activar-acceso/{token}",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\AccesoClienteController@guardar",
+        "middleware": [
+          "web",
+          "throttle:10,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "clientes.acceso",
+        "uri": "clientes/{cliente}/acceso",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\AccesoClienteController@formulario",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "clientes.acceso.crear",
+        "uri": "clientes/{cliente}/acceso",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\AccesoClienteController@crear",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:10,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "clientes.acceso.permisos",
+        "uri": "clientes/{cliente}/acceso/permisos",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\AccesoClienteController@permisos",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:20,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ActividadController": [
+      {
+        "name": "admin.actividad",
+        "uri": "admin/auditoria",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\ActividadController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ArchivoController": [
+      {
+        "name": "clientes.foto",
+        "uri": "clientes/{cliente}/foto",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ArchivoController@fotoCliente",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "cybers.logo",
+        "uri": "cybers/{cyber}/logo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ArchivoController@logoCyber",
+        "middleware": [
+          "web"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "marca.logo",
+        "uri": "marca/logo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ArchivoController@logo",
+        "middleware": [
+          "web"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "AutoservicioController": [
+      {
+        "name": "autoservicio.formulario",
+        "uri": "a/{codigo}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\AutoservicioController@formulario",
+        "middleware": [
+          "web"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "autoservicio.guardar",
+        "uri": "a/{codigo}",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\AutoservicioController@guardar",
+        "middleware": [
+          "web",
+          "throttle:autoservicio"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "autoservicio.listo",
+        "uri": "a/{codigo}/listo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\AutoservicioController@listo",
+        "middleware": [
+          "web"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "autoservicio.panel",
+        "uri": "autoservicio",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\AutoservicioController@panel",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "autoservicio.afiche",
+        "uri": "autoservicio/afiche",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\AutoservicioController@afiche",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:pdf"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "autoservicio.alternar",
+        "uri": "autoservicio/alternar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\AutoservicioController@alternar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "autoservicio.lista",
+        "uri": "autoservicio/lista",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\AutoservicioController@lista",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "autoservicio.descartar",
+        "uri": "autoservicio/{solicitud}/descartar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\AutoservicioController@descartar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "AvisoController": [
+      {
+        "name": "admin.avisos.index",
+        "uri": "admin/avisos",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\AvisoController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.avisos.enviar",
+        "uri": "admin/avisos",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\AvisoController@enviar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin",
+          "throttle:sensible"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "BloqueoController": [
+      {
+        "name": "admin.bloqueos.index",
+        "uri": "admin/lista-privada",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\BloqueoController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.bloqueos.store",
+        "uri": "admin/lista-privada",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\BloqueoController@store",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.bloqueos.destroy",
+        "uri": "admin/lista-privada/{bloqueo}",
+        "method": "DELETE",
+        "action": "App\\Http\\Controllers\\Admin\\BloqueoController@destroy",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "CajaController": [
+      {
+        "name": "pos.caja",
+        "uri": "pos/caja",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\CajaController@actual",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.caja.abrir",
+        "uri": "pos/caja/abrir",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\CajaController@abrir",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.caja.cerrar",
+        "uri": "pos/caja/cerrar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\CajaController@cerrar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.caja.movimiento",
+        "uri": "pos/caja/movimiento",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\CajaController@movimiento",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.cajas",
+        "uri": "pos/cajas",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\CajaController@historial",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.cajas.ver",
+        "uri": "pos/cajas/{caja}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\CajaController@ver",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "CartaController": [
+      {
+        "name": "cartas.index",
+        "uri": "cartas",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CartaController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "cartas.buscar",
+        "uri": "cartas/buscar-clientes",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CartaController@buscarClientes",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "cartas.create",
+        "uri": "cartas/{tipo}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CartaController@create",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "cartas.generar",
+        "uri": "cartas/{tipo}",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\CartaController@generar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:pdf"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "cartas.previsualizar",
+        "uri": "cartas/{tipo}/vista",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\CartaController@previsualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:vista"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ChatAvisoController": [
+      {
+        "name": "admin.chat.avisos",
+        "uri": "admin/mensajes/avisos",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\ChatAvisoController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.chat.avisos.enviar",
+        "uri": "admin/mensajes/avisos",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\ChatAvisoController@enviar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin",
+          "throttle:6,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ChatController": [
+      {
+        "name": "chat.index",
+        "uri": "mensajes",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.abrir",
+        "uri": "mensajes/abrir",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\ChatController@abrir",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-escribir"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.archivo",
+        "uri": "mensajes/archivo/{mensaje}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatController@archivo",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.contactos",
+        "uri": "mensajes/contactos",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatController@contactos",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-leer"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.lista",
+        "uri": "mensajes/lista",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatController@lista",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-leer"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.mensaje.editar",
+        "uri": "mensajes/mensaje/{mensaje}",
+        "method": "PATCH",
+        "action": "App\\Http\\Controllers\\ChatController@editarMensaje",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-escribir"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.mensaje.eliminar",
+        "uri": "mensajes/mensaje/{mensaje}",
+        "method": "DELETE",
+        "action": "App\\Http\\Controllers\\ChatController@eliminarMensaje",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-escribir"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.archivos",
+        "uri": "mensajes/{chat}/archivos",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatController@archivos",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-leer"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.enviar",
+        "uri": "mensajes/{chat}/enviar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\ChatController@enviar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-escribir"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.historial",
+        "uri": "mensajes/{chat}/historial",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatController@mensajes",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-leer"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.leer",
+        "uri": "mensajes/{chat}/leer",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\ChatController@leer",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-leer"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.sincronizar",
+        "uri": "mensajes/{chat}/sincronizar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\ChatController@sincronizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-leer"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ChatPerfilController": [
+      {
+        "name": "chat.perfil.guardar",
+        "uri": "mensajes/perfil",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\ChatPerfilController@guardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:chat-perfil"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.perfil.ver",
+        "uri": "mensajes/perfil/{usuario}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatPerfilController@ver",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "chat.perfil.foto",
+        "uri": "mensajes/perfil/{usuario}/foto",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatPerfilController@foto",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ChatSupervisionController": [
+      {
+        "name": "admin.chat.supervision.archivo",
+        "uri": "admin/supervision/archivo/{mensaje}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatSupervisionController@archivo",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.chat.supervision",
+        "uri": "admin/supervision/mensajes",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatSupervisionController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.chat.supervision.ver",
+        "uri": "admin/supervision/mensajes/{chat}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ChatSupervisionController@ver",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ClienteController": [
+      {
+        "name": "clientes.index",
+        "uri": "clientes",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ClienteController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "clientes.store",
+        "uri": "clientes",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\ClienteController@store",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:guardar"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "clientes.exportar",
+        "uri": "clientes/exportar",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ClienteController@exportar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:10,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "clientes.create",
+        "uri": "clientes/nuevo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ClienteController@create",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "clientes.show",
+        "uri": "clientes/{cliente}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ClienteController@show",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "clientes.update",
+        "uri": "clientes/{cliente}",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\ClienteController@update",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:guardar"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "clientes.destroy",
+        "uri": "clientes/{cliente}",
+        "method": "DELETE",
+        "action": "App\\Http\\Controllers\\ClienteController@destroy",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "clientes.edit",
+        "uri": "clientes/{cliente}/editar",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ClienteController@edit",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "Closure": [
+      {
+        "name": "csrf.refrescar",
+        "uri": "csrf-token",
+        "method": "GET|HEAD",
+        "action": "Closure",
+        "middleware": [
+          "web",
+          "throttle:token"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "documentos.index",
+        "uri": "documentos/editor",
+        "method": "GET|HEAD",
+        "action": "Closure",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": null,
+        "uri": "up",
+        "method": "GET|HEAD",
+        "action": "Closure",
+        "middleware": [],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "CompraController": [
+      {
+        "name": "pos.compras",
+        "uri": "pos/compras",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\CompraController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.compras.guardar",
+        "uri": "pos/compras",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\CompraController@guardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.compras.crear",
+        "uri": "pos/compras/nueva",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\CompraController@crear",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.compras.ver",
+        "uri": "pos/compras/{compra}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\CompraController@ver",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.compras.anular",
+        "uri": "pos/compras/{compra}/anular",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\CompraController@anular",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ConfigController": [
+      {
+        "name": "pos.config",
+        "uri": "pos/configuracion",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ConfigController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.config.actualizar",
+        "uri": "pos/configuracion",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\Pos\\ConfigController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ConfiguracionController": [
+      {
+        "name": "admin.configuracion.edit",
+        "uri": "admin/configuracion",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\ConfiguracionController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.configuracion.update",
+        "uri": "admin/configuracion",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\Admin\\ConfiguracionController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.configuracion.restablecer",
+        "uri": "admin/configuracion/restablecer-cv",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\ConfiguracionController@restablecerCv",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ContabilidadController": [
+      {
+        "name": "contabilidad.index",
+        "uri": "contabilidad",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ContabilidadController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "contabilidad.store",
+        "uri": "contabilidad",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\ContabilidadController@store",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:30,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "contabilidad.exportar",
+        "uri": "contabilidad/exportar",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ContabilidadController@exportar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:10,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "contabilidad.create",
+        "uri": "contabilidad/nuevo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\ContabilidadController@create",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "contabilidad.anular",
+        "uri": "contabilidad/{movimiento}/anular",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\ContabilidadController@anular",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:15,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "CorreoController": [
+      {
+        "name": "admin.correo.edit",
+        "uri": "admin/correo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\CorreoController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.correo.update",
+        "uri": "admin/correo",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\Admin\\CorreoController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.correo.probar",
+        "uri": "admin/correo/probar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\CorreoController@probar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin",
+          "throttle:sensible"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "CorreoServicioController": [
+      {
+        "name": "correos.index",
+        "uri": "correos-clientes",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CorreoServicioController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "correos.guardar",
+        "uri": "correos-clientes",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\CorreoServicioController@guardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:20,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "correos.create",
+        "uri": "correos-clientes/nuevo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CorreoServicioController@create",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "correos.ver",
+        "uri": "correos-clientes/{correo}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CorreoServicioController@ver",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "correos.actualizar",
+        "uri": "correos-clientes/{correo}",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\CorreoServicioController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:20,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "correos.pdf",
+        "uri": "correos-clientes/{correo}/pdf",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CorreoServicioController@pdf",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:10,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "CuentaController": [
+      {
+        "name": "eliminar.mostrar",
+        "uri": "eliminar-cuenta",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CuentaController@publicaMostrar",
+        "middleware": [
+          "web"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "mi-cuenta.mostrar",
+        "uri": "mi-cuenta",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CuentaController@mostrar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:cliente"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "mi-cuenta.descargar",
+        "uri": "mi-cuenta/descargar-datos",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CuentaController@descargar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:cliente",
+          "throttle:sensible"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "mi-cuenta.solicitar",
+        "uri": "mi-cuenta/eliminar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\CuentaController@solicitar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:cliente",
+          "throttle:sensible"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "mi-cuenta.cancelar",
+        "uri": "mi-cuenta/eliminar/cancelar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\CuentaController@cancelar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:cliente"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "CvController": [
+      {
+        "name": "cv.enviar",
+        "uri": "clientes/{cliente}/cv/enviar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\CvController@enviar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:cv-correo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "cv.pdf",
+        "uri": "clientes/{cliente}/cv/pdf",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CvController@pdf",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:pdf"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "cv.vista",
+        "uri": "clientes/{cliente}/cv/vista",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CvController@vista",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:vista"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "cv.word",
+        "uri": "clientes/{cliente}/cv/word",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\CvController@word",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:pdf"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "CyberController": [
+      {
+        "name": "admin.cybers.index",
+        "uri": "admin/cybers",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\CyberController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.cybers.store",
+        "uri": "admin/cybers",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\CyberController@store",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.cybers.create",
+        "uri": "admin/cybers/nuevo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\CyberController@create",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.cybers.update",
+        "uri": "admin/cybers/{cyber}",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\Admin\\CyberController@update",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.cybers.destroy",
+        "uri": "admin/cybers/{cyber}",
+        "method": "DELETE",
+        "action": "App\\Http\\Controllers\\Admin\\CyberController@destroy",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.cybers.edit",
+        "uri": "admin/cybers/{cyber}/editar",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\CyberController@edit",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.cybers.toggle",
+        "uri": "admin/cybers/{cyber}/toggle",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\CyberController@toggle",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "DashboardController": [
+      {
+        "name": "dashboard",
+        "uri": "inicio",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\DashboardController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "DesktopApiController": [
+      {
+        "name": null,
+        "uri": "api/desktop/v1/access",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\DesktopApiController@access",
+        "middleware": [
+          "api",
+          "throttle:8,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": null,
+        "uri": "api/desktop/v1/activate",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\DesktopApiController@activate",
+        "middleware": [
+          "api",
+          "throttle:8,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": null,
+        "uri": "api/desktop/v1/catalog",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\DesktopApiController@catalog",
+        "middleware": [
+          "api",
+          "App\\Http\\Middleware\\DesktopAuth",
+          "throttle:120,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": null,
+        "uri": "api/desktop/v1/connection",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\DesktopApiController@connection",
+        "middleware": [
+          "api",
+          "throttle:30,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": null,
+        "uri": "api/desktop/v1/push",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\DesktopApiController@push",
+        "middleware": [
+          "api",
+          "App\\Http\\Middleware\\DesktopAuth",
+          "throttle:120,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": null,
+        "uri": "api/desktop/v1/renew",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\DesktopApiController@renew",
+        "middleware": [
+          "api",
+          "App\\Http\\Middleware\\DesktopAuth",
+          "throttle:120,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "DesktopDossierController": [
+      {
+        "name": null,
+        "uri": "api/desktop/v1/dossiers",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\DesktopDossierController@index",
+        "middleware": [
+          "api",
+          "App\\Http\\Middleware\\DesktopAuth",
+          "throttle:120,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "DesktopLicenseController": [
+      {
+        "name": "admin.desktop.index",
+        "uri": "admin/escritorio",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\DesktopLicenseController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.desktop.store",
+        "uri": "admin/escritorio",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\DesktopLicenseController@store",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.desktop.profile",
+        "uri": "admin/escritorio/conexion",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\DesktopLicenseController@profile",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.desktop.device",
+        "uri": "admin/escritorio/equipo/{device}",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\DesktopLicenseController@device",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.desktop.update",
+        "uri": "admin/escritorio/licencia/{license}",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\DesktopLicenseController@update",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.desktop.key",
+        "uri": "admin/escritorio/licencia/{license}/clave",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\DesktopLicenseController@key",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "DesktopSessionController": [
+      {
+        "name": "desktop.session",
+        "uri": "desktop/session",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\DesktopSessionController@open",
+        "middleware": [
+          "web",
+          "App\\Http\\Middleware\\DesktopAuth",
+          "throttle:20,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "DocumentoController": [
+      {
+        "name": "api.consultar-documento",
+        "uri": "api/consultar-documento",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\DocumentoController@consultar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:documento"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "EquipoController": [
+      {
+        "name": "equipo.index",
+        "uri": "equipo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\EquipoController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "equipo.guardar",
+        "uri": "equipo",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\EquipoController@guardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:guardar"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "equipo.crear",
+        "uri": "equipo/nuevo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\EquipoController@crear",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "equipo.actualizar",
+        "uri": "equipo/{usuario}",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\EquipoController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:guardar"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "equipo.editar",
+        "uri": "equipo/{usuario}/editar",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\EquipoController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ErrorController": [
+      {
+        "name": "admin.errores.index",
+        "uri": "admin/errores",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\ErrorController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.errores.limpiar",
+        "uri": "admin/errores/limpiar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\ErrorController@limpiar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "FotoController": [
+      {
+        "name": "fotos.index",
+        "uri": "fotos",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\FotoController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "fotos.cv",
+        "uri": "fotos/cv/{cliente}",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\FotoController@usarEnCv",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:guardar"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "fotos.hoja",
+        "uri": "fotos/hoja",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\FotoController@hoja",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:pdf"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "fotos.procesar",
+        "uri": "fotos/procesar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\FotoController@procesar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:fondo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "InstaladorController": [
+      {
+        "name": "instalar.mostrar",
+        "uri": "instalar",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Auth\\InstaladorController@mostrar",
+        "middleware": [
+          "web"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "instalar.guardar",
+        "uri": "instalar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\InstaladorController@guardar",
+        "middleware": [
+          "web",
+          "throttle:registro"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "LegalAdminController": [
+      {
+        "name": "admin.legal.edit",
+        "uri": "admin/legal",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\LegalAdminController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.legal.update",
+        "uri": "admin/legal",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\Admin\\LegalAdminController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "LegalController": [
+      {
+        "name": "legal.aceptar",
+        "uri": "aceptar-terminos",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\LegalController@aceptarMostrar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "legal.aceptar.guardar",
+        "uri": "aceptar-terminos",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\LegalController@aceptarGuardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "legal.ver",
+        "uri": "legal/{doc}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\LegalController@ver",
+        "middleware": [
+          "web"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "LoginController": [
+      {
+        "name": "login",
+        "uri": "/",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Auth\\LoginController@mostrar",
+        "middleware": [
+          "web",
+          "guest"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "login.iniciar",
+        "uri": "login",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\LoginController@iniciar",
+        "middleware": [
+          "web",
+          "guest",
+          "throttle:login"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "logout",
+        "uri": "salir",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\LoginController@salir",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "MarcaController": [
+      {
+        "name": "marca.edit",
+        "uri": "mi-marca",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\MarcaController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "marca.update",
+        "uri": "mi-marca",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\MarcaController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "MarcaSistemaController": [
+      {
+        "name": "admin.marca.edit",
+        "uri": "admin/marca",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\MarcaSistemaController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.marca.update",
+        "uri": "admin/marca",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\Admin\\MarcaSistemaController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "MiCvController": [
+      {
+        "name": "mi-cv.panel",
+        "uri": "mi-cv",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\MiCvController@panel",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:cliente"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "mi-cv.editar",
+        "uri": "mi-cv/datos",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\MiCvController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:cliente"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "mi-cv.actualizar",
+        "uri": "mi-cv/datos",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\MiCvController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:cliente",
+          "throttle:guardar"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "MunicipioNicaraguaController": [
+      {
+        "name": "admin.municipios-ni.store",
+        "uri": "admin/municipios-nicaragua",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\MunicipioNicaraguaController@guardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin",
+          "throttle:30,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.municipios-ni.create",
+        "uri": "admin/municipios-nicaragua/nuevo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\MunicipioNicaraguaController@crear",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.municipios-ni.edit",
+        "uri": "admin/municipios-nicaragua/{municipio}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\MunicipioNicaraguaController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.municipios-ni.update",
+        "uri": "admin/municipios-nicaragua/{municipio}",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\MunicipioNicaraguaController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin",
+          "throttle:30,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "municipios.index",
+        "uri": "municipios-nicaragua",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\MunicipioNicaraguaController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "PaisController": [
+      {
+        "name": "admin.paises.index",
+        "uri": "admin/paises",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\PaisController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.paises.store",
+        "uri": "admin/paises",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\PaisController@guardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.paises.create",
+        "uri": "admin/paises/nuevo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\PaisController@crear",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.paises.edit",
+        "uri": "admin/paises/{codigo}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\PaisController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.paises.update",
+        "uri": "admin/paises/{codigo}",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\Admin\\PaisController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.paises.destroy",
+        "uri": "admin/paises/{codigo}",
+        "method": "DELETE",
+        "action": "App\\Http\\Controllers\\Admin\\PaisController@borrar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.paises.escudo",
+        "uri": "admin/paises/{codigo}/escudo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\PaisController@escudo",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "PerfilController": [
+      {
+        "name": "perfil.edit",
+        "uri": "perfil",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\PerfilController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "perfil.update",
+        "uri": "perfil",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\PerfilController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "perfil.password",
+        "uri": "perfil/password",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\PerfilController@password",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ProductoController": [
+      {
+        "name": "pos.categorias.guardar",
+        "uri": "pos/categorias",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@categoria",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.categorias.borrar",
+        "uri": "pos/categorias/{categoria}",
+        "method": "DELETE",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@categoriaBorrar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.productos",
+        "uri": "pos/productos",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.productos.guardar",
+        "uri": "pos/productos",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@guardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.productos.crear",
+        "uri": "pos/productos/nuevo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@crear",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.productos.sugeridos",
+        "uri": "pos/productos/sugeridos",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@sugeridos",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.productos.editar",
+        "uri": "pos/productos/{producto}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.productos.actualizar",
+        "uri": "pos/productos/{producto}",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.productos.borrar",
+        "uri": "pos/productos/{producto}",
+        "method": "DELETE",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@borrar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.productos.ajuste",
+        "uri": "pos/productos/{producto}/ajuste",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@ajuste",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.productos.foto",
+        "uri": "pos/productos/{producto}/foto",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@foto",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.productos.kardex",
+        "uri": "pos/productos/{producto}/kardex",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ProductoController@kardex",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ProveedorController": [
+      {
+        "name": "pos.proveedores",
+        "uri": "pos/proveedores",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ProveedorController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.proveedores.guardar",
+        "uri": "pos/proveedores",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\ProveedorController@guardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.proveedores.borrar",
+        "uri": "pos/proveedores/{proveedor}",
+        "method": "DELETE",
+        "action": "App\\Http\\Controllers\\Pos\\ProveedorController@borrar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "PwaController": [
+      {
+        "name": "pwa.assetlinks",
+        "uri": ".well-known/assetlinks.json",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\PwaController@assetlinks",
+        "middleware": [
+          "web"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pwa.manifest",
+        "uri": "manifest.webmanifest",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\PwaController@manifest",
+        "middleware": [
+          "web"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "RecaptchaController": [
+      {
+        "name": "admin.recaptcha.edit",
+        "uri": "admin/recaptcha",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\RecaptchaController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.recaptcha.update",
+        "uri": "admin/recaptcha",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\Admin\\RecaptchaController@actualizar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "RecuperarController": [
+      {
+        "name": "recuperar.mostrar",
+        "uri": "recuperar",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Auth\\RecuperarController@mostrar",
+        "middleware": [
+          "web",
+          "guest"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "recuperar.enviar",
+        "uri": "recuperar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\RecuperarController@enviar",
+        "middleware": [
+          "web",
+          "guest",
+          "throttle:recuperar"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "recuperar.codigo",
+        "uri": "recuperar/codigo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Auth\\RecuperarController@codigo",
+        "middleware": [
+          "web",
+          "guest"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "recuperar.restablecer",
+        "uri": "recuperar/codigo",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\RecuperarController@restablecer",
+        "middleware": [
+          "web",
+          "guest",
+          "throttle:codigo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "RegistroController": [
+      {
+        "name": "registro.mostrar",
+        "uri": "registro",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Auth\\RegistroController@mostrar",
+        "middleware": [
+          "web",
+          "guest"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "registro.guardar",
+        "uri": "registro",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\RegistroController@guardar",
+        "middleware": [
+          "web",
+          "guest",
+          "throttle:registro"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "registro.codigo",
+        "uri": "registro/codigo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Auth\\RegistroController@codigoMostrar",
+        "middleware": [
+          "web",
+          "guest"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "registro.codigo.guardar",
+        "uri": "registro/codigo",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\RegistroController@codigoGuardar",
+        "middleware": [
+          "web",
+          "guest",
+          "throttle:codigo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "registro.codigo.cancelar",
+        "uri": "registro/codigo/cancelar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\RegistroController@codigoCancelar",
+        "middleware": [
+          "web",
+          "guest"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "registro.codigo.reenviar",
+        "uri": "registro/codigo/reenviar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\RegistroController@codigoReenviar",
+        "middleware": [
+          "web",
+          "guest",
+          "throttle:envio-codigo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "verificar.mostrar",
+        "uri": "verificar",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Auth\\RegistroController@verificarMostrar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "verificar.guardar",
+        "uri": "verificar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\RegistroController@verificarGuardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "throttle:codigo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "verificar.reenviar",
+        "uri": "verificar/reenviar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Auth\\RegistroController@reenviar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "throttle:envio-codigo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "ReporteController": [
+      {
+        "name": "pos.reportes",
+        "uri": "pos/reportes",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ReporteController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.reportes.csv",
+        "uri": "pos/reportes/csv",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ReporteController@csv",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.reportes.excel",
+        "uri": "pos/reportes/excel",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ReporteController@excel",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.reportes.exportar",
+        "uri": "pos/reportes/exportar",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ReporteController@exportar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:10,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.reportes.pdf",
+        "uri": "pos/reportes/pdf",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\ReporteController@pdf",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:10,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "SolicitudController": [
+      {
+        "name": "admin.solicitudes.index",
+        "uri": "admin/solicitudes",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\SolicitudController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.solicitudes.aprobar",
+        "uri": "admin/solicitudes/{solicitud}/aprobar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\SolicitudController@aprobar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.solicitudes.rechazar",
+        "uri": "admin/solicitudes/{solicitud}/rechazar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\SolicitudController@rechazar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "TarjetaController": [
+      {
+        "name": "tarjetas.mia",
+        "uri": "mi-tarjeta",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\TarjetaController@mia",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:cliente"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "tarjetas.editar",
+        "uri": "tarjeta/{cliente}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\TarjetaController@editar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "tarjetas.guardar",
+        "uri": "tarjeta/{cliente}",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\TarjetaController@guardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:guardar"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "tarjetas.enviar",
+        "uri": "tarjeta/{cliente}/enviar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\TarjetaController@enviar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:cv-correo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "tarjetas.exportar",
+        "uri": "tarjeta/{cliente}/exportar/{formato}",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\TarjetaController@exportar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:pdf"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "tarjetas.vista",
+        "uri": "tarjeta/{cliente}/vista",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\TarjetaController@vista",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "throttle:vista"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "tarjetas.index",
+        "uri": "tarjetas",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\TarjetaController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "UsuarioController": [
+      {
+        "name": "admin.usuarios.index",
+        "uri": "admin/usuarios",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\UsuarioController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.usuarios.store",
+        "uri": "admin/usuarios",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\UsuarioController@store",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.usuarios.create",
+        "uri": "admin/usuarios/nuevo",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\UsuarioController@create",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.usuarios.update",
+        "uri": "admin/usuarios/{usuario}",
+        "method": "PUT",
+        "action": "App\\Http\\Controllers\\Admin\\UsuarioController@update",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.usuarios.destroy",
+        "uri": "admin/usuarios/{usuario}",
+        "method": "DELETE",
+        "action": "App\\Http\\Controllers\\Admin\\UsuarioController@destroy",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.usuarios.edit",
+        "uri": "admin/usuarios/{usuario}/editar",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Admin\\UsuarioController@edit",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.usuarios.toggle",
+        "uri": "admin/usuarios/{usuario}/toggle",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\UsuarioController@toggle",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "admin.usuarios.verificar",
+        "uri": "admin/usuarios/{usuario}/verificar",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Admin\\UsuarioController@verificar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "VenderController": [
+      {
+        "name": "pos.vender",
+        "uri": "pos",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\VenderController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.ventas.guardar",
+        "uri": "pos/ventas",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\VenderController@guardar",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:guardar"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "VentaController": [
+      {
+        "name": "pos.ventas",
+        "uri": "pos/ventas",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\VentaController@index",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.ventas.show",
+        "uri": "pos/ventas/{venta}",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\VentaController@show",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.ventas.anular",
+        "uri": "pos/ventas/{venta}/anular",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\VentaController@anular",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.ventas.correo",
+        "uri": "pos/ventas/{venta}/correo",
+        "method": "POST",
+        "action": "App\\Http\\Controllers\\Pos\\VentaController@correo",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:cv-correo"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.ventas.imagen",
+        "uri": "pos/ventas/{venta}/imagen",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\VentaController@imagen",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber",
+          "throttle:pdf"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": "pos.ventas.tiquete",
+        "uri": "pos/ventas/{venta}/tiquete",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\Pos\\VentaController@tiquete",
+        "middleware": [
+          "web",
+          "auth",
+          "activo",
+          "verificado",
+          "terminos",
+          "rol:admin,cyber"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ],
+    "DesktopWorkspaceController": [
+      {
+        "name": null,
+        "uri": "api/desktop/v1/workspace",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\DesktopWorkspaceController@index",
+        "middleware": [
+          "api",
+          "App\\Http\\Middleware\\DesktopAuth",
+          "throttle:120,1",
+          "throttle:6,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      },
+      {
+        "name": null,
+        "uri": "api/desktop/v1/workspace/file",
+        "method": "GET|HEAD",
+        "action": "App\\Http\\Controllers\\DesktopWorkspaceController@file",
+        "middleware": [
+          "api",
+          "App\\Http\\Middleware\\DesktopAuth",
+          "throttle:120,1"
+        ],
+        "desktop_end_to_end": "pending",
+        "offline_end_to_end": "pending"
+      }
+    ]
+  }
+}

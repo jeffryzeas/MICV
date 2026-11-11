@@ -154,6 +154,7 @@ class Permisos
                 "pos.caja" => "pos.caja",
                 "pos.cajas" => "pos.caja",
                 "pos.ventas" => "pos.ventas",
+                "pos.pendientes." => "pos.vender",
                 "pos.productos" => "pos.productos",
                 "pos.categorias." => "pos.productos.editar",
                 "pos.compras" => "pos.compras",

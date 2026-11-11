@@ -41,7 +41,8 @@ class LicenseSigner {
  public function lease(DesktopDevice $device): array {
   $u=$device->user;$l=$u->esCyber()?$device->license:null;$cy=$device->negocio();
   $until=$l?min($l->expires_at->timestamp,now()->addDays($l->offline_days)->timestamp):now()->addDays(30)->timestamp;
-  $claims=['version'=>1,'issuer'=>rtrim(config('desktop.server_url'),'/'),'device'=>$device->uuid,'license_id'=>$l?->id,'license_required'=>$u->esCyber(),'role'=>$u->rol,'tenant_id'=>$cy?->id??0,'user_id'=>$device->user_id,'issued_at'=>now()->timestamp,'valid_until'=>$until,'scopes'=>$this->scopes($device),'nombre'=>$u->name,'negocio'=>$cy?->nombre??($u->esAdmin()?'Administración general':'Mi cuenta')];
+  $permissions=array_values(array_filter(array_keys(\App\Support\Permisos::LISTA),fn($p)=>(new WorkspaceSnapshot($device))->allows($p)));
+  $claims=['permissions'=>$permissions,'client_edit_groups'=>$u->esCliente()?\App\Support\EdicionCliente::permitidos($u):[],'version'=>1,'issuer'=>rtrim(config('desktop.server_url'),'/'),'device'=>$device->uuid,'license_id'=>$l?->id,'license_required'=>$u->esCyber(),'role'=>$u->rol,'tenant_id'=>$cy?->id??0,'user_id'=>$device->user_id,'issued_at'=>now()->timestamp,'valid_until'=>$until,'scopes'=>$this->scopes($device),'nombre'=>$u->name,'negocio'=>$cy?->nombre??($u->esAdmin()?'Administración general':'Mi cuenta')];
   $payload=json_encode($claims,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
   return ['payload'=>base64_encode($payload),'signature'=>base64_encode(sodium_crypto_sign_detached($payload,$this->secret()))];
  }

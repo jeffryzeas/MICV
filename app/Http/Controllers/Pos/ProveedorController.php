@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Pos;
 
 use App\Models\Pos\PosProveedor;
 use Illuminate\Http\Request;
+use App\Services\Pos\CatalogoAuxiliar;
+use App\Services\Desktop\LocalBusinessJournal;
 
 class ProveedorController extends PosBase
 {
@@ -21,39 +23,23 @@ class ProveedorController extends PosBase
     public function guardar(Request $request)
     {
         $cy = $this->cyber($request);
-        $d = $this->validar($request);
-        if ($request->filled('id')) {
-            $p = PosProveedor::where('cyber_id', $cy->id)->findOrFail($request->integer('id'));
-            $p->update($d);
-        } else {
-            PosProveedor::create($d + ['cyber_id' => $cy->id]);
-        }
+        $p = $request->filled('id') ? PosProveedor::where('cyber_id',$cy->id)->findOrFail($request->integer('id')) : null;
+        $revision = $p ? CatalogoAuxiliar::revision($p) : null;
+        $p = CatalogoAuxiliar::guardar($request,$cy->id,'supplier',$p);
+        LocalBusinessJournal::record($request,$cy->id,$revision?'supplier.update':'supplier.create',$p->id,[
+            'id'=>LocalBusinessJournal::reference($request,'supplier.create',$p->id),
+            'revision'=>$revision,'fields'=>$request->except('_token','_method','id'),
+        ]);
         return back()->with('mensaje', 'Proveedor guardado.');
     }
 
     public function borrar(Request $request, PosProveedor $proveedor)
     {
         $this->delCyber($request, $proveedor);
-        if ($proveedor->compras()->exists()) {
-            $proveedor->update(['activo' => false]);
-            return back()->with('mensaje', 'Tiene compras registradas: se desactivó.');
-        }
-        $proveedor->delete();
-        return back()->with('mensaje', 'Proveedor borrado.');
-    }
-
-    protected function validar(Request $request): array
-    {
-        $d = $request->validate([
-            'nombre' => ['required', 'string', 'max:150'],
-            'identificacion' => ['nullable', 'string', 'max:40'],
-            'contacto' => ['nullable', 'string', 'max:120'],
-            'telefono' => ['nullable', 'string', 'max:40'],
-            'correo' => ['nullable', 'email', 'max:150'],
-            'direccion' => ['nullable', 'string', 'max:200'],
-            'notas' => ['nullable', 'string', 'max:1000'],
-        ]);
-        $d['activo'] = $request->boolean('activo', true);
-        return $d;
+        $revision = CatalogoAuxiliar::revision($proveedor);
+        $id = LocalBusinessJournal::reference($request,'supplier.create',$proveedor->id);
+        $deleted = CatalogoAuxiliar::borrar($proveedor);
+        LocalBusinessJournal::record($request,(int)$proveedor->cyber_id,'supplier.delete',$proveedor->id,['id'=>$id,'revision'=>$revision]);
+        return back()->with('mensaje',$deleted?'Proveedor borrado.':'Tiene compras registradas: se desactivó.');
     }
 }

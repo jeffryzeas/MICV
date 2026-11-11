@@ -43,6 +43,11 @@
                 </div>
                 <div class="flex justify-between text-gray-500"><span>{{ $cfg->impuesto_nombre }} {{ $cfg->precios_con_impuesto ? '(incluido)' : '' }}</span><span id="tImp" class="tabular-nums"></span></div>
                 <div class="flex justify-between items-end pt-1"><span class="font-semibold text-azul-950">Total</span><span id="tTotal" class="text-3xl font-black text-azul-950 tabular-nums"></span></div>
+                <div class="flex flex-wrap gap-2 py-1" aria-label="Ventas en espera y cotizaciones">
+                    <button type="button" id="btnEspera" class="btn btn-sec"><x-icono name="clock"/> En espera</button>
+                    <button type="button" id="btnCotizar" class="btn btn-sec"><x-icono name="file-text"/> Cotizar</button>
+                    <a class="btn btn-sec" href="{{ route('pos.pendientes.index') }}"><x-icono name="list"/> Pendientes</a>
+                </div>
                 <div class="grid grid-cols-[auto_1fr] gap-2 pt-2">
                     <button type="button" id="btnVaciar" class="px-3 rounded-xl border border-gray-300 text-gray-500 hover:text-red-600 hover:border-red-300" title="Vaciar"><x-icono name="trash-2" class="size-5" /></button>
                     <button type="button" id="btnCobrar" class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-bold text-lg py-3.5 rounded-xl"><x-icono name="banknote" class="size-6" /> Cobrar <span class="text-xs font-semibold opacity-75">(F9)</span></button>
@@ -110,6 +115,8 @@
         const PUEDE_PRECIO=@json(auth()->user()->tienePermiso('pos.precios')),PUEDE_DESCUENTO=@json(auth()->user()->tienePermiso('pos.descuentos'));
         let PRODUCTOS = @json($productos);
         const URL_VENTA = @json(route('pos.ventas.guardar')), URL_CLIENTES = @json(route('cartas.buscar'));
+        const URL_PENDIENTES = @json(route('pos.pendientes.guardar'));
+        const PENDIENTE_PRE = {{ Illuminate\Support\Js::from($pendientePre) }};
         const token = document.querySelector('meta[name=csrf-token]').content;
         const $ = id => document.getElementById(id);
         $('btnLibre').hidden=!PUEDE_PRECIO; $('btnLibre').style.display=PUEDE_PRECIO?'':'none'; $('btnDesc').hidden=!PUEDE_DESCUENTO; $('btnDesc').style.display=PUEDE_DESCUENTO?'':'none';
@@ -126,6 +133,14 @@
         let venta = { lineas: [], descPct: 0, cliente: @json($clientePre), clienteNombre: '' };
         try { const g = JSON.parse(localStorage.getItem(CLAVE_CARRITO)); if (g && g.lineas && !venta.cliente) venta = Object.assign(venta, g); } catch (e) {}
         const guardarLocal = () => { try { localStorage.setItem(CLAVE_CARRITO, JSON.stringify(venta)); } catch (e) {} };
+
+        const uuid = () => ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+        const datosCarrito = () => ({
+            items: venta.lineas.map(l => ({ producto_id: l.id, descripcion: l.n, cantidad: l.cant, precio: l.precio, descuento: l.desc || 0 })),
+            descuento_pct: venta.descPct,
+            cliente_id: venta.cliente?.id ?? null,
+            cliente_nombre: venta.cliente ? null : (venta.clienteNombre || null)
+        });
 
         // ── Cálculo (igual que el servidor)
         function linea(l) {
@@ -227,6 +242,7 @@
             $('tSub').textContent = din(t.sub); $('tDesc').textContent = t.desc ? '−' + din(t.desc) : din(0); $('tImp').textContent = din(t.imp); $('tTotal').textContent = din(t.total);
             $('descPct').textContent = venta.descPct ? '(' + venta.descPct + ' %)' : '';
             $('btnCobrar').disabled = !venta.lineas.length;
+            $('btnEspera').disabled = $('btnCotizar').disabled = !venta.lineas.length;
             $('mCant').textContent = venta.lineas.reduce((a, l) => a + l.cant, 0); $('mTotal').textContent = din(t.total);
             const cl = $('cliente'); if (venta.cliente) { cl.value = venta.cliente.texto; cl.readOnly = true; $('quitarCliente').classList.remove('hidden'); } else { cl.readOnly = false; $('quitarCliente').classList.add('hidden'); if (document.activeElement !== cl) cl.value = venta.clienteNombre || ''; }
             lucide.createIcons(); guardarLocal();
@@ -247,6 +263,75 @@
             else l[inp.dataset.campo] = r2(v);
             pintarCarrito();
         });
+        async function guardarPendiente(tipo) {
+            if (!venta.lineas.length) return;
+            const esCotizacion = tipo === 'cotizacion';
+            const opcion = await Swal.fire({
+                title: esCotizacion ? 'Guardar cotización' : 'Poner venta en espera',
+                input: 'text', inputLabel: 'Nombre o referencia', inputValue: venta.pendienteNombre || '',
+                inputAttributes: { maxlength: 100 }, showCancelButton: true,
+                confirmButtonText: 'Guardar', cancelButtonText: 'Cancelar',
+                showLoaderOnConfirm: true,
+                allowOutsideClick: () => !Swal.isLoading(),
+                allowEscapeKey: () => !Swal.isLoading(),
+                inputValidator: value => value.trim() ? undefined : 'Escriba un nombre o referencia.',
+                preConfirm: async value => {
+                    const id = venta.pendienteId || (venta.pendienteIntento ||= uuid());
+                    guardarLocal();
+                    try {
+                        const r = await fetch(URL_PENDIENTES, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': token },
+                            body: JSON.stringify({ ...datosCarrito(), id, tipo, nombre: value.trim() })
+                        });
+                        const j = await r.json().catch(() => ({}));
+                        if (!r.ok || !j.ok) throw new Error(Object.values(j.errors || {})[0]?.[0] || j.message || 'Intente guardar nuevamente.');
+                        return true;
+                    } catch (e) {
+                        Swal.showValidationMessage('No se pudo guardar. ' + e.message);
+                        return false;
+                    }
+                }
+            });
+            if (!opcion.isConfirmed) return;
+            nuevaVenta();
+            await Swal.fire({
+                icon: 'success', title: esCotizacion ? 'Cotización guardada' : 'Venta en espera',
+                text: esCotizacion ? 'Puede descargar el PDF desde Pendientes.' : 'Puede retomarla desde Pendientes.'
+            });
+        }
+
+        $('btnEspera').addEventListener('click', () => guardarPendiente('espera'));
+        $('btnCotizar').addEventListener('click', () => guardarPendiente('cotizacion'));
+
+        async function retomarPendiente() {
+            if (!PENDIENTE_PRE) return;
+            const url = new URL(location.href);
+            url.searchParams.delete('pendiente');
+            history.replaceState(null, '', url);
+            if (venta.pendienteId === PENDIENTE_PRE.id && venta.lineas.length) return;
+            if (venta.lineas.length) {
+                await Swal.fire({ icon: 'info', title: 'Hay una venta en el carrito', text: 'Póngala en espera o finalice el cobro antes de retomar otro pendiente.' });
+                return;
+            }
+            const { carrito, id, nombre, cliente } = PENDIENTE_PRE;
+            venta = {
+                pendienteId: id, pendienteNombre: nombre, cliente, clienteNombre: carrito.cliente_nombre || '',
+                descPct: PUEDE_DESCUENTO ? Number(carrito.descuento_pct || 0) : 0,
+                lineas: carrito.items.map(item => {
+                    const p = PRODUCTOS.find(producto => producto.id === Number(item.producto_id));
+                    return {
+                        id: p?.id ?? (item.producto_id ? Number(item.producto_id) : null),
+                        n: p?.n ?? item.descripcion, cant: Number(item.cantidad),
+                        precio: !PUEDE_PRECIO && p ? p.p : Number(item.precio),
+                        desc: PUEDE_DESCUENTO ? Number(item.descuento || 0) : 0,
+                        tasa: p?.tasa ?? CFG.tasa, u: p?.u ?? ''
+                    };
+                })
+            };
+            pintarCarrito();
+        }
+
         $('btnVaciar').addEventListener('click', async () => { if (!venta.lineas.length) return; const r = await Swal.fire({ title: '¿Vaciar la venta?', icon: 'question', showCancelButton: true, confirmButtonText: 'Vaciar', cancelButtonText: 'No', confirmButtonColor: '#c0392b' }); if (r.isConfirmed) nuevaVenta(); });
         $('btnDesc').addEventListener('click', async () => {
             if(!PUEDE_DESCUENTO)return;
@@ -274,7 +359,7 @@
         let pagos = [], metodo = 'efectivo', ultima = null;
         const nombreMetodo = k => (CFG.metodos.find(m => m.clave === k) || { nombre: k }).nombre;
         function abrirCobro() {
-            if (!venta.lineas.length) return;
+            if (!venta.lineas.length || $('btnCobrar').disabled) return;
             pagos = []; metodo = 'efectivo'; $('pasoPago').classList.remove('hidden'); $('pasoListo').classList.add('hidden');
             $('modalCobro').classList.remove('hidden'); $('notas').value = '';
             pintarCobro(true);
@@ -316,11 +401,13 @@
             const todos = pagos.slice(); const m = +$('monto').value || 0;
             if (m > 0) todos.push({ metodo, monto: r2(m), referencia: $('referencia').value.trim() || null });
             if (!venta.clave_operacion) {
-                venta.clave_operacion = ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+                venta.clave_operacion = uuid();
                 guardarLocal();
             }
-            const cuerpo = { clave_operacion: venta.clave_operacion, items: venta.lineas.map(l => ({ producto_id: l.id, descripcion: l.n, cantidad: l.cant, precio: l.precio, descuento: l.desc || 0 })),
-                descuento_pct: venta.descPct, pagos: todos, cliente_id: venta.cliente ? venta.cliente.id : null, cliente_nombre: venta.cliente ? null : (venta.clienteNombre || null), notas: $('notas').value || null };
+            const cuerpo = {
+                ...datosCarrito(), clave_operacion: venta.clave_operacion,
+                pendiente_id: venta.pendienteId || null, pagos: todos, notas: $('notas').value || null
+            };
             try {
                 const r = await fetch(URL_VENTA, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify(cuerpo) });
                 const j = await r.json().catch(() => ({}));
@@ -369,6 +456,7 @@
         });
 
         pintarProductos(); pintarCarrito(); $('buscar').focus();
+        retomarPendiente();
     })();
     </script>
     @endpush

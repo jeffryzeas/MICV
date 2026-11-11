@@ -6,9 +6,11 @@ use App\Models\Cliente;
 use App\Models\Pos\PosCaja;
 use App\Models\Pos\PosCategoria;
 use App\Models\Pos\PosProducto;
+use App\Models\Pos\PosPendiente;
+use App\Models\Pos\PosVenta;
 use App\Services\Pos\Ventas;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 /** Pantalla de venta (la caja registradora). */
 class VenderController extends PosBase
@@ -16,9 +18,11 @@ class VenderController extends PosBase
     public function index(Request $request)
     {
         $c = $this->comunes($request);
+        $idPendiente = $request->validate(['pendiente' => ['nullable', 'uuid']])['pendiente'] ?? null;
         $caja = PosCaja::abiertaDe($c['cyberPos']->id);
         if (!$caja) {
-            return view('pos.abrir', $c + ['ultima' => PosCaja::where('cyber_id', $c['cyberPos']->id)->where('estado', 'cerrada')->latest('id')->first()]);
+            return view('pos.abrir', $c + ['pendiente' => $idPendiente,
+                'ultima' => PosCaja::where('cyber_id', $c['cyberPos']->id)->where('estado', 'cerrada')->latest('id')->first()]);
         }
         $cfg = $c['cfg'];
         $productos = PosProducto::where('cyber_id', $c['cyberPos']->id)->where('activo', true)->orderByDesc('favorito')->orderBy('nombre')->get()
@@ -33,11 +37,27 @@ class VenderController extends PosBase
                 $cliente = ['id' => $cl->id, 'texto' => $cl->nombreCompleto() . ' · ' . ($cl->documentoFormateado() ?: '')];
             }
         }
+        $pendientePre = null;
+        if ($idPendiente) {
+            $pendiente = PosPendiente::where('cyber_id', $cfg->cyber_id)
+                ->where('user_id', $request->user()->id)->whereNull('venta_id')->findOrFail($idPendiente);
+            $contenido = $pendiente->contenido;
+            abort_if($contenido['moneda'] !== $cfg->moneda, 409, 'La moneda del pendiente difiere de la moneda actual del POS.');
+            $carrito = $contenido['carrito'];
+            $cl = empty($carrito['cliente_id']) ? null : Cliente::find($carrito['cliente_id']);
+            $pendientePre = [
+                'id' => $pendiente->id,
+                'nombre' => $contenido['nombre'],
+                'carrito' => $carrito,
+                'cliente' => $cl?->esVisiblePara($request->user()) ? ['id' => $cl->id, 'texto' => $cl->nombreCompleto()] : null,
+            ];
+        }
         return view('pos.vender', $c + [
             'caja' => $caja,
             'productos' => $productos,
             'categorias' => PosCategoria::where('cyber_id', $c['cyberPos']->id)->orderBy('orden')->orderBy('nombre')->get(['id', 'nombre', 'color']),
             'clientePre' => $cliente,
+            'pendientePre' => $pendientePre,
         ]);
     }
 
@@ -48,15 +68,9 @@ class VenderController extends PosBase
         if (!$caja) {
             return response()->json(['ok' => false, 'mensaje' => 'La caja está cerrada. Ábrala para vender.'], 422);
         }
-        $d = $request->validate([
-            'clave_operacion' => ['nullable', 'uuid'],
-            'items'                => ['required', 'array', 'min:1', 'max:200'],
-            'items.*.producto_id'  => ['nullable', 'integer'],
-            'items.*.descripcion'  => ['nullable', 'string', 'max:150'],
-            'items.*.cantidad'     => ['required', 'numeric', 'min:0.01', 'max:100000'],
-            'items.*.precio'       => ['required', 'numeric', 'min:0', 'max:999999999'],
-            'items.*.descuento'    => ['nullable', 'numeric', 'min:0'],
-            'descuento_pct'        => ['nullable', 'numeric', 'min:0', 'max:100'],
+        $d = $request->validate(Ventas::reglasItems() + [
+            'clave_operacion' => ['required_with:pendiente_id', 'nullable', 'uuid'],
+            'pendiente_id' => ['nullable', 'uuid'],
             'pagos'                => ['required', 'array', 'min:1', 'max:5'],
             'pagos.*.metodo'       => ['required', 'string', 'max:20'],
             'pagos.*.monto'        => ['required', 'numeric', 'min:0'],
@@ -72,7 +86,31 @@ class VenderController extends PosBase
                 $d['cliente_id'] = null;
             }
         }
-        $venta = Ventas::registrar($d, $cfg, $caja, $request->user());
+        $venta = DB::transaction(function () use ($request, $cfg, $caja, $d) {
+            $pendiente = empty($d['pendiente_id']) ? null : PosPendiente::where('cyber_id', $cfg->cyber_id)
+                ->where('user_id', $request->user()->id)->lockForUpdate()->findOrFail($d['pendiente_id']);
+            if ($pendiente?->venta_id) {
+                abort_unless(PosVenta::whereKey($pendiente->venta_id)->where('cyber_id', $cfg->cyber_id)
+                    ->where('clave_operacion', $d['clave_operacion'])->exists(), 409, 'Este pendiente ya se cobró.');
+            } elseif ($pendiente) {
+                abort_if($pendiente->contenido['moneda'] !== $cfg->moneda, 409, 'La moneda del pendiente difiere de la moneda actual del POS.');
+            }
+            $venta = Ventas::registrar($d, $cfg, $caja, $request->user());
+            if ($pendiente && !$pendiente->venta_id) {
+                $pendiente->venta_id = $venta->id;
+                PosPendiente::withoutTimestamps(fn () => $pendiente->save());
+            }
+            unset($d['pendiente_id']);
+            $journalItems = \App\Services\Desktop\LocalBusinessJournal::productReferences($request,$d['items']);
+            \App\Services\Desktop\LocalBusinessJournal::record($request,(int)$cfg->cyber_id,'sale.create',$venta->id,
+                ['items'=>$journalItems,'cliente_id'=>empty($d['cliente_id']) ? null
+                    : \App\Services\Desktop\LocalBusinessJournal::reference($request,'client.full.create',(int)$d['cliente_id'])]+$d+[
+                    'caja_id'=>\App\Services\Desktop\LocalBusinessJournal::reference($request,'cash.open',$caja->id),
+                    'total'=>$venta->total,'moneda'=>$cfg->moneda,
+                ],$d['clave_operacion']??null);
+
+            return $venta;
+        });
 
         return response()->json([
             'ok' => true,

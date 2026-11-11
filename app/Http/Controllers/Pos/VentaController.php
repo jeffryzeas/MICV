@@ -91,6 +91,10 @@ class VentaController extends PosBase
             return back()->withErrors(['motivo' => 'La caja de esta venta ya se cerró. Solo el administrador puede anularla.']);
         }
         Ventas::anular($venta, $request->user(), $d['motivo']);
+        \App\Services\Desktop\LocalBusinessJournal::record($request,(int)$venta->cyber_id,'sale.void',$venta->id,[
+            'id'=>\App\Services\Desktop\LocalBusinessJournal::reference($request,'sale.create',$venta->id),
+            'motivo'=>$d['motivo'],
+        ]);
         return back()->with('mensaje', 'Venta anulada. El inventario se devolvió.');
     }
 

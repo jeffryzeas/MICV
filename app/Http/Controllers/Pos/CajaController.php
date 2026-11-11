@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Pos;
 
 use App\Models\Actividad;
 use App\Models\Pos\PosCaja;
+use App\Services\Desktop\LocalBusinessJournal;
 use App\Support\PosPaises;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,20 +17,23 @@ class CajaController extends PosBase
     {
         $cy = $this->cyber($request);
         $d = $request->validate(['monto_inicial' => ['required', 'numeric', 'min:0', 'max:999999999']], [], ['monto_inicial' => 'monto inicial']);
+        $pendiente = $request->validate(['pendiente' => ['nullable', 'uuid']])['pendiente'] ?? null;
+        $destino = $pendiente ? ['pendiente' => $pendiente] : [];
         $creada = DB::transaction(function () use ($cy, $request, $d) {
             // Se bloquea el negocio incluso si todavía no existe una caja abierta.
             \App\Models\Cyber::whereKey($cy->id)->lockForUpdate()->firstOrFail();
             if (PosCaja::where('cyber_id', $cy->id)->where('estado', 'abierta')->lockForUpdate()->first()) {
                 return false;
             }
-            PosCaja::create(['cyber_id' => $cy->id, 'user_id' => $request->user()->id, 'abierta_en' => now(), 'monto_inicial' => $d['monto_inicial']]);
+            $caja = PosCaja::create(['cyber_id' => $cy->id, 'user_id' => $request->user()->id, 'abierta_en' => now(), 'monto_inicial' => $d['monto_inicial']]);
+            LocalBusinessJournal::record($request,$cy->id,'cash.open',$caja->id,$d);
             return true;
         });
         if (!$creada) {
-            return redirect()->route('pos.vender');
+            return redirect()->route('pos.vender', $destino);
         }
         Actividad::registrar('pos_caja_abrir', $this->config($request)->dinero($d['monto_inicial']));
-        return redirect()->route('pos.vender')->with('mensaje', 'Caja abierta. ¡Buenas ventas!');
+        return redirect()->route('pos.vender', $destino)->with('mensaje', 'Caja abierta. ¡Buenas ventas!');
     }
 
     /** Turno actual: resumen, movimientos y cierre. */
@@ -67,7 +71,9 @@ class CajaController extends PosBase
             if ($d['tipo'] === 'retiro' && round((float) $d['monto'], 2) > $caja->resumen()['esperado'] + 0.001) {
                 throw ValidationException::withMessages(['monto' => 'No hay tanto efectivo en la caja.']);
             }
-            $caja->movimientos()->create($d + ['user_id' => $request->user()->id]);
+            $movement = $caja->movimientos()->create($d + ['user_id' => $request->user()->id]);
+            LocalBusinessJournal::record($request,(int)$caja->cyber_id,'cash.move',$movement->id,
+                $d+['caja_id'=>LocalBusinessJournal::reference($request,'cash.open',$caja->id)]);
         });
         Actividad::registrar('pos_caja_' . $d['tipo'], $cfg->dinero($d['monto']) . ' · ' . $d['motivo']);
         return back()->with('mensaje', $d['tipo'] === 'ingreso' ? 'Entrada de efectivo registrada.' : 'Salida de efectivo registrada.');
@@ -96,6 +102,8 @@ class CajaController extends PosBase
                 'diferencia' => round($d['efectivo_contado'] - $r['esperado'], 2),
                 'conteo' => array_filter($d['conteo'] ?? []), 'notas_cierre' => $d['notas_cierre'] ?? null,
             ]);
+            LocalBusinessJournal::record($request,(int)$caja->cyber_id,'cash.close',$caja->id,
+                $d+['caja_id'=>LocalBusinessJournal::reference($request,'cash.open',$caja->id),'efectivo_esperado'=>$r['esperado']]);
             return $r;
         });
         Actividad::registrar('pos_caja_cerrar', 'Esperado ' . $cfg->dinero($r['esperado']) . ' · contado ' . $cfg->dinero($d['efectivo_contado']));

@@ -12,6 +12,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: "/up",
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->validateCsrfTokens(except: ['desktop/session']);
+        $middleware->prependToPriorityList(
+            \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            \App\Http\Middleware\LocalDesktopAccess::class,
+        );
         $middleware->trimStrings(except: ["clave_correo"]);
         $middleware->alias([
             "rol" => \App\Http\Middleware\VerificarRol::class,
@@ -31,7 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
             prepend: [\App\Http\Middleware\RequiereInstalacion::class],
             append: [
                 \App\Http\Middleware\CabecerasSeguridad::class,
+                \App\Http\Middleware\LocalDesktopAccess::class,
                 \App\Http\Middleware\PermisosModulo::class,
+                \App\Http\Middleware\DesktopWebAccess::class,
                 \Illuminate\Routing\Middleware\ThrottleRequests::class .
                 ":global",
             ],

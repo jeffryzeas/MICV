@@ -3,16 +3,20 @@ import html, json, os, sys, time, uuid
 from pathlib import Path
 from datetime import date, datetime
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QUrl, QLockFile
-from PySide6.QtGui import QDesktopServices, QIcon, QTextDocument, QPageSize, QAction
+from PySide6.QtGui import QDesktopServices, QIcon, QTextDocument, QPageSize, QAction, QImageReader
 from PySide6.QtPrintSupport import QPrinter
 from PySide6.QtSvg import QSvgRenderer  # Incluye el soporte SVG al congelar la aplicación.
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QDialog, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QPushButton, QLineEdit, QComboBox, QDoubleSpinBox, QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView, QListWidget, QListWidgetItem, QStackedWidget, QMessageBox, QFileDialog, QDialogButtonBox, QInputDialog, QScrollArea, QGroupBox, QProgressBar, QToolBar, QSplitter)
+    QAbstractItemView, QListWidget, QListWidgetItem, QStackedWidget, QMessageBox, QFileDialog, QDialogButtonBox, QInputDialog, QScrollArea, QGroupBox, QProgressBar, QToolBar, QSplitter, QPlainTextEdit)
+from . import __version__
+from .diagnostics import record_event, report as diagnostic_report
 from .storage import Store
 from .service import Service
 from .sync import Sync, DEFAULT_SERVER_URL
 from .security import AccessError
+from .forms import ClientForm,PaymentForm,LedgerForm,fit_dialog
+from .reports import excel_report,pdf_report
 
 ASSETS = Path(__file__).resolve().parent.parent / 'assets'
 STYLE = '''
@@ -83,7 +87,7 @@ class Worker(QThread):
 class Activate(QDialog):
     def __init__(self,store,parent=None,resolve_store=None):
         super().__init__(parent);self.store=store;self.resolve_store=resolve_store;self.account=None;self.setWindowTitle('Mi CV Escritorio · Iniciar sesión');self.resize(540,440)
-        layout=QVBoxLayout(self);layout.setContentsMargins(24,20,24,20);layout.setSpacing(12)
+        outer=QVBoxLayout(self);body=QWidget();layout=QVBoxLayout(body);layout.setContentsMargins(16,12,16,12);layout.setSpacing(10);scroll=QScrollArea();scroll.setWidgetResizable(True);scroll.setWidget(body);outer.addWidget(scroll,1)
         self.heading=label('Inicie sesión en Mi CV','title');layout.addWidget(self.heading)
         layout.addWidget(label('Ingrese con su cuenta. La licencia se solicita únicamente a las empresas.','subtitle'))
         self.inputs={};self.account_group=QGroupBox('Usuario y contraseña');form=QFormLayout(self.account_group)
@@ -98,10 +102,10 @@ class Activate(QDialog):
         for key,caption in [('pin','Cree su PIN (mín. 6)'),('repeat','Confirme su PIN')]:
             inp=QLineEdit();inp.setEchoMode(QLineEdit.Password);inp.setMaxLength(255);self.inputs[key]=inp;inp.returnPressed.connect(self.activate);form.addRow(caption,inp)
         layout.addWidget(self.pin_group);self.pin_group.hide()
-        self.status=label('La primera conexión requiere internet.','subtitle');layout.addWidget(self.status)
-        self.progress=QProgressBar();self.progress.setRange(0,0);self.progress.hide();layout.addWidget(self.progress)
-        self.go=button('Iniciar sesión',self.activate,primary=True,icon='key-round');self.go.setDefault(True);layout.addWidget(self.go)
-        self.elapsed=QTimer(self);self.elapsed.timeout.connect(self.show_progress);self.inputs['user'].setFocus()
+        self.status=label('La primera conexión requiere internet.','subtitle');outer.addWidget(self.status)
+        self.progress=QProgressBar();self.progress.setRange(0,0);self.progress.hide();outer.addWidget(self.progress)
+        self.go=button('Iniciar sesión',self.activate,primary=True,icon='key-round');self.go.setDefault(True);outer.addWidget(self.go)
+        self.elapsed=QTimer(self);self.elapsed.timeout.connect(self.show_progress);self.inputs['user'].setFocus();fit_dialog(self,560,520)
     def show_progress(self):
         self.status.setText(f'Conectando con su sistema… {int(time.monotonic()-self.started)} s.')
     def start_work(self,work,callback):
@@ -146,61 +150,13 @@ class Activate(QDialog):
         if hasattr(self,'worker') and self.worker.isRunning():return
         self.credentials=None;super().reject()
 
-class ClientForm(QDialog):
-    def __init__(self,store,row=None,parent=None):
-        super().__init__(parent);self.setWindowTitle('Ficha del cliente');self.resize(620,740);self.fields={};data=(row or {}).get('data',{});catalog=store.meta('catalogs',{})
-        layout=QVBoxLayout(self);scroll=QScrollArea();scroll.setWidgetResizable(True);content=QWidget();form=QFormLayout(content)
-        countries=catalog.get('countries',{});country_list=[(p['nombre'],k) for k,p in countries.items()]
-        self.fields['pais']=combo(country_list,data.get('pais'));self.fields['tipo_documento']=QComboBox()
-        form.addRow('País emisor del documento',self.fields['pais']);form.addRow('Tipo de documento',self.fields['tipo_documento'])
-        def types():
-            self.fields['tipo_documento'].clear();self.fields['tipo_documento'].addItem('Seleccione…',None)
-            for key,text in countries.get(self.fields['pais'].currentData(),{}).get('documentos',{}).items():self.fields['tipo_documento'].addItem(text,key)
-        self.fields['pais'].currentIndexChanged.connect(types);types()
-        idx=self.fields['tipo_documento'].findData(data.get('tipo_documento'));self.fields['tipo_documento'].setCurrentIndex(max(0,idx))
-        for key,title in [('numero_documento','Número de documento'),('primer_nombre','Primer nombre'),('segundo_nombre','Segundo nombre'),('primer_apellido','Primer apellido'),('segundo_apellido','Segundo apellido'),('fecha_nacimiento','Nacimiento (AAAA-MM-DD)'),('municipio_nacimiento','Ciudad / municipio de nacimiento'),('departamento_nacimiento','Departamento / provincia de nacimiento')]:
-            inp=QLineEdit(str(data.get(key) or ''));inp.setMaxLength(100);self.fields[key]=inp;form.addRow(title,inp)
-        nationals=[]
-        for n in catalog.get('nationalities',[]):
-            for field in ('m','f'):
-                if (n[field],n[field]) not in nationals:nationals.append((n[field],n[field]))
-        self.fields['sexo']=combo([('Masculino','M'),('Femenino','F'),('Otro','O')],data.get('sexo'))
-        self.fields['nacionalidad']=combo(nationals,data.get('nacionalidad'))
-        self.fields['pais_residencia']=combo([(text,code) for text,code in country_list if code!='OT'],data.get('pais_residencia'))
-        for key,title in [('sexo','Sexo'),('nacionalidad','Nacionalidad'),('pais_residencia','País de residencia actual')]:form.addRow(title,self.fields[key])
-        for key,title in [('autorizacion_laboral','Situación laboral en país de residencia'),('profesion','Profesión u oficio'),('telefono_codigo_pais','Código de teléfono'),('telefono','Teléfono'),('correo','Correo'),('direccion','Dirección')]:
-            inp=QLineEdit(str(data.get(key) or ''));inp.setMaxLength(200);self.fields[key]=inp;form.addRow(title,inp)
-        scroll.setWidget(content);layout.addWidget(scroll)
-        controls=QDialogButtonBox(QDialogButtonBox.Save|QDialogButtonBox.Cancel);controls.accepted.connect(self.accept);controls.rejected.connect(self.reject);layout.addWidget(controls)
-    def data(self):return {k:(v.currentData() if isinstance(v,QComboBox) else v.text().strip()) for k,v in self.fields.items()}
-
-class PaymentForm(QDialog):
-    def __init__(self,store,total,parent=None):
-        super().__init__(parent);self.setWindowTitle('Cobrar venta');self.resize(560,420);self.payments=[];layout=QVBoxLayout(self)
-        layout.addWidget(label(f'Total: {store.meta("business")["simbolo"]} {total}','title'))
-        methods=store.meta('business')['metodos'];self.method=combo([(m['nombre'],m['clave']) for m in methods],blank=False)
-        self.amount=QDoubleSpinBox();self.amount.setDecimals(2);self.amount.setRange(.01,999999999);self.amount.setValue(float(total))
-        form=QFormLayout();form.addRow('Método',self.method);form.addRow('Importe',self.amount);layout.addLayout(form)
-        layout.addWidget(button('Añadir pago',self.add,icon='plus'));self.list=table(['Método','Importe']);layout.addWidget(self.list)
-        layout.addWidget(button('Quitar pago seleccionado',self.remove,icon='trash-2'))
-        controls=QDialogButtonBox(QDialogButtonBox.Save|QDialogButtonBox.Cancel);controls.accepted.connect(self.accept);controls.rejected.connect(self.reject);layout.addWidget(controls)
-    def add(self):
-        self.payments.append({'metodo':self.method.currentData(),'monto':f'{self.amount.value():.2f}'});self.render()
-    def remove(self):
-        i=self.list.currentRow()
-        if i>=0:self.payments.pop(i);self.render()
-    def render(self):fill(self.list,[(p['metodo'],p['monto']) for p in self.payments])
-    def accept(self):
-        if not self.payments:self.add()
-        super().accept()
-
 class MainWindow(QMainWindow):
     def __init__(self,store,*,start_timer=True):
-        super().__init__();self.store=store;self.service=Service(store);self.cart=[];self.last_sale=None;self.worker=None;self.switch_user=False
-        self.setWindowTitle('Mi CV · Equipo JZ · Escritorio');self.resize(1320,850);self.setMinimumSize(1000,700)
+        super().__init__();self.store=store;self.service=Service(store);self.cart=[];self.last_sale=None;self.worker=None;self.switch_user=False;self.preparing_local=False;self.backing_up=False
+        self.setWindowTitle('Mi CV · Equipo JZ · Escritorio');self.resize(1320,850);self.setMinimumSize(760,440)
         root=QWidget();self.setCentralWidget(root);outer=QHBoxLayout(root);outer.setContentsMargins(0,0,0,0)
         self.nav=QListWidget();self.nav.setObjectName('navigation');self.nav.setFixedWidth(195)
-        for text,icon in [('Panel','layout-dashboard'),('Clientes','users'),('Punto de venta','shopping-cart'),('Contabilidad','book-open'),('Sincronización','refresh-cw'),('Licencia y respaldo','shield-check')]:
+        for text,icon in [('Panel','layout-dashboard'),('Clientes','users'),('Punto de venta','shopping-cart'),('Contabilidad','book-open'),('Sincronización','refresh-cw'),('Licencia y respaldo','shield-check'),('Ventas del equipo','banknote')]:
             item=QListWidgetItem(text)
             if (ASSETS/'icons'/f'{icon}.svg').is_file():
                 nav_icon=QIcon(str(ASSETS/'icons'/f'{icon}.svg'));nav_icon.addFile(str(ASSETS/'icons'/f'{icon}-white.svg'),mode=QIcon.Selected);item.setIcon(nav_icon)
@@ -208,10 +164,16 @@ class MainWindow(QMainWindow):
         outer.addWidget(self.nav);area=QWidget();vertical=QVBoxLayout(area);vertical.setContentsMargins(16,12,16,12)
         header=QHBoxLayout();self.heading=label('Mi CV Escritorio','title');header.addWidget(self.heading,1);self.sync_button=button('Sincronizar ahora',self.synchronize,primary=True,icon='refresh-cw');header.addWidget(self.sync_button);vertical.addLayout(header)
         self.connection=label('','subtitle');vertical.addWidget(self.connection);self.pages=QStackedWidget();vertical.addWidget(self.pages,1);outer.addWidget(area,1)
-        self.build_dashboard();self.build_clients();self.build_pos();self.build_ledger();self.build_sync();self.build_license()
-        self.nav.currentRowChanged.connect(self.pages.setCurrentIndex);self.nav.setCurrentRow(0);self.build_desktop_controls();self.refresh()
+        self.build_dashboard();self.build_clients();self.build_pos();self.build_ledger();self.build_sync();self.build_license();self.build_sales()
+        self.nav.currentRowChanged.connect(self.pages.setCurrentIndex);self.nav.setCurrentRow(0);self.build_desktop_controls();self.refresh();fit_dialog(self,1280,800)
         self.timer=QTimer(self);self.timer.timeout.connect(self.synchronize)
-        if start_timer:self.timer.start(60000);QTimer.singleShot(300,self.synchronize)
+        if start_timer:
+            self.start_sync_timer()
+
+    def start_sync_timer(self):
+        self.timer.start(60000)
+        QTimer.singleShot(300, self.synchronize)
+
     def build_desktop_controls(self):
         self.statusBar().showMessage('Datos guardados en este equipo')
         self.status_info=label('');self.status_info.setWordWrap(False);self.statusBar().addPermanentWidget(self.status_info)
@@ -227,26 +189,87 @@ class MainWindow(QMainWindow):
         action(file_menu,'Copia de &seguridad…',self.backup,'Ctrl+Shift+B','shield-check')
         action(file_menu,'Cambiar de cuenta',self.change_account,'Ctrl+Shift+L')
         action(file_menu,'&Salir',self.close,'Alt+F4')
-        for i,(name,shortcut,icon) in enumerate([('Inicio','Ctrl+1','layout-dashboard'),('Clientes','Ctrl+2','users'),('Punto de venta','Ctrl+3','shopping-cart'),('Contabilidad','Ctrl+4','book-open'),('Sincronización','Ctrl+5','refresh-cw'),('Licencia y respaldo','Ctrl+6','shield-check')]):
+        for i,(name,shortcut,icon) in enumerate([('Inicio','Ctrl+1','layout-dashboard'),('Clientes','Ctrl+2','users'),('Punto de venta','Ctrl+3','shopping-cart'),('Contabilidad','Ctrl+4','book-open'),('Sincronización','Ctrl+5','refresh-cw'),('Cuenta y respaldo','Ctrl+6','shield-check'),('Ventas del equipo','Ctrl+7','banknote')]):
             entry=action(module_menu,name,lambda checked=False,index=i:self.nav.setCurrentRow(index),shortcut,icon,quick=i in (1,2,3))
-            if i in (2,3):entry.setVisible(self.service.allowed('pos.vender' if i==2 else 'contabilidad.ver'))
+            if i in (2,3,6):entry.setVisible(self.service.allowed({2:'pos.vender',3:'contabilidad.ver',6:'pos.ventas'}[i]))
         toolbar.addSeparator();action(tools,'Sincronizar ahora',self.synchronize,'F5','refresh-cw',True)
-        action(tools,'Sistema web',self.open_web,icon='globe');action(tools,'Editor de documentos',self.open_editor,icon='scan-line')
-        action(help_menu,'Acerca de Mi CV',lambda:QMessageBox.information(self,'Mi CV Escritorio','Mi CV Escritorio 1.2.0\nEquipo JZ · jz.com.ni\nClientes, ventas, caja y contabilidad locales.\nActivación directa y sincronización con Laravel.'))
+        action(tools,'Todos los módulos conectados',self.open_complete,icon='globe',quick=True);action(tools,'Sistema web',self.open_web,icon='globe');action(tools,'Editor de documentos',self.open_editor,icon='scan-line')
+        action(tools,'Cartas',lambda:self.show_letter_editor(self),icon='file-down')
+        action(tools,'Borradores de chat',self.show_chat_drafts,icon='save')
+        action(tools,'Preparar datos locales',self.prepare_local,icon='refresh-cw')
+        action(tools,'Abrir espacio local',self.open_local,icon='monitor',quick=True)
+        action(help_menu,'Diagnóstico y errores',self.show_diagnostics,icon='shield-check')
+        action(help_menu,'Acerca de Mi CV',lambda:QMessageBox.information(self,'Mi CV Escritorio',f'Mi CV Escritorio {__version__}\nEquipo JZ · jz.com.ni\nTrabajo local y sincronización con Laravel.'))
         self.nav.currentRowChanged.connect(lambda i:self.statusBar().showMessage(self.nav.item(i).text()))
 
     def page(self):
         widget=QWidget();layout=QVBoxLayout(widget);layout.setContentsMargins(0,16,0,0);self.pages.addWidget(widget);return layout
     def run_action(self,callback):
         try:callback();self.refresh()
-        except Exception as exc:QMessageBox.warning(self,'Revise la operación',str(exc))
+        except Exception as exc:
+            record_event(self.store, 'action')
+            QMessageBox.warning(self, 'Revise la operación', str(exc))
+
+    def show_chat_drafts(self, parent=None):
+        from .chat_drafts import ChatDrafts, ChatDraftsDialog
+        owner = parent if isinstance(parent, QWidget) else self
+        try:
+            ChatDraftsDialog(ChatDrafts(self.store), owner).exec()
+        except Exception as error:
+            QMessageBox.warning(owner, 'Borradores de chat', str(error))
+
+    def show_letter_editor(self, parent, kind=None, client_id=None):
+        from .letter_editor import LetterEditor
+        from .workspace_access import authorize_workspace
+        try:
+            claims = authorize_workspace(self.store)
+            if claims.get('role') not in ('admin', 'cliente') and 'cartas' not in claims.get('permissions', []):
+                raise AccessError('Su cuenta no tiene permiso para usar Cartas.')
+            shell = getattr(self, 'local_shell', None)
+            engine = getattr(parent, 'engine', None)
+            if engine is None and shell is not None and shell.isVisible():
+                engine = shell.engine
+            editor = LetterEditor(engine, self.store, parent, kind=kind, client_id=client_id)
+            try:
+                editor.exec()
+            finally:
+                editor.close_session()
+        except Exception as error:
+            record_event(self.store, 'action')
+            QMessageBox.warning(parent, 'Editor de cartas', str(error))
+
+    def show_diagnostics(self, parent=None):
+        dialog = QDialog(parent if isinstance(parent, QWidget) else self)
+        dialog.setWindowTitle('Diagnóstico y errores')
+        dialog.resize(720, 510)
+        layout = QVBoxLayout(dialog)
+        summary = QPlainTextEdit(dialog)
+        summary.setReadOnly(True)
+        layout.addWidget(summary, 1)
+        actions = QDialogButtonBox(QDialogButtonBox.StandardButton.Close, dialog)
+        refresh = actions.addButton('Actualizar', QDialogButtonBox.ButtonRole.ActionRole)
+        copy = actions.addButton('Copiar resumen', QDialogButtonBox.ButtonRole.ActionRole)
+        actions.rejected.connect(dialog.reject)
+        layout.addWidget(actions)
+
+        def update():
+            try:
+                summary.setPlainText(diagnostic_report(self.store))
+            except Exception:
+                summary.setPlainText('No se pudo leer el diagnóstico de esta cuenta.')
+
+        refresh.clicked.connect(update)
+        copy.clicked.connect(lambda: QApplication.clipboard().setText(summary.toPlainText()))
+        update()
+        dialog.exec()
+
     def build_dashboard(self):
         layout=self.page();layout.addWidget(label('Su cuenta, con o sin conexión','title'));self.cards=QHBoxLayout();self.card_labels=[]
         for _ in range(3):w=label('','card');self.card_labels.append(w);self.cards.addWidget(w)
         layout.addLayout(self.cards);layout.addWidget(label('Las operaciones locales se envían cuando vuelve la conexión. Los conflictos se conservan para revisión y no se sobrescriben automáticamente.'))
         layout.addWidget(button('Abrir sistema web completo',self.open_web,icon='globe'))
         self.editor_button=button('Editor de documentos sin conexión',self.open_editor,icon='scan-line');layout.addWidget(self.editor_button)
-        layout.addWidget(label('En esta edición: clientes, ventas, caja y contabilidad locales. CV, tarjetas, chat y demás módulos se usan desde el sistema web.','subtitle'));layout.addStretch()
+        layout.addWidget(label('Prepare los datos del negocio para abrir el espacio local con sus módulos disponibles.','subtitle'));layout.addStretch()
     def build_clients(self):
         layout=self.page();bar=QHBoxLayout();self.client_search=QLineEdit();self.client_search.setPlaceholderText('Buscar por nombre, documento, correo o teléfono');self.client_search.textChanged.connect(self.render_clients);bar.addWidget(self.client_search,1)
         self.new_client=button('Registrar cliente',lambda:self.edit_client(False),primary=True,icon='user-plus');bar.addWidget(self.new_client)
@@ -265,8 +288,8 @@ class MainWindow(QMainWindow):
                 i=self.clients_table.currentRow()
                 if i<0:raise AccessError('Seleccione un cliente.')
                 row=self.client_rows[i]
-            dialog=ClientForm(self.store,row,self)
-            if dialog.exec()==QDialog.Accepted:self.service.client(dialog.data(),row)
+            dialog=ClientForm(self.store,row,self,on_save=lambda data:self.service.client(data,row))
+            if dialog.exec()==QDialog.Accepted:self.statusBar().showMessage('Cliente guardado en este equipo. Pendiente de sincronización.')
         self.run_action(work)
     def build_pos(self):
         layout=self.page();bar=QHBoxLayout();bar.addWidget(label('Punto de venta','title'));self.cash_label=label('Caja');bar.addWidget(self.cash_label,1)
@@ -275,7 +298,7 @@ class MainWindow(QMainWindow):
         products=QWidget();left=QVBoxLayout(products);left.setContentsMargins(0,6,8,0);left.addWidget(label('Productos y servicios','subtitle'))
         self.product_search=QLineEdit();self.product_search.setPlaceholderText('Buscar nombre o código');self.product_search.textChanged.connect(self.render_products);self.product_search.returnPressed.connect(self.add_cart);left.addWidget(self.product_search)
         self.products_table=table(['Código','Producto','Precio','Existencia']);self.products_table.cellDoubleClicked.connect(lambda *_:self.add_cart());left.addWidget(self.products_table,1)
-        add=QHBoxLayout();self.quantity=QDoubleSpinBox();self.quantity.setRange(.01,999999);self.quantity.setDecimals(2);self.quantity.setValue(1);add.addWidget(label('Cantidad'));add.addWidget(self.quantity);add.addWidget(button('Añadir',self.add_cart,icon='plus'));left.addLayout(add);splitter.addWidget(products)
+        add=QHBoxLayout();self.quantity=QDoubleSpinBox();self.quantity.setRange(.01,999999);self.quantity.setDecimals(2);self.quantity.setValue(1);add.addWidget(label('Cantidad'));add.addWidget(self.quantity);add.addWidget(button('Añadir',self.add_cart,icon='plus'));left.addLayout(add);exports=QHBoxLayout();exports.addWidget(button('PDF',lambda:self.export_table(self.products_table,'Productos','pdf'),icon='file-down'));exports.addWidget(button('Excel',lambda:self.export_table(self.products_table,'Productos','xlsx'),icon='file-spreadsheet'));left.addLayout(exports);splitter.addWidget(products)
         sale=QWidget();right=QVBoxLayout(sale);right.setContentsMargins(8,6,0,0);right.addWidget(label('Venta actual','subtitle'));self.sale_client=QComboBox();right.addWidget(self.sale_client)
         self.cart_table=table(['Producto','Cantidad','Precio','Total']);right.addWidget(self.cart_table,1);right.addWidget(button('Quitar producto seleccionado',self.remove_cart,icon='trash-2'))
         self.total_label=label('Total: 0','title');self.total_label.setAlignment(Qt.AlignRight);right.addWidget(self.total_label)
@@ -304,10 +327,10 @@ class MainWindow(QMainWindow):
         if ok:self.run_action(lambda:self.service.close_cash(str(amount)) if closing else self.service.open_cash(str(amount)))
     def pay(self):
         def work():
-            self.service.guard('pos.vender');_,total=self.service.quote(self.cart);dialog=PaymentForm(self.store,total,self)
-            if dialog.exec()==QDialog.Accepted:
-                self.last_sale=self.service.sale(self.cart,dialog.payments,self.sale_client.currentData());self.cart=[]
-                QMessageBox.information(self,'Venta guardada','La venta se guardó localmente y quedó en la cola de sincronización.')
+            self.service.guard('pos.vender');_,total=self.service.quote(self.cart)
+            def save(payments):self.last_sale=self.service.sale(self.cart,payments,self.sale_client.currentData())
+            dialog=PaymentForm(self.store,total,self,on_save=save)
+            if dialog.exec()==QDialog.Accepted:self.cart=[];self.statusBar().showMessage('Venta guardada. Puede continuar con la siguiente venta.')
         self.run_action(work)
     def build_ledger(self):
         layout=self.page();bar=QHBoxLayout();bar.addWidget(label('Ingresos y gastos','title'),1);self.ledger_button=button('Registrar movimiento',self.ledger_new,primary=True,icon='plus');bar.addWidget(self.ledger_button);layout.addLayout(bar)
@@ -315,52 +338,206 @@ class MainWindow(QMainWindow):
         bar=QHBoxLayout();bar.addWidget(button('Exportar Excel',lambda:self.export_table(self.ledger_table,'Contabilidad','xlsx'),icon='file-spreadsheet'));bar.addWidget(button('Exportar PDF',lambda:self.export_table(self.ledger_table,'Contabilidad','pdf'),icon='file-down'));bar.addStretch();layout.addLayout(bar)
     def ledger_new(self):
         def work():
-            self.service.guard('contabilidad.registrar');dialog=QDialog(self);dialog.setWindowTitle('Registrar ingreso o gasto');form=QFormLayout(dialog)
-            kind=combo([('Ingreso','ingreso'),('Gasto','gasto')],blank=False);form.addRow('Tipo',kind);inputs={}
-            for key,title,default in [('fecha','Fecha (AAAA-MM-DD)',date.today().isoformat()),('categoria','Categoría',''),('concepto','Concepto',''),('monto','Monto',''),('referencia','Referencia','')]:
-                inp=QLineEdit(default);inp.setMaxLength(200);inputs[key]=inp;form.addRow(title,inp)
-            controls=QDialogButtonBox(QDialogButtonBox.Save|QDialogButtonBox.Cancel);controls.accepted.connect(dialog.accept);controls.rejected.connect(dialog.reject);form.addRow(controls)
-            if dialog.exec()==QDialog.Accepted:self.service.ledger({'tipo':kind.currentData(),**{k:v.text().strip() for k,v in inputs.items()}})
+            self.service.guard('contabilidad.registrar');dialog=LedgerForm(self,on_save=self.service.ledger)
+            if dialog.exec()==QDialog.Accepted:self.statusBar().showMessage('Movimiento guardado en este equipo.')
         self.run_action(work)
     def build_sync(self):
         layout=self.page();layout.addWidget(label('Estado de cada operación','title'));layout.addWidget(label('Pendiente: guardada en este equipo. Sincronizada: confirmada por Laravel. Revisar: el servidor detectó un conflicto; la operación permanece guardada.'))
         self.operations_table=table(['Fecha local','Tipo','Referencia','Estado','Detalle']);layout.addWidget(self.operations_table)
-        layout.addWidget(button('Reintentar operación seleccionada',self.retry,icon='refresh-cw'))
+        layout.addWidget(button('Reintentar operación seleccionada',self.retry,icon='refresh-cw'));exports=QHBoxLayout();exports.addWidget(button('Exportar PDF',lambda:self.export_table(self.operations_table,'Sincronización','pdf'),icon='file-down'));exports.addWidget(button('Exportar Excel',lambda:self.export_table(self.operations_table,'Sincronización','xlsx'),icon='file-spreadsheet'));layout.addLayout(exports)
         layout.addWidget(label('Si un cliente cambió en la web, no se sobrescribe automáticamente. Revise ambas versiones con el encargado. Las operaciones financieras originales no se editan silenciosamente.','subtitle'))
     def retry(self):
         i=self.operations_table.currentRow()
         if i>=0:self.store.retry(self.operation_rows[i]['uuid']);self.refresh();self.synchronize()
     def build_license(self):
         layout=self.page();layout.addWidget(label('Cuenta y datos locales','title'));self.license_text=label('');layout.addWidget(self.license_text)
-        layout.addWidget(button('Reactivar / renovar acceso con mi cuenta',self.reactivate,icon='key-round'));layout.addWidget(button('Crear copia de seguridad cifrada',self.backup,icon='shield-check'));layout.addWidget(button('Abrir sistema web',self.open_web,icon='globe'))
+        layout.addWidget(button('Reactivar / renovar acceso con mi cuenta',self.reactivate,icon='key-round'));layout.addWidget(button('Crear copia de seguridad cifrada',self.backup,icon='shield-check'));layout.addWidget(button('Abrir sistema web',self.open_web,icon='globe'));layout.addWidget(button('Configurar logo de reportes',self.report_logo,icon='folder-open'))
         layout.addWidget(label('La copia de seguridad contiene la base local cifrada y su clave protegida. En Windows debe restaurarse con el mismo perfil de usuario. No desinstale ni borre los datos mientras haya operaciones pendientes.','subtitle'));layout.addStretch()
+    def build_sales(self):
+        layout=self.page();layout.addWidget(label('Ventas de este equipo','title'));layout.addWidget(label('Historial local conservado entre sesiones. El estado indica su envío al servidor.','subtitle'))
+        self.sales_table=table(['Fecha','Referencia','Total','Moneda','Estado']);layout.addWidget(self.sales_table,1)
+        exports=QHBoxLayout();exports.addWidget(button('Exportar PDF',lambda:self.export_table(self.sales_table,'Ventas','pdf'),icon='file-down'));exports.addWidget(button('Exportar Excel',lambda:self.export_table(self.sales_table,'Ventas','xlsx'),icon='file-spreadsheet'));exports.addWidget(button('Comprobante seleccionado',self.selected_receipt,icon='file-down'));layout.addLayout(exports)
+    def selected_receipt(self):
+        index=self.sales_table.currentRow()
+        if index<0:QMessageBox.information(self,'Ventas','Seleccione una venta del historial.');return
+        if not self.service.allowed('pos.ventas'):return
+        self.receipt(self.sales_rows[index])
+    def report_logo(self):
+        file,_=QFileDialog.getOpenFileName(self,'Logo para los reportes de esta cuenta','','Imágenes (*.png *.jpg *.jpeg)')
+        if not file:return
+        def save():
+            if Path(file).stat().st_size>10*1024*1024:raise AccessError('Seleccione una imagen menor de 10 MB.')
+            reader=QImageReader(file);size=reader.size()
+            if not size.isValid() or size.width()*size.height()>20000000:raise AccessError('La imagen no es válida o es demasiado grande.')
+            image=reader.read()
+            if image.isNull():raise AccessError('No se pudo abrir la imagen.')
+            image=image.scaled(512,512,Qt.KeepAspectRatio,Qt.SmoothTransformation)
+            if not image.save(str(self.store.folder/'report-logo.png'),'PNG'):raise AccessError('No se pudo guardar el logo.')
+            self.statusBar().showMessage('Logo guardado para los reportes de esta cuenta.')
+        self.run_action(save)
     def reactivate(self):
         if self.worker and self.worker.isRunning():return
         if Activate(self.store,self).exec()==QDialog.Accepted:self.refresh();self.synchronize()
     def backup(self):
-        file,_=QFileDialog.getSaveFileName(self,'Copia de seguridad',f'MiCV-respaldo-{date.today()}.zip','ZIP (*.zip)')
-        if file:self.run_action(lambda:self.store.backup(Path(file)))
+        if self.worker and self.worker.isRunning():
+            return
+        if getattr(self, 'local_shell', None) and self.local_shell.isVisible():
+            QMessageBox.information(self, 'Copia de seguridad', 'Guarde sus cambios y cierre el espacio local para respaldar la base y sus archivos juntos.')
+            return
+        file, _ = QFileDialog.getSaveFileName(self, 'Copia de seguridad', f'MiCV-respaldo-{date.today()}.zip', 'ZIP (*.zip)')
+        if not file or (self.worker and self.worker.isRunning()):
+            return
+        if getattr(self, 'local_shell', None) and self.local_shell.isVisible():
+            QMessageBox.information(self, 'Copia de seguridad', 'Cierre el espacio local para continuar con el respaldo.')
+            return
+        self.backing_up = True
+        self.sync_button.setEnabled(False)
+        self.statusBar().showMessage('Creando respaldo…')
+
+        def save():
+            self.store.backup(Path(file))
+            return 'Respaldo guardado: ' + file
+
+        self.worker = Worker(save, self)
+        self.worker.result.connect(self.backup_finished)
+        self.worker.start()
+
+    def backup_finished(self, message, ok):
+        self.worker.wait()
+        self.backing_up = False
+        self.sync_button.setEnabled(True)
+        self.statusBar().showMessage(message)
+        if not ok:
+            record_event(self.store, 'backup')
+            QMessageBox.warning(self, 'Copia de seguridad', message)
+    def open_complete(self):
+        def work():
+            if self.store.meta('capabilities',{}).get('desktop_session')!=1:
+                raise AccessError('Sincronice primero. El servidor debe incluir la conexión de escritorio completa.')
+            from .connected_engine import ConnectedEngine
+            from .desktop_shell import DesktopShell
+            if getattr(self,'complete_window',None) and self.complete_window.isVisible():
+                self.complete_window.raise_();return
+            self.complete_window=DesktopShell(ConnectedEngine(self.store),local_action=self.show_local_work,account_action=self.change_account,
+                                              offline_action=self.use_local_during_outage, diagnostics=self.show_diagnostics,
+                                              letter_editor=self.show_letter_editor, chat_drafts=self.show_chat_drafts,
+                                              diagnostic_event=lambda code: record_event(self.store, code))
+            self.complete_window.show()
+        self.run_action(work)
+
+    def runtime_bundle(self):
+        return Path(__file__).resolve().parent.parent / 'runtime-bundle'
+
+    def prepare_local(self):
+        if self.worker and self.worker.isRunning():
+            return
+        if getattr(self, 'local_shell', None) and self.local_shell.isVisible():
+            QMessageBox.information(self, 'Espacio local', 'Cierre el espacio local antes de preparar una copia actualizada.')
+            return
+        bundle = self.runtime_bundle()
+        php = bundle / 'php' / ('php.exe' if os.name == 'nt' else 'php')
+        if not php.is_file():
+            QMessageBox.warning(self, 'Espacio local', 'Esta compilación necesita el paquete del motor local.')
+            return
+        def prepare():
+            path = Sync(self.store).provision_workspace(bundle)
+            self.store.set_meta('workspace_active', path.name)
+            return 'Datos locales preparados.'
+        self.sync_button.setEnabled(False)
+        self.preparing_local = True
+        self.worker = Worker(prepare, self)
+        self.worker.result.connect(self.local_prepared)
+        self.worker.start()
+
+    def local_prepared(self, message, ok):
+        self.worker.wait()
+        self.preparing_local = False
+        self.sync_button.setEnabled(True)
+        self.statusBar().showMessage(message)
+        if ok:
+            self.open_local()
+            if not self.timer.isActive():
+                self.start_sync_timer()
+        else:
+            record_event(self.store, 'prepare')
+            QMessageBox.warning(self, 'Preparación local', message)
+
+    def show_local_work(self):
+        if self.store.meta('workspace_active'):
+            self.open_local()
+        else:
+            self.show()
+
+    def use_local_during_outage(self):
+        if not self.store.meta('workspace_active'):
+            self.show()
+            self.connection.setText('Servidor no disponible. Prepare el espacio local cuando vuelva la conexión.')
+            return True
+        return self.open_local(automatic=True)
+
+    def open_local(self, *, automatic=False):
+        if self.preparing_local or self.backing_up:
+            return False
+        try:
+            if getattr(self, 'local_shell', None) and self.local_shell.isVisible():
+                self.local_shell.raise_()
+                self.local_shell.activateWindow()
+                return True
+            from .workspace_access import open_workspace
+            from .desktop_shell import DesktopShell
+            engine = open_workspace(self.store, self.runtime_bundle())
+            try:
+                self.local_shell = DesktopShell(engine, account_action=self.change_account, sync_action=self.synchronize,
+                                                letter_editor=self.show_letter_editor, chat_drafts=self.show_chat_drafts,
+                                                diagnostics=self.show_diagnostics,
+                                                diagnostic_event=lambda code: record_event(self.store, code))
+                self.local_shell.show()
+            except Exception:
+                engine.stop()
+                raise
+        except Exception as error:
+            record_event(self.store, 'local_start')
+            if automatic:
+                self.show()
+                self.connection.setText(str(error))
+                return True
+            QMessageBox.warning(self, 'Espacio local', str(error))
+            return False
+        return True
+
     def open_web(self):
         profile=self.store.meta('profile')
         if profile:QDesktopServices.openUrl(QUrl(profile['server_url']))
     def open_editor(self):
         def work():
-            self.service.guard('documentos');path=ASSETS/'editor'/'index.html'
-            if not path.is_file():raise AccessError('El editor local no está incluido en esta compilación.')
-            QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+            self.service.guard('documentos')
+            if getattr(self, 'editor_window', None) and self.editor_window.isVisible():
+                self.editor_window.raise_()
+                self.editor_window.activateWindow()
+                return
+            from .desktop_shell import BundledDocumentEditor, DesktopShell
+            editor = BundledDocumentEditor(ASSETS/'editor', lambda: self.service.guard('documentos'))
+            self.editor_window = DesktopShell(editor, diagnostics=self.show_diagnostics,
+                                              diagnostic_event=lambda code: record_event(self.store, code))
+            self.editor_window.show()
         self.run_action(work)
     def synchronize(self):
         if not self.store.meta('profile') or (self.worker and self.worker.isRunning()):return
         self.sync_button.setEnabled(False);self.connection.setText('Sincronizando… Puede continuar trabajando con sus datos locales.')
         self.statusBar().showMessage('Sincronizando con el servidor…');self.worker=Worker(lambda:Sync(self.store).run(),self);self.worker.result.connect(self.sync_finished);self.worker.start()
     def sync_finished(self,text,ok):
+        if not ok:
+            record_event(self.store, 'sync')
         self.worker.wait();self.sync_button.setEnabled(True);self.refresh();self.connection.setText(text);self.statusBar().showMessage(text)
+        if getattr(self, 'local_shell', None) and self.local_shell.isVisible():
+            self.local_shell.statusBar().showMessage(text)
+            self.local_shell.check_access()
     def refresh(self):
         try:claims=self.service.claims();scopes=claims['scopes'];expiry=datetime.fromtimestamp(claims['valid_until']).strftime('%d/%m/%Y %H:%M');self.heading.setText(self.store.meta('business',{}).get('nombre','Mi CV Escritorio'));self.license_text.setText(f"Usuario: {claims['nombre']}\nEquipo: {self.store.meta('device_uuid')}\nAutorización sin conexión hasta: {expiry}\nServidor: {self.store.meta('profile')['server_url']}")
         except AccessError:scopes=[];claims={};self.license_text.setText('Equipo sin activar.')
         role=claims.get('role','cyber');personal=role=='cliente'
         self.nav.item(1).setText('Mi ficha' if personal else 'Clientes')
-        self.nav.item(2).setHidden('pos.vender' not in scopes);self.nav.item(3).setHidden('contabilidad.ver' not in scopes)
+        self.nav.item(2).setHidden('pos.vender' not in scopes);self.nav.item(3).setHidden('contabilidad.ver' not in scopes);self.nav.item(6).setHidden('pos.ventas' not in scopes)
         self.nav.item(5).setText('Cuenta y respaldo' if role!='cyber' else 'Licencia y respaldo')
         self.new_client.setVisible(not personal);self.edit_client_button.setVisible(not personal)
         self.license_text.setText(self.license_text.text()+('\nLicencia empresarial requerida.' if role=='cyber' else '\nEsta cuenta no requiere licencia.'))
@@ -392,28 +569,28 @@ class MainWindow(QMainWindow):
         self.operation_rows=list(reversed(self.store.operations(include_accepted=True)));states={'pending':'Pendiente','accepted':'Sincronizada','conflict':'Revisar'}
         fill(self.operations_table,[(r['occurred_at'],r['type'],r['uuid'],states[r['status']],r['error'] or ('Servidor #'+str(r['remote_id']) if r['remote_id'] else '')) for r in self.operation_rows])
         pending=sum(r['status']=='pending' for r in self.operation_rows);conflicts=sum(r['status']=='conflict' for r in self.operation_rows)
+        self.sales_rows=[r for r in self.operation_rows if r['type']=='sale.create'] if 'pos.ventas' in scopes else []
+        fill(self.sales_table,[(r['occurred_at'],r['uuid'],r['data']['total'],r['data']['moneda'],states[r['status']]) for r in self.sales_rows])
         self.status_info.setText(f'{pending} pendientes · {conflicts} por revisar · Datos locales')
         for w,text in zip(self.card_labels,[f'{len(self.client_rows)} clientes locales',f'{pending} operaciones pendientes',f'{conflicts} por revisar']):w.setText(text)
     def export_table(self,widget,name,format):
-        rows=[[widget.item(i,j).text() if widget.item(i,j) else '' for j in range(widget.columnCount())] for i in range(widget.rowCount())];headers=[widget.horizontalHeaderItem(i).text() for i in range(widget.columnCount())]
+        permissions={'Contabilidad':'contabilidad.exportar','Clientes':'clientes.ver','Productos':'pos.vender','Ventas':'pos.ventas'}
+        permission=permissions.get(name)
+        if permission and not self.service.allowed(permission):QMessageBox.warning(self,'Exportación','Su cuenta no tiene permiso para exportar este listado.');return
+        orientation='auto'
+        if format=='pdf':
+            value,ok=QInputDialog.getItem(self,'Orientación del PDF','Formato de página',['Automática','Vertical','Horizontal'],0,False)
+            if not ok:return
+            orientation={'Automática':'auto','Vertical':'portrait','Horizontal':'landscape'}[value]
         file,_=QFileDialog.getSaveFileName(self,'Exportar '+name,name+'.'+format,f'{format.upper()} (*.{format})')
         if not file:return
+        if not file.lower().endswith('.'+format):file+='.'+format
+        rows=[[widget.item(i,j).text() if widget.item(i,j) else '' for j in range(widget.columnCount())] for i in range(widget.rowCount())];headers=[widget.horizontalHeaderItem(i).text() for i in range(widget.columnCount())]
         def work():
-            permission='contabilidad.exportar' if name=='Contabilidad' else 'clientes.ver'
-            if not self.service.allowed(permission):raise AccessError('Su usuario no tiene permiso para exportar este listado.')
-            if format=='xlsx':
-                from openpyxl import Workbook
-                from openpyxl.styles import Font,PatternFill,Alignment
-                book=Workbook();sheet=book.active;sheet.title=name;sheet.append([name]);sheet.append(headers)
-                for row in rows:sheet.append(row)
-                for row in sheet:
-                    for cell in row:cell.data_type='s';cell.alignment=Alignment(wrap_text=True,vertical='center')
-                for cell in sheet[2]:cell.font=Font(color='FFFFFF',bold=True);cell.fill=PatternFill('solid',fgColor='0B3C74')
-                for column in sheet.columns:sheet.column_dimensions[column[0].column_letter].width=26
-                sheet.freeze_panes='A3';sheet.auto_filter.ref=f'A2:{sheet.cell(sheet.max_row,sheet.max_column).coordinate}';sheet.print_options.horizontalCentered=True;sheet.sheet_properties.pageSetUpPr.fitToPage=True;sheet.page_setup.orientation='landscape';sheet.page_setup.fitToWidth=1;book.save(file)
-            else:
-                body='<h1>'+html.escape(name)+'</h1><table border="1" cellpadding="6"><tr>'+''.join('<th>'+html.escape(h)+'</th>' for h in headers)+'</tr>'+''.join('<tr>'+''.join('<td>'+html.escape(v)+'</td>' for v in row)+'</tr>' for row in rows)+'</table>'
-                self.pdf_html(body,file,landscape=True)
+            business=self.store.meta('business',{}).get('nombre','Mi CV');logo=self.store.folder/'report-logo.png'
+            if format=='xlsx':excel_report(file,name,business,headers,rows,logo=logo)
+            else:pdf_report(file,name,business,headers,rows,orientation,logo=logo)
+            self.statusBar().showMessage('Reporte guardado: '+file)
         self.run_action(work)
     def pdf_html(self,body,file,landscape=False):
         printer=QPrinter(QPrinter.HighResolution);printer.setOutputFormat(QPrinter.PdfFormat);printer.setOutputFileName(file);printer.setPageSize(QPageSize(QPageSize.A4))
@@ -421,19 +598,33 @@ class MainWindow(QMainWindow):
             from PySide6.QtGui import QPageLayout
             printer.setPageOrientation(QPageLayout.Landscape)
         document=QTextDocument();document.setDefaultStyleSheet('body{font-family:Arial;color:#19334b}h1{color:#0b3c74}th{background:#0b3c74;color:white}td{font-size:10pt}');document.setHtml(body);document.print_(printer)
-    def receipt(self):
-        if not self.last_sale:QMessageBox.information(self,'Comprobante','Registre una venta en esta sesión para guardar su comprobante local.');return
-        op=self.last_sale;file,_=QFileDialog.getSaveFileName(self,'Guardar comprobante','Comprobante-local.pdf','PDF (*.pdf)')
-        if file:
-            lines=''.join('<tr><td>'+html.escape(l['nombre'])+'</td><td>'+html.escape(l['cantidad'])+'</td><td>'+html.escape(l['total'])+'</td></tr>' for l in op['data']['items'])
-            self.run_action(lambda:self.pdf_html('<h1>Comprobante local</h1><p>'+html.escape(self.store.meta('business')['nombre'])+'</p><p>Referencia: '+op['uuid']+'</p><p>Fecha local: '+html.escape(op['occurred_at'])+'</p><table cellpadding="8">'+lines+'</table><h2>Total: '+html.escape(op['data']['moneda']+' '+op['data']['total'])+'</h2><p>Consulte el estado de sincronización para confirmar su registro en Laravel.</p>',file))
+    def receipt(self,op=None):
+        if not isinstance(op,dict):op=self.last_sale
+        if not op:QMessageBox.information(self,'Comprobante','Seleccione una venta en Ventas del equipo o registre una nueva.');return
+        file,_=QFileDialog.getSaveFileName(self,'Guardar comprobante','Comprobante-'+op['uuid'][:8]+'.pdf','PDF (*.pdf)')
+        if not file:return
+        if not file.lower().endswith('.pdf'):file+='.pdf'
+        def work():
+            rows=[(l['nombre'],l['cantidad'],l['precio'],l['total']) for l in op['data']['items']]
+            pdf_report(file,'Comprobante local',self.store.meta('business')['nombre']+' · '+str(op['occurred_at']),['Producto','Cantidad','Precio','Total'],rows,'portrait',logo=self.store.folder/'report-logo.png',note='Referencia: '+op['uuid'],summary='Total: '+op['data']['moneda']+' '+op['data']['total'])
+            self.statusBar().showMessage('Comprobante guardado: '+file)
+        self.run_action(work)
+    def resizeEvent(self,event):
+        super().resizeEvent(event)
+        if hasattr(self,'nav'):self.nav.setVisible(self.width()>=1100)
     def change_account(self):
         self.switch_user=True
         if not self.close():self.switch_user=False
+        return self.switch_user
 
     def closeEvent(self,event):
         if self.worker and self.worker.isRunning():
-            QMessageBox.information(self,'Sincronizando','Espere a que termine la conexión antes de cerrar. Sus datos locales están guardados.');event.ignore();return
+            QMessageBox.information(self,'Operación en curso','Espere a que termine la operación antes de cerrar.');event.ignore();return
+        if getattr(self, 'editor_window', None) and not self.editor_window.close():
+            event.ignore()
+            return
+        if getattr(self, 'local_shell', None):self.local_shell.close()
+        if getattr(self,'complete_window',None):self.complete_window.close()
         event.accept()
 
 def local_accounts(folder):
@@ -460,25 +651,48 @@ def resolve_local_account(records,account,context,fallback):
     return fallback
 
 def main():
-    app=QApplication(sys.argv);app.setApplicationName('Mi CV Escritorio');app.setOrganizationName('Equipo JZ');app.setApplicationVersion('1.2.0');app.setStyle('Fusion');app.setStyleSheet(STYLE)
+    QApplication.setAttribute(Qt.ApplicationAttribute.AA_ShareOpenGLContexts)
+    app=QApplication(sys.argv);app.setApplicationName('Mi CV Escritorio');app.setOrganizationName('Equipo JZ');app.setApplicationVersion(__version__);app.setStyle('Fusion');app.setStyleSheet(STYLE);app.setWindowIcon(QIcon(str(ASSETS/'micv.ico')))
     folder=Path(os.environ.get('MICV_DESKTOP_HOME') or (Path(os.environ.get('LOCALAPPDATA',str(Path.home()/'.local/share')))/'EquipoJZ'/'MiCVDesktop'));folder.mkdir(parents=True,exist_ok=True)
     lock=QLockFile(str(folder/'running.lock'))
     if not lock.tryLock(100):QMessageBox.information(None,'Mi CV','El programa ya está abierto en este perfil.');return 1
     if '--smoke-test' in sys.argv:
-        window=MainWindow(Store(folder),start_timer=False);window.show();app.processEvents();window.close();return 0
+        window=MainWindow(Store(folder),start_timer=False);window.show();app.processEvents();window.close()
+        from .desktop_shell import smoke_renderer
+        return 0 if smoke_renderer() else 1
     while True:
         records=local_accounts(folder);store=None
-        if records:
-            choices=[f"{i+1}. {c['nombre']} · {c.get('role','empresa')} · {c.get('negocio','')}" for i,(_,c) in enumerate(records)]+['Entrar con otra cuenta…']
-            selected,ok=QInputDialog.getItem(None,'Mi CV · Cuentas de este equipo','Seleccione su cuenta',choices,0,False)
-            if not ok:return 0
-            index=choices.index(selected)
-            if index<len(records):
-                store=records[index][0]
-                pin,ok=QInputDialog.getText(None,'Abrir cuenta','PIN local de esta cuenta',QLineEdit.Password)
-                if not ok:continue
-                try:store.unlock(pin)
-                except AccessError as exc:QMessageBox.warning(None,'Acceso local',str(exc));continue
+        choices = [f"{i+1}. {c['nombre']} · {c.get('role','empresa')} · {c.get('negocio','')}"
+                   for i, (_, c) in enumerate(records)]
+        choices += ['Entrar con otra cuenta…' if records else 'Iniciar sesión…', 'Recuperar un respaldo…']
+        selected, ok = QInputDialog.getItem(None, 'Mi CV · Cuentas de este equipo', 'Seleccione su cuenta', choices, 0, False)
+        if not ok:
+            return 0
+        index = choices.index(selected)
+        if index == len(records) + 1:
+            file, _ = QFileDialog.getOpenFileName(None, 'Recuperar respaldo', '', 'ZIP (*.zip)')
+            if not file:
+                continue
+            pin, ok = QInputDialog.getText(None, 'Recuperar respaldo', 'PIN de la cuenta respaldada', QLineEdit.Password)
+            if not ok:
+                continue
+            from .profile_backup import restore_workspace
+            try:
+                store = restore_workspace(Path(file), folder/'accounts', pin,
+                                          existing_devices={c['device'] for _, c in records})
+            except AccessError as error:
+                QMessageBox.warning(None, 'Recuperar respaldo', str(error))
+                continue
+        elif index < len(records):
+            store = records[index][0]
+            pin, ok = QInputDialog.getText(None, 'Abrir cuenta', 'PIN local de esta cuenta', QLineEdit.Password)
+            if not ok:
+                continue
+            try:
+                store.unlock(pin)
+            except AccessError as error:
+                QMessageBox.warning(None, 'Acceso local', str(error))
+                continue
         if store is None:
             fresh=Store(folder/'accounts'/str(uuid.uuid4()))
             dialog=Activate(fresh,resolve_store=lambda a,c,f:resolve_local_account(records,a,c,f))
@@ -486,5 +700,22 @@ def main():
                 if records:continue
                 return 0
             store=dialog.store
-        window=MainWindow(store);window.show();code=app.exec()
+        if store.meta('workspace_active'):
+            window = MainWindow(store, start_timer=False)
+            window.show()
+            window.open_local(automatic=True)
+            window.start_sync_timer()
+        elif store.meta('capabilities',{}).get('desktop_session')==1:
+            from .connected_engine import ConnectedEngine
+            from .desktop_shell import DesktopShell
+            try:
+                local_window=MainWindow(store,start_timer=False)
+                window=DesktopShell(ConnectedEngine(store),local_action=local_window.show_local_work,
+                                    offline_action=local_window.use_local_during_outage, diagnostics=local_window.show_diagnostics,
+                                    letter_editor=local_window.show_letter_editor, chat_drafts=local_window.show_chat_drafts,
+                                    diagnostic_event=lambda code: record_event(local_window.store, code))
+                window.closed.connect(local_window.close)
+            except AccessError:window=MainWindow(store)
+        else:window=MainWindow(store)
+        window.show();code=app.exec()
         if not window.switch_user:return code

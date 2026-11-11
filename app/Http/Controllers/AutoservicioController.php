@@ -269,13 +269,15 @@ class AutoservicioController extends Controller
     public function panel(Request $request)
     {
         $cyber = $this->cyberDelUsuario($request);
+        $local = $request->attributes->has('local_permissions');
 
         return view("autoservicio.panel", [
             "cyber" => $cyber,
-            "cybers" => $request->user()->esAdmin()
+            "cybers" => $request->user()->esAdmin() && (!$local || !(int) getenv('MICV_LOCAL_TENANT'))
                 ? Cyber::orderBy("nombre")->get()
                 : collect(),
-            "enlace" => $cyber
+            "local" => $local,
+            "enlace" => $cyber && !$local
                 ? route("autoservicio.formulario", $cyber->codigo)
                 : null,
         ]);
@@ -289,7 +291,11 @@ class AutoservicioController extends Controller
             ->de($u)
             ->with("cyber:id,nombre")
             ->whereDate("fecha", ">=", today()->subDays(1));
-        if ($u->esAdmin() && $request->filled("cyber")) {
+        $local = $request->attributes->has('local_permissions');
+        $tenant = (int) getenv('MICV_LOCAL_TENANT');
+        if ($local && $tenant > 0) {
+            $q->where('cyber_id', $tenant);
+        } elseif ($u->esAdmin() && $request->filled("cyber")) {
             $q->where("cyber_id", $request->integer("cyber"));
         }
         $filas = $q
@@ -297,6 +303,9 @@ class AutoservicioController extends Controller
             ->orderBy("created_at")
             ->limit(60)
             ->get();
+
+        $canManage = !$local || $tenant > 0;
+        $canAttend = $canManage && $u->tienePermiso('clientes.editar');
 
         return response()->json([
             "qr_abierto" => $this->cyberDelUsuario($request)?->qrAbierto(),
@@ -312,10 +321,11 @@ class AutoservicioController extends Controller
                         "hace" => $s->created_at->locale("es")->diffForHumans(),
                         "cyber" => $s->cyber?->nombre,
                         "telefono" => $s->datos["telefono"] ?? null,
-                        "atender" => route("clientes.create", [
+                        "descartar" => $canManage,
+                        "atender" => $canAttend ? route("clientes.create", [
                             "autoservicio" => $s->id,
-                        ]),
-                        "ficha" => $s->cliente_id
+                        ]) : null,
+                        "ficha" => $s->cliente_id && $u->tienePermiso('clientes.ver')
                             ? route("clientes.show", $s->cliente_id)
                             : null,
                     ],
@@ -329,11 +339,15 @@ class AutoservicioController extends Controller
         AutoservicioSolicitud $solicitud,
     ) {
         $this->autorizar($request, $solicitud);
-        $solicitud->update([
-            "estado" => "descartada",
-            "atendida_por" => $request->user()->id,
-            "atendida_en" => now(),
-        ]);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $solicitud) {
+            $local = $request->attributes->has('local_permissions');
+            $tenant = $local ? (int) getenv('MICV_LOCAL_TENANT') : null;
+            $pendiente = AutoservicioSolicitud::bloquearPendiente($solicitud->id, $request->user(), $tenant);
+            $pendiente->resolver($request->user());
+            \App\Services\Desktop\LocalBusinessJournal::record(
+                $request, $pendiente->cyber_id, 'autoservicio.discard', $pendiente->id, ['id' => $pendiente->id],
+            );
+        });
 
         return response()->json(["ok" => true]);
     }
@@ -418,6 +432,10 @@ class AutoservicioController extends Controller
     {
         $u = $request->user();
         if ($u->esAdmin()) {
+            $tenant = (int) getenv('MICV_LOCAL_TENANT');
+            if ($request->attributes->has('local_permissions') && $tenant > 0) {
+                return Cyber::find($tenant);
+            }
             return $request->filled("cyber")
                 ? Cyber::find($request->integer("cyber"))
                 : Cyber::orderBy("nombre")->first();

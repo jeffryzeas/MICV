@@ -32,6 +32,33 @@ class PosIntegridadTest extends TestCase
         return ['clave_operacion' => '11111111-1111-4111-8111-111111111111', 'items' => [['producto_id' => $p->id, 'cantidad' => 1, 'precio' => 10]], 'pagos' => [['metodo' => 'efectivo', 'monto' => 10]]];
     }
 
+    public function test_un_pendiente_se_cobra_una_vez_y_solo_lo_puede_retomar_su_cajero(): void
+    {
+        [$cfg, , $u, $p] = $this->contexto();
+        $u->update(['activo' => true]);
+        $this->actingAs($u->refresh());
+        $venta = $this->datos($p);
+        $id = '22222222-2222-4222-8222-222222222222';
+        $pendiente = ['id' => $id, 'tipo' => 'cotizacion', 'nombre' => 'Cotización mostrador', 'items' => $venta['items']];
+        $this->postJson(route('pos.pendientes.guardar'), $pendiente)->assertOk();
+        $this->postJson(route('pos.pendientes.guardar'), $pendiente)->assertOk();
+        $this->assertDatabaseCount('pos_pendientes', 1);
+        $this->assertDatabaseCount('pos_ventas', 0);
+        $this->assertEquals(2, $p->fresh()->stock);
+        $otro = User::create(['usuario' => 'otro', 'name' => 'Otro', 'email' => 'otro@example.test',
+            'password' => 'prueba-segura', 'rol' => 'admin', 'cyber_id' => $cfg->cyber_id, 'activo' => true]);
+        $this->actingAs($otro)->get(route('pos.vender', ['pendiente' => $id]))->assertNotFound();
+        $this->get(route('pos.pendientes.pdf', $id))->assertNotFound();
+        $this->postJson(route('pos.ventas.guardar'), $venta + ['pendiente_id' => $id])->assertNotFound();
+        $this->actingAs($u)->get(route('pos.pendientes.index'))->assertOk()->assertSee('Cotización mostrador');
+        $this->postJson(route('pos.ventas.guardar'), $venta + ['pendiente_id' => $id])->assertOk();
+        $this->postJson(route('pos.ventas.guardar'), $venta + ['pendiente_id' => $id])->assertOk();
+        $venta['clave_operacion'] = '33333333-3333-4333-8333-333333333333';
+        $this->postJson(route('pos.ventas.guardar'), $venta + ['pendiente_id' => $id])->assertConflict();
+        $this->assertDatabaseCount('pos_ventas', 1);
+        $this->assertEquals(1, $p->fresh()->stock);
+    }
+
     public function test_reintentar_la_misma_venta_no_duplica_el_cobro_ni_el_stock(): void
     {
         [$cfg, $caja, $u, $p] = $this->contexto();

@@ -55,9 +55,10 @@ class ClienteGuardar
 
         return DB::transaction(function () use ($request, $datos, $cyberId) {
             $existente = Cliente::where('tipo_documento', $datos['tipo_documento'])
-                ->where('numero_documento', $datos['numero_documento'])->first();
+                ->where('numero_documento', $datos['numero_documento'])->lockForUpdate()->first();
 
             if ($existente) {
+                abort_if($request->attributes->get('desktop_create_only'),409,'Ese documento ya está registrado. Revise la ficha existente.');
                 // Ya estaba en la base general: solo se completan los datos que vienen llenos.
                 $nuevos = collect($datos)->only(self::CAMPOS)->filter(fn ($v) => filled($v))->all();
                 $nuevos['edad_calculada'] = $datos['edad_calculada'] ?? $existente->edad_calculada;
@@ -121,6 +122,8 @@ class ClienteGuardar
         }
 
         return DB::transaction(function () use ($request, $datos, $cliente, $desdePanel) {
+            Cliente::whereKey($cliente->id)->lockForUpdate()->firstOrFail();
+            $cliente->refresh();
             $campos = collect($datos)->only(self::CAMPOS)->all();
             $campos += [
                 'pais'             => $datos['pais'],
@@ -164,6 +167,8 @@ class ClienteGuardar
             $guardar['telefono_whatsapp']=$request->boolean('telefono_whatsapp');
         }
         return DB::transaction(function()use($request,$cliente,$datos,$guardar,$grupos){
+            Cliente::whereKey($cliente->id)->lockForUpdate()->firstOrFail();
+            $cliente->refresh();
             if($guardar)$cliente->update($guardar);
             if(in_array('cv',$grupos,true))$this->sincronizarCv($cliente,$datos,soloSiVienenDatos:false);
             if(in_array('foto',$grupos,true))$this->guardarFoto($request,$cliente);
@@ -242,13 +247,16 @@ class ClienteGuardar
 
     protected function guardarFoto(Request $request, Cliente $cliente): void
     {
+        $previous = $cliente->foto;
         if ($request->hasFile('foto')) {
-            Archivos::borrar($cliente->foto);
-            $cliente->update(['foto' => Archivos::guardarImagen($request->file('foto'), 'fotos', 900)]);
+            $path = Archivos::guardarImagen($request->file('foto'), 'fotos', 900);
+            $cliente->update(['foto' => $path]);
         } elseif ($request->boolean('quitar_foto')) {
-            Archivos::borrar($cliente->foto);
             $cliente->update(['foto' => null]);
+        } else {
+            return;
         }
+        DB::afterCommit(fn() => Archivos::borrar($previous));
     }
 
     /** Reemplaza estudios, experiencia, idiomas, habilidades y referencias. */
