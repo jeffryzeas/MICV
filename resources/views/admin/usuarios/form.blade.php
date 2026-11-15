@@ -1,99 +1,162 @@
-@php $editando = $usuario->exists; $rolSel = old('rol', $usuario->rol); @endphp
-<x-layout :titulo="$editando ? 'Editar usuario ' . $usuario->usuario : 'Crear usuario'" activo="usuarios">
-    <a href="{{ route('admin.usuarios.index') }}" class="inline-flex items-center gap-2 bg-white border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors mb-5">
-        <x-icono name="arrow-left" class="size-4" /> Volver
-    </a>
-    <div class="bg-white rounded-xl shadow p-6 max-w-3xl">
-        <form method="POST" action="{{ $editando ? route('admin.usuarios.update', $usuario) : route('admin.usuarios.store') }}">
-            @csrf @if($editando) @method('PUT') @endif
+@php
+    $editando = $usuario->exists;
+    $rolActual = old('rol', $usuario->rol);
+    $perfilActual = old('perfil_acceso', $usuario->encargado_id ? 'cajero' : 'encargado');
+    $esCuentaPropia = $usuario->is(auth()->user());
+    $lista = route('admin.usuarios.index');
+    $valorAnterior = static function (string $campo, $predeterminado): string {
+        $valor = old($campo, $predeterminado);
+        return is_scalar($valor) ? (string) $valor : '';
+    };
+@endphp
 
+<x-layout :titulo="$editando ? 'Editar usuario' : 'Crear usuario'" activo="usuarios">
+    <div class="page-heading">
+        <div class="min-w-0">
+            <h2 class="page-title break-words">{{ $editando ? $usuario->name : 'Nueva cuenta' }}</h2>
+            @if($editando)<p class="mt-1 break-words text-sm text-gray-500">{{ $usuario->usuario }} · {{ $usuario->rolLegible() }}</p>@endif
+        </div>
+        <x-ui.button :href="$lista" variant="secondary" icon="arrow-left">Volver a usuarios</x-ui.button>
+    </div>
+
+    <form id="form-usuario" method="POST" action="{{ $editando ? route('admin.usuarios.update', $usuario) : route('admin.usuarios.store') }}" class="max-w-4xl space-y-4">
+        @csrf
+        @if($editando) @method('PUT') @endif
+
+        <x-ui.panel title="Datos de la cuenta" icon="user-round">
+            <div class="grid gap-4 sm:grid-cols-2">
+                <x-ui.field label="Nombre completo" for="usuario-nombre" error="name" class="sm:col-span-2">
+                    <input id="usuario-nombre" name="name" value="{{ $valorAnterior('name', $usuario->name) }}" required maxlength="150" autocomplete="name" class="campo" @error('name') aria-invalid="true" aria-describedby="usuario-nombre-error" @enderror>
+                </x-ui.field>
+                <x-ui.field label="Usuario" for="usuario-login" error="usuario" hint="Use letras, números, punto, guion o guion bajo.">
+                    <input id="usuario-login" name="usuario" value="{{ $valorAnterior('usuario', $usuario->usuario) }}" required minlength="3" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false" class="campo uppercase" @error('usuario') aria-invalid="true" aria-describedby="usuario-login-error usuario-login-ayuda" @else aria-describedby="usuario-login-ayuda" @enderror>
+                </x-ui.field>
+                <x-ui.field label="Correo electrónico" for="usuario-email" error="email"
+                    :hint="$usuario->esCliente() && $usuario->verificado() ? 'Si cambia el correo, el cliente deberá verificar la nueva dirección.' : null">
+                    <input id="usuario-email" type="email" name="email" value="{{ $valorAnterior('email', $usuario->email) }}" required maxlength="150" autocomplete="email" class="campo" @error('email') aria-invalid="true" aria-describedby="usuario-email-error" @enderror>
+                </x-ui.field>
+            </div>
+        </x-ui.panel>
+
+        <x-ui.panel title="Rol y permisos" icon="shield-check">
             @if($usuario->esCliente())
                 <input type="hidden" name="rol" value="cliente">
-                <div class="mb-5 rounded-lg bg-purple-50 border border-purple-200 text-purple-800 px-4 py-3 text-sm">Esta es una <b>persona que se registró sola</b> para hacer su propio CV. Puede cambiar sus datos de acceso o su contraseña.</div>
+                <x-permisos-cliente :usuario="$usuario"/>
             @else
-            <p class="text-xs font-semibold uppercase text-azul-800 mb-2">Tipo de usuario</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                @foreach(['admin' => \App\Models\User::ROLES['admin'], 'cyber' => \App\Models\User::ROLES['cyber']] as $k => $t)
-                    <label class="flex items-start gap-3 border-2 rounded-lg p-3 cursor-pointer {{ $rolSel === $k ? 'border-azul-800 bg-blue-50' : 'border-gray-200' }}">
-                        <input type="radio" name="rol" value="{{ $k }}" @checked($rolSel === $k) class="mt-1" onchange="jzRol()">
-                        <span><b class="text-azul-950">{{ $t }}</b><br><span class="text-xs text-gray-500">{{ $k === 'admin' ? 'Ve todos los Negocios y clientes, crea Negocios y usuarios.' : 'Registra clientes y genera CV. Solo ve los de su Negocio.' }}</span></span>
-                    </label>
-                @endforeach
-            </div>
-            @endif
-
-            <div id="bloqueCyber" class="mb-4 {{ $rolSel !== 'cyber' ? 'hidden' : '' }}">
-                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Negocio</label>
-                @if($cybers->isEmpty())
-                    <div class="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
-                        Primero <a href="{{ route('admin.cybers.create') }}" class="font-semibold underline">registre un Negocio</a>.
-                    </div>
-                @else
-                    <select name="cyber_id" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                        <option value="">— Seleccione —</option>
-                        @foreach($cybers as $cy)
-                            <option value="{{ $cy->id }}" @selected((string) old('cyber_id', $usuario->cyber_id) === (string) $cy->id)>{{ $cy->nombre }}{{ $cy->activo ? '' : ' (mantenimiento)' }}</option>
-                        @endforeach
+                <x-ui.field label="Rol de la cuenta" for="usuario-rol" error="rol">
+                    <select id="usuario-rol" name="rol" required class="campo" @error('rol') aria-invalid="true" aria-describedby="usuario-rol-error" @enderror>
+                        <option value="cyber" @selected($rolActual === 'cyber')>Usuario de negocio</option>
+                        <option value="admin" @selected($rolActual === 'admin')>Administrador general</option>
                     </select>
-                @endif
-            </div>
+                </x-ui.field>
+                <p id="usuario-aviso-admin" @class(['mt-3 text-sm text-gray-600', 'hidden' => $rolActual !== 'admin'])>El administrador general tiene acceso a todos los negocios y módulos.</p>
 
-            @unless($usuario->esCliente())
-            <div id="bloqueAccesoCyber" class="{{ $rolSel !== 'cyber' ? 'hidden' : '' }}">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <label class="text-sm">Perfil del usuario de Negocio<select name="perfil_acceso" class="w-full border rounded-lg p-2"><option value="encargado" @selected(old('perfil_acceso',$usuario->encargado_id?'cajero':'encargado')==='encargado')>Encargado del negocio</option><option value="cajero" @selected(old('perfil_acceso',$usuario->encargado_id?'cajero':'encargado')==='cajero')>Cajero / empleado</option></select></label>
-                <label class="text-sm">Encargado (para cajeros)<select name="encargado_id" class="w-full border rounded-lg p-2"><option value="">Seleccione</option>@foreach($encargados as $enc)<option data-cyber="{{ $enc->cyber_id }}" value="{{ $enc->id }}" @selected(old('encargado_id',$usuario->encargado_id)==$enc->id)>{{ $enc->name }} — {{ $enc->cyber?->nombre }}</option>@endforeach</select></label>
+                <fieldset id="usuario-acceso-negocio" @disabled($rolActual !== 'cyber') @class(['mt-4 border-t border-gray-200 pt-4', 'hidden' => $rolActual !== 'cyber'])>
+                    <legend class="sr-only">Acceso al negocio</legend>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <x-ui.field label="Negocio" for="usuario-negocio" error="cyber_id" class="sm:col-span-2">
+                            <select id="usuario-negocio" name="cyber_id" required class="campo" @error('cyber_id') aria-invalid="true" aria-describedby="usuario-negocio-error" @enderror>
+                                <option value="">Seleccione un negocio</option>
+                                @foreach($cybers as $cyber)
+                                    <option value="{{ $cyber->id }}" @selected($valorAnterior('cyber_id', $usuario->cyber_id) === (string) $cyber->id)>{{ $cyber->nombre }}{{ $cyber->activo ? '' : ' (inactivo)' }}</option>
+                                @endforeach
+                            </select>
+                            @if($cybers->isEmpty())
+                                <a href="{{ route('admin.cybers.create') }}" class="mt-2 inline-block text-sm font-semibold text-azul-800 underline">Registrar un negocio</a>
+                            @endif
+                        </x-ui.field>
+                        <x-ui.field label="Perfil de acceso" for="usuario-perfil" error="perfil_acceso">
+                            <select id="usuario-perfil" name="perfil_acceso" class="campo" @error('perfil_acceso') aria-invalid="true" aria-describedby="usuario-perfil-error" @enderror>
+                                <option value="encargado" @selected($perfilActual === 'encargado')>Encargado del negocio</option>
+                                <option value="cajero" @selected($perfilActual === 'cajero')>Cajero / empleado</option>
+                            </select>
+                        </x-ui.field>
+                        <x-ui.field label="Encargado" for="usuario-encargado" error="encargado_id" id="usuario-encargado-campo" :class="$perfilActual === 'cajero' ? '' : 'hidden'">
+                            <select id="usuario-encargado" name="encargado_id" class="campo" @disabled($perfilActual !== 'cajero') @required($perfilActual === 'cajero') @error('encargado_id') aria-invalid="true" aria-describedby="usuario-encargado-error" @enderror>
+                                <option value="">Seleccione un encargado</option>
+                                @foreach($encargados as $encargado)
+                                    <option data-cyber="{{ $encargado->cyber_id }}" value="{{ $encargado->id }}" @selected($valorAnterior('encargado_id', $usuario->encargado_id) === (string) $encargado->id)>{{ $encargado->name }}</option>
+                                @endforeach
+                            </select>
+                            <p id="usuario-sin-encargados" class="mt-1.5 hidden text-xs text-gray-600">El negocio seleccionado necesita un encargado activo para asignarle cajeros.</p>
+                        </x-ui.field>
+                    </div>
+                    @include('partials.permisos-selector', ['permisosExpandidos' => false])
+                </fieldset>
+            @endif
+        </x-ui.panel>
+
+        <x-ui.panel title="Contraseña y estado" icon="key-round">
+            <div class="grid gap-4 sm:grid-cols-2">
+                <x-ui.field :label="$editando ? 'Nueva contraseña' : 'Contraseña'" for="usuario-clave" error="password"
+                    :hint="$editando ? 'Deje el campo vacío para conservar la contraseña actual.' : 'Use al menos 8 caracteres.'">
+                    <input id="usuario-clave" type="password" name="password" @required(!$editando) minlength="8" maxlength="200" autocomplete="new-password" class="campo" @error('password') aria-invalid="true" aria-describedby="usuario-clave-error usuario-clave-ayuda" @else aria-describedby="usuario-clave-ayuda" @enderror>
+                </x-ui.field>
+                <x-ui.field label="Confirmar contraseña" for="usuario-clave-confirmacion">
+                    <input id="usuario-clave-confirmacion" type="password" name="password_confirmation" @required(!$editando) maxlength="200" autocomplete="new-password" class="campo">
+                </x-ui.field>
             </div>
-            @include('partials.permisos-selector')
+            <div class="mt-4 border-t border-gray-200 pt-4">
+                <input type="hidden" name="activo" value="{{ $esCuentaPropia ? 1 : 0 }}">
+                <label class="flex items-start gap-2 text-sm font-semibold text-gray-800">
+                    <input type="checkbox" name="activo" value="1" @checked($esCuentaPropia || old('activo', $usuario->activo)) @disabled($esCuentaPropia) class="casilla mt-0.5">
+                    Cuenta activa
+                </label>
+                <p class="ml-6 mt-1 text-xs text-gray-500">{{ $esCuentaPropia ? 'Su cuenta debe permanecer activa.' : 'La cuenta activa puede iniciar sesión.' }}</p>
             </div>
-            @endunless
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Nombre completo</label>
-                    <input type="text" name="name" value="{{ old('name', $usuario->name) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Usuario (para entrar)</label>
-                    <input type="text" name="usuario" value="{{ old('usuario', $usuario->usuario) }}" required autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 uppercase">
-                    <p class="text-[11px] text-gray-400 mt-1">Sin espacios. Se guarda en MAYÚSCULAS.</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Correo</label>
-                    <input type="email" name="email" value="{{ old('email', $usuario->email) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">{{ $editando ? 'Nueva contraseña (opcional)' : 'Contraseña' }}</label>
-                    <input type="password" name="password" {{ $editando ? '' : 'required' }} autocomplete="new-password" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                    <p class="text-[11px] text-gray-400 mt-1">Mínimo 8 caracteres.{{ $editando ? ' Vacía = no se cambia.' : '' }}</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Repetir contraseña</label>
-                    <input type="password" name="password_confirmation" autocomplete="new-password" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
-                </div>
-                <div class="sm:col-span-2">
-                    <label class="inline-flex items-center gap-2 text-sm"><input type="checkbox" name="activo" value="1" @checked(old('activo', $usuario->activo ?? true))> Usuario activo (puede iniciar sesión)</label>
-                </div>
-            </div>
-            @if($usuario->esCliente())<x-permisos-cliente :usuario="$usuario"/>@endif
-            <button type="submit" class="mt-6 inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
-                <x-icono name="check" class="size-4" /> {{ $editando ? 'Guardar cambios' : 'Crear usuario' }}
-            </button>
-        </form>
-    </div>
-    @push('scripts')
-    <script>
-    function jzRol(){
-        const r = document.querySelector('input[name=rol]:checked');
-        document.getElementById('bloqueAccesoCyber')?.classList.toggle('hidden', !r || r.value !== 'cyber');
-        document.getElementById('bloqueCyber').classList.toggle('hidden', !r || r.value === 'admin');
-        document.querySelectorAll('input[name=rol]').forEach(i => {
-            const l = i.closest('label'); l.classList.toggle('border-azul-800', i.checked); l.classList.toggle('bg-blue-50', i.checked); l.classList.toggle('border-gray-200', !i.checked);
-        });
-    }
-    const perfilAcceso=document.querySelector('[name=perfil_acceso]');
-    perfilAcceso?.addEventListener('change',()=>document.querySelector('[data-permisos-selector] [data-perfil="'+(perfilAcceso.value==='cajero'?'cajero':'encargado')+'"]')?.click());
-    function filtrarEncargados(){const c=document.querySelector('[name=cyber_id]'),e=document.querySelector('[name=encargado_id]');if(!c||!e)return;e.querySelectorAll('option[data-cyber]').forEach(o=>{o.hidden=o.dataset.cyber!==c.value;if(o.hidden&&o.selected)e.value='';});}
-    document.querySelector('[name=cyber_id]')?.addEventListener('change',filtrarEncargados);filtrarEncargados();
-    </script>
-    @endpush
+        </x-ui.panel>
+
+        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <x-ui.button :href="$lista" variant="secondary">Cancelar</x-ui.button>
+            <x-ui.button type="submit" :icon="$editando ? 'check' : 'user-plus'">{{ $editando ? 'Guardar cambios' : 'Crear usuario' }}</x-ui.button>
+        </div>
+    </form>
+
+    @unless($usuario->esCliente())
+        @push('scripts')
+            <script>
+                (() => {
+                    const rol = document.getElementById('usuario-rol');
+                    const aviso = document.getElementById('usuario-aviso-admin');
+                    const acceso = document.getElementById('usuario-acceso-negocio');
+                    const negocio = document.getElementById('usuario-negocio');
+                    const perfil = document.getElementById('usuario-perfil');
+                    const encargado = document.getElementById('usuario-encargado');
+                    const campoEncargado = document.getElementById('usuario-encargado-campo');
+                    const sinEncargados = document.getElementById('usuario-sin-encargados');
+                    const opciones = Array.from(encargado.querySelectorAll('option[data-cyber]'));
+
+                    function actualizarAcceso() {
+                        const esNegocio = rol.value === 'cyber';
+                        const esCajero = perfil.value === 'cajero';
+                        acceso.hidden = !esNegocio;
+                        acceso.classList.toggle('hidden', !esNegocio);
+                        acceso.disabled = !esNegocio;
+                        aviso.classList.toggle('hidden', esNegocio);
+                        campoEncargado.classList.toggle('hidden', !esCajero);
+                        encargado.disabled = !esCajero;
+                        encargado.required = esCajero;
+                        let disponibles = 0;
+
+                        opciones.forEach(opcion => {
+                            const pertenece = negocio.value !== '' && opcion.dataset.cyber === negocio.value;
+                            opcion.hidden = !pertenece;
+                            opcion.disabled = !pertenece;
+                            if (pertenece) disponibles++;
+                            if (!pertenece && opcion.selected) encargado.value = '';
+                        });
+                        sinEncargados.classList.toggle('hidden', !negocio.value || disponibles > 0);
+                    }
+
+                    rol.addEventListener('change', actualizarAcceso);
+                    negocio.addEventListener('change', actualizarAcceso);
+                    perfil.addEventListener('change', () => {
+                        acceso.querySelector('[data-perfil="' + perfil.value + '"]')?.click();
+                        actualizarAcceso();
+                    });
+                    actualizarAcceso();
+                })();
+            </script>
+        @endpush
+    @endunless
 </x-layout>

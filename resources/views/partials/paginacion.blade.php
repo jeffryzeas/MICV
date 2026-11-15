@@ -1,5 +1,5 @@
 @if ($p->hasPages())
-<div class="mt-4 flex items-center justify-between text-sm">
+<div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
     <span class="text-gray-500">Página {{ $p->currentPage() }} de {{ $p->lastPage() }} · {{ $p->total() }} registros</span>
     <div class="flex gap-2">
         @if ($p->onFirstPage())
