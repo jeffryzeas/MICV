@@ -99,18 +99,9 @@ class TarjetaController extends Controller
     ) {
         $this->autorizar($request, $cliente);
         abort_unless(in_array($formato, ["png", "pdf", "hoja"], true), 404);
-        $local = $request->attributes->has('local_permissions');
         $t = $this->llenar($request, $cliente, true);
-        try {
-            if (!$local) {
-                $this->guardarTarjeta($t);
-            }
-            [$contenido, $tipo, $nombre] = $this->archivo($t, $formato);
-        } finally {
-            if ($local && $t->isDirty('logo')) {
-                Archivos::borrar($t->logo);
-            }
-        }
+        $this->guardarTarjeta($t);
+        [$contenido, $tipo, $nombre] = $this->archivo($t, $formato);
         Actividad::registrar("tarjeta_" . $formato, "#" . $cliente->id);
 
         return response($contenido, 200, [

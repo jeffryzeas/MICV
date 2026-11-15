@@ -1,4 +1,4 @@
-> **Mi CV Escritorio (Python):** integración de licencias, trabajo local y sincronización. Consulte **desktop/README.md** para alcance, instalación y compilación del instalador Windows.
+> **Actualización de la edición web.** Consulte [LEAME-SOLO-WEB.md](LEAME-SOLO-WEB.md) antes de desplegar.
 
 > Registro sencillo y editor de documentos ampliado: consulte **LEAME-EDITOR-DOCUMENTOS.txt** para esta entrega.
 

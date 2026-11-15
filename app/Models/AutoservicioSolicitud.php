@@ -36,10 +36,9 @@ class AutoservicioSolicitud extends Model
     }
 
     /** La transición y los cambios asociados se ejecutan en la misma transacción. */
-    public static function bloquearPendiente(int $id, User $user, ?int $negocio = null): self
+    public static function bloquearPendiente(int $id, User $user): self
     {
         $solicitud = static::query()->de($user)
-            ->when($negocio !== null, fn ($q) => $q->where('cyber_id', $negocio))
             ->whereKey($id)->lockForUpdate()->first();
         abort_unless($solicitud && $solicitud->estado === 'pendiente', 409,
             'El turno ya no está pendiente en este negocio.');

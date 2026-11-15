@@ -8,13 +8,6 @@ use Illuminate\Http\Request;
 
 class CatalogoAuxiliar
 {
-    public static function revision(Model $row): string
-    {
-        $data = $row instanceof PosCategoria ? $row->only(['nombre','color'])
-            : $row->only(['nombre','identificacion','contacto','telefono','correo','direccion','notas','activo']);
-        return hash('sha256',json_encode($data,JSON_THROW_ON_ERROR));
-    }
-
     public static function guardar(Request $request, int $tenant, string $kind, ?Model $row): Model
     {
         if ($kind === 'category') {

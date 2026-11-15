@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Pos;
 
 use App\Models\{Actividad, ContableMovimiento};
 use App\Models\Pos\{PosConfig, PosVenta};
-use App\Services\Desktop\{FullClientSync, LocalBusinessJournal};
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use App\Support\Pais;
@@ -29,12 +28,7 @@ class ConfigController extends PosBase
         return back()->with('mensaje', 'Configuración del punto de venta guardada.');
     }
 
-    public static function revision(PosConfig $config): string
-    {
-        return FullClientSync::fingerprint($config->only(array_diff($config->getFillable(), ['cyber_id'])));
-    }
-
-    public function aplicar(Request $request, PosConfig $config, ?string $revision = null): void
+    public function aplicar(Request $request, PosConfig $config): void
     {
         $d = $request->validate([
             'pais' => ['required', 'string', 'size:2'],
@@ -68,11 +62,8 @@ class ConfigController extends PosBase
         $d['precios_con_impuesto'] = $request->boolean('precios_con_impuesto');
         $d['prefijo'] = $d['prefijo'] ?? '';
         $d['locale'] = ($d['locale'] ?? null) ?: (PosPaises::PAISES[$d['pais']][6] ?? 'es');
-        DB::transaction(function () use ($request, $config, $revision, $d) {
+        DB::transaction(function () use ($config, $d) {
             $cfg = PosConfig::query()->whereKey($config->id)->lockForUpdate()->firstOrFail();
-            $actual = self::revision($cfg);
-            abort_if($revision !== null && !hash_equals($actual, $revision), 409,
-                'La configuración del punto de venta cambió en la web. Revise los valores antes de sincronizar.');
             if (($d['moneda'] !== $cfg->moneda || $d['pais'] !== $cfg->pais)
                 && (PosVenta::where('cyber_id', $cfg->cyber_id)->exists()
                     || ContableMovimiento::where('cyber_id', $cfg->cyber_id)->exists())) {
@@ -84,12 +75,6 @@ class ConfigController extends PosBase
             }
             $cfg->update($d);
             $cfg->cyber->update(['pais' => $d['pais']]);
-            if ($actual !== self::revision($cfg->refresh())) {
-                LocalBusinessJournal::record($request, $cfg->cyber_id, 'pos.config.update', $cfg->id, [
-                    'revision' => $actual,
-                    'config' => array_replace($d, ['metodos' => array_column($d['metodos'], null, 'clave')]),
-                ]);
-            }
         });
     }
 }

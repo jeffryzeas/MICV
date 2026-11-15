@@ -100,14 +100,6 @@ class VenderController extends PosBase
                 $pendiente->venta_id = $venta->id;
                 PosPendiente::withoutTimestamps(fn () => $pendiente->save());
             }
-            unset($d['pendiente_id']);
-            $journalItems = \App\Services\Desktop\LocalBusinessJournal::productReferences($request,$d['items']);
-            \App\Services\Desktop\LocalBusinessJournal::record($request,(int)$cfg->cyber_id,'sale.create',$venta->id,
-                ['items'=>$journalItems,'cliente_id'=>empty($d['cliente_id']) ? null
-                    : \App\Services\Desktop\LocalBusinessJournal::reference($request,'client.full.create',(int)$d['cliente_id'])]+$d+[
-                    'caja_id'=>\App\Services\Desktop\LocalBusinessJournal::reference($request,'cash.open',$caja->id),
-                    'total'=>$venta->total,'moneda'=>$cfg->moneda,
-                ],$d['clave_operacion']??null);
 
             return $venta;
         });

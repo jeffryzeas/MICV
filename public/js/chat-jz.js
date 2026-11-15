@@ -50,7 +50,7 @@
     document.addEventListener('focusout',()=>setTimeout(fit,250));
     fit();
     function status(text, error = false) {
-        const notice = boot.local ? $("estado-local") : $("estado");
+        const notice = $("estado");
         notice.textContent = text;
         notice.classList.toggle("error", error);
     }
@@ -212,7 +212,7 @@
                     "",
                     unread
                         ? "No tiene conversaciones sin leer."
-                        : (boot.local ? "No se encontraron conversaciones guardadas." : "Busque un contacto o pulse Nuevo chat."),
+                        : "Busque un contacto o pulse Nuevo chat.",
                 ),
             );
             $("lista").append(e);
@@ -328,11 +328,10 @@
                 a.click();
                 a.remove();
             });
-        if (!boot.local && m.mio && !m.eliminado)
+        if (m.mio && !m.eliminado)
             action("Editar mensaje", "pencil", () => editMessage(m));
-        if (!boot.local)
-            action("Eliminar para mí", "eye-off", () => confirmDelete(m, "mi"));
-        if (!boot.local && m.mio && !m.eliminado)
+        action("Eliminar para mí", "eye-off", () => confirmDelete(m, "mi"));
+        if (m.mio && !m.eliminado)
             action("Eliminar para todos", "trash-2", () =>
                 confirmDelete(m, "todos"),
             );
@@ -508,7 +507,7 @@
                 actions.getBoundingClientRect().bottom,
             );
         };
-        if (!boot.local || (m.archivo && !m.eliminado)) bubble.append(actions);
+        bubble.append(actions);
         row.oncontextmenu = (e) => {
             if (e.target.closest("a")) return;
             e.preventDefault();
@@ -666,7 +665,7 @@
         clearTimeout(searchTimer);
         renderList();
         const q = $("buscar").value.trim();
-        if (!q || boot.local) {
+        if (!q) {
             $("resultados").hidden = true;
             $("lista").hidden = false;
             return;
@@ -782,15 +781,9 @@
         file.hidden = true;
         choose.append(file);
         wrap.append(photo);
-        if (!boot.local) wrap.append(choose);
+        wrap.append(choose);
         art.append(wrap);
         body.append(art);
-        if (boot.local) {
-            body.append(element("h3", "profile-help", me.nombre));
-            if (me.info) body.append(element("p", "profile-help", me.info));
-            body.append(element("p", "profile-help", "Abra la sesión conectada para cambiar su perfil."));
-            return;
-        }
         const section = element("div", "sheet-section pf-list"),
             form = element("form", "");
         const name = element("input", "profile-input");

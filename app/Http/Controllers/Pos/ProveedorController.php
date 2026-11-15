@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Pos;
 use App\Models\Pos\PosProveedor;
 use Illuminate\Http\Request;
 use App\Services\Pos\CatalogoAuxiliar;
-use App\Services\Desktop\LocalBusinessJournal;
 
 class ProveedorController extends PosBase
 {
@@ -24,22 +23,14 @@ class ProveedorController extends PosBase
     {
         $cy = $this->cyber($request);
         $p = $request->filled('id') ? PosProveedor::where('cyber_id',$cy->id)->findOrFail($request->integer('id')) : null;
-        $revision = $p ? CatalogoAuxiliar::revision($p) : null;
-        $p = CatalogoAuxiliar::guardar($request,$cy->id,'supplier',$p);
-        LocalBusinessJournal::record($request,$cy->id,$revision?'supplier.update':'supplier.create',$p->id,[
-            'id'=>LocalBusinessJournal::reference($request,'supplier.create',$p->id),
-            'revision'=>$revision,'fields'=>$request->except('_token','_method','id'),
-        ]);
+        CatalogoAuxiliar::guardar($request,$cy->id,'supplier',$p);
         return back()->with('mensaje', 'Proveedor guardado.');
     }
 
     public function borrar(Request $request, PosProveedor $proveedor)
     {
         $this->delCyber($request, $proveedor);
-        $revision = CatalogoAuxiliar::revision($proveedor);
-        $id = LocalBusinessJournal::reference($request,'supplier.create',$proveedor->id);
         $deleted = CatalogoAuxiliar::borrar($proveedor);
-        LocalBusinessJournal::record($request,(int)$proveedor->cyber_id,'supplier.delete',$proveedor->id,['id'=>$id,'revision'=>$revision]);
         return back()->with('mensaje',$deleted?'Proveedor borrado.':'Tiene compras registradas: se desactivó.');
     }
 }

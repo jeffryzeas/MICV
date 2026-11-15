@@ -29,7 +29,8 @@ class ImportDesktopWorkspace extends Command
                 || array_diff(WorkspaceSnapshot::TABLES, array_keys($tables))) {
                 throw new \RuntimeException('Formato de copia inválido.');
             }
-            if ($this->callSilent('migrate', ['--force' => true]) !== self::SUCCESS) {
+            $migration = getenv('MICV_IMPORT_DIAGNOSTICS') === '1' ? 'call' : 'callSilent';
+            if ($this->{$migration}('migrate', ['--force' => true]) !== self::SUCCESS) {
                 throw new \RuntimeException('Error de migración.');
             }
             DB::transaction(function () use ($snapshot, $tables) {
@@ -44,7 +45,10 @@ class ImportDesktopWorkspace extends Command
                     throw new \RuntimeException('La copia no tiene una cuenta o referencias válidas.');
                 }
             });
-        } catch (\Throwable) {
+        } catch (\Throwable $exception) {
+            if (getenv('MICV_IMPORT_DIAGNOSTICS') === '1') {
+                $this->error($exception->getMessage());
+            }
             $this->error('No se pudo preparar SQLite. Revise que el paquete y el servidor usen el mismo esquema.');
             return self::FAILURE;
         }

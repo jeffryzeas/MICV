@@ -1,6 +1,18 @@
-# Mi CV Escritorio 2.0.0-beta.6
+# Mi CV Escritorio 2.0.0-beta.8
 
 Este ZIP contiene el código del escritorio y el proyecto Laravel que implementa su API. La versión está destinada a pruebas. Se verificaron en Linux el motor local, la sincronización, el funcionamiento durante una caída del servidor y la recuperación de un respaldo. La compilación y la instalación siguen pendientes de prueba en Windows.
+
+## Apariencia de escritorio en la beta 8
+
+Mi CV usa widgets de Python/PySide6 para las ventanas, el menú lateral, la barra de herramientas, las tablas y los formularios. La barra lateral permanece disponible al reducir la ventana. Laravel sigue atendiendo la API y la sincronización.
+
+## Panel nativo de escritorio en la beta 7
+
+La aplicación abre el panel Python/Qt. Use el menú lateral para Clientes, POS, Contabilidad, Sincronización, Licencia, Ventas, Documentos, Cartas y Borradores de chat, según los permisos de la cuenta.
+
+En Clientes, el formulario guarda los datos personales, contacto, trabajo, familia, foto y currículum en este equipo. Sincronización envía la ficha completa al servidor. Antes de editar una ficha que ya existe en la web, sincronice para descargar su última revisión. Desde Clientes también puede guardar un CV en PDF con el formato nativo.
+
+El editor nativo de documentos importa imágenes, gira y duplica hojas, imprime y genera PDF. Las funciones que antes existían únicamente en la pantalla Blade, como los diseños de CV de la web o la gestión de proveedores y compras, requieren una implementación nativa independiente.
 
 ## Punto de venta en la beta 6
 
@@ -40,6 +52,10 @@ Los pendientes se guardan por cajero en el entorno en que se crearon. El escrito
 
 3. Si todas las pruebas pasan, el instalador queda en `desktop\dist\installer\MiCVDesktop-Setup.exe`. La compilación descarga las dependencias y puede solicitar elevación para instalar Microsoft Visual C++ x64. Para compilar solo la carpeta portable, agregue `-PortableOnly` y conserve la carpeta `desktop\dist\MiCVDesktop` completa.
 
+### Reanudar una compilación
+
+El preparador reutiliza las descargas verificadas y Chromium de la caché local. Si el motor ya se preparó en un intento anterior, vuelva a usar su carpeta temporal con `-ReanudarMotor` para ensamblar el motor con el código actual y las dependencias ya descargadas.
+
 ## Preparar Laravel
 
 Despliegue el código Laravel incluido en un entorno de prueba con su configuración actual, su base y la clave de firma del servidor de escritorio. Conserve `.env` y los archivos de almacenamiento de su instalación. Tras desplegar el código y sus dependencias, ejecute desde la raíz del servidor:
@@ -54,9 +70,9 @@ El escritorio guarda su copia en SQLite y sincroniza por HTTPS. Laravel conserva
 ## Probar sin conexión
 
 1. Abra Mi CV Escritorio, entre con su cuenta y configure el PIN local. La licencia comercial aplica a cuentas de empresa.
-2. Con el servidor encendido, vaya a **Trabajo local → Herramientas → Preparar datos locales**. Abra el espacio local y compruebe que aparecen sus datos.
+2. Con el servidor encendido, pulse **Sincronizar ahora** y revise que aparezcan sus datos en el menú lateral. Si necesita plantillas de cartas del negocio sin conexión, use también **Herramientas → Preparar datos locales**.
 3. Desconecte el equipo o detenga el servidor de prueba. Cierre y vuelva a abrir Mi CV con su PIN. Mientras siga vigente el acceso local podrá guardar cambios en los módulos habilitados y preparar documentos.
 4. Restablezca la conexión. Pulse **Sincronizar** y compruebe en Laravel que se aplicaron los cambios. La lista **Sincronización** conserva los conflictos para revisión.
-5. Para probar la recuperación, guarde sus cambios, cierre el espacio local y use **Licencia y respaldo → Crear copia de seguridad cifrada**. La opción **Recuperar un respaldo…** de la lista de cuentas usa el PIN respaldado y el mismo perfil de Windows. Para recuperarla, conserve aparte cualquier copia activa de esa misma cuenta.
+5. Para probar la recuperación, guarde sus cambios y use **Licencia y respaldo → Crear copia de seguridad cifrada**. La opción **Recuperar un respaldo…** de la lista de cuentas usa el PIN respaldado y el mismo perfil de Windows. Para recuperarla, conserve aparte cualquier copia activa de esa misma cuenta.
 
 Enviar mensajes o correo, recibir formularios públicos y renovar la autorización requieren conexión. La cobertura técnica y las comprobaciones pendientes están en `desktop/RUNTIME-ESTADO.md`.

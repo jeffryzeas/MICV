@@ -8,7 +8,6 @@ use App\Models\Pos\PosMovimiento;
 use App\Models\Pos\PosProducto;
 use App\Models\Pos\PosProveedor;
 use App\Services\Pos\{Inventario,CatalogoProductos,CatalogoAuxiliar};
-use App\Services\Desktop\LocalBusinessJournal;
 use App\Support\PosPaises;
 use App\Support\Archivos;
 use Illuminate\Support\Facades\Storage;
@@ -70,9 +69,7 @@ class ProductoController extends PosBase
     public function guardar(Request $request)
     {
         $cy = $this->cyber($request);
-        $data = LocalBusinessJournal::productData($request);
         $p = CatalogoProductos::crear($request,$cy->id);
-        LocalBusinessJournal::record($request,$cy->id,'product.create',$p->id,$data);
         Actividad::registrar('pos_producto_crear', $p->nombre);
         return redirect()->route($request->boolean('otro') ? 'pos.productos.crear' : 'pos.productos', $request->boolean('otro') ? ['tipo' => $p->tipo] : [])
             ->with('mensaje', '«' . $p->nombre . '» guardado.');
@@ -81,12 +78,7 @@ class ProductoController extends PosBase
     public function actualizar(Request $request, PosProducto $producto)
     {
         $this->delCyber($request, $producto);
-        $data = LocalBusinessJournal::productData($request);
-        $revision = CatalogoProductos::revision($producto);
         CatalogoProductos::editar($request,$producto);
-        LocalBusinessJournal::record($request,(int)$producto->cyber_id,'product.update',$producto->id,$data+[
-            'id'=>LocalBusinessJournal::reference($request,'product.create',$producto->id),'revision'=>$revision,
-        ]);
         Actividad::registrar('pos_producto_editar', $producto->nombre);
         return redirect()->route('pos.productos')->with('mensaje', '«' . $producto->nombre . '» actualizado.');
     }
@@ -95,10 +87,7 @@ class ProductoController extends PosBase
     public function borrar(Request $request, PosProducto $producto)
     {
         $this->delCyber($request, $producto);
-        $revision = CatalogoProductos::revision($producto);
-        $id = LocalBusinessJournal::reference($request,'product.create',$producto->id);
         $deleted = CatalogoProductos::borrar($producto);
-        LocalBusinessJournal::record($request,(int)$producto->cyber_id,'product.delete',$producto->id,['id'=>$id,'revision'=>$revision]);
         if (!$deleted) {
             return back()->with('mensaje', '«' . $producto->nombre . '» tiene historial: se desactivó (ya no sale en la caja).');
         }
@@ -123,8 +112,6 @@ class ProductoController extends PosBase
             if ($cant != 0) {
                 Inventario::mover($producto, $cant, 'ajuste', $d['motivo'], $request->user()->id);
             }
-            \App\Services\Desktop\LocalBusinessJournal::record($request,(int)$producto->cyber_id,'stock.adjust',$producto->id,
-                $d+['id'=>LocalBusinessJournal::reference($request,'product.create',$producto->id),'stock_previo'=>$stock]);
             return $cant;
         });
         Actividad::registrar('pos_ajuste', $producto->nombre . ' ' . ($cant > 0 ? '+' : '') . $cant . ' · ' . $d['motivo']);
@@ -146,22 +133,14 @@ class ProductoController extends PosBase
     {
         $cy = $this->cyber($request);
         $cat = $request->filled('id') ? PosCategoria::where('cyber_id',$cy->id)->findOrFail($request->integer('id')) : null;
-        $revision = $cat ? CatalogoAuxiliar::revision($cat) : null;
         $cat = CatalogoAuxiliar::guardar($request,$cy->id,'category',$cat);
-        LocalBusinessJournal::record($request,$cy->id,$revision?'category.update':'category.create',$cat->id,[
-            'id'=>LocalBusinessJournal::reference($request,'category.create',$cat->id),
-            'revision'=>$revision,'fields'=>$request->except('_token','_method','id'),
-        ]);
         return back()->with('mensaje', 'Categoría guardada.');
     }
 
     public function categoriaBorrar(Request $request, PosCategoria $categoria)
     {
         $this->delCyber($request, $categoria);
-        $revision = CatalogoAuxiliar::revision($categoria);
-        $id = LocalBusinessJournal::reference($request,'category.create',$categoria->id);
         CatalogoAuxiliar::borrar($categoria);
-        LocalBusinessJournal::record($request,(int)$categoria->cyber_id,'category.delete',$categoria->id,['id'=>$id,'revision'=>$revision]);
         return back()->with('mensaje', 'Categoría borrada.');
     }
 
@@ -175,15 +154,7 @@ class ProductoController extends PosBase
                 continue;
             }
             $categoria = PosCategoria::firstOrCreate(['cyber_id' => $cy->id, 'nombre' => $cat], ['color' => $cat === 'Servicios de CV' ? '#0B3C74' : ($cat === 'Impresiones' ? '#0E9F6E' : '#7C3AED')]);
-            if ($categoria->wasRecentlyCreated) {
-                LocalBusinessJournal::record($request,$cy->id,'category.create',$categoria->id,
-                    ['fields'=>$categoria->only(['nombre','color'])]);
-            }
-            $product = PosProducto::create(['cyber_id' => $cy->id, 'categoria_id' => $categoria->id, 'tipo' => 'servicio', 'nombre' => $nombre, 'precio' => 0, 'favorito' => true, 'unidad' => 'serv.']);
-            LocalBusinessJournal::record($request,$cy->id,'product.create',$product->id,['product'=>[
-                'nombre'=>$nombre,'tipo'=>'servicio','precio'=>0,'impuesto'=>'general','favorito'=>true,'unidad'=>'serv.',
-                'categoria_id'=>LocalBusinessJournal::reference($request,'category.create',$categoria->id),
-            ]]);
+            PosProducto::create(['cyber_id' => $cy->id, 'categoria_id' => $categoria->id, 'tipo' => 'servicio', 'nombre' => $nombre, 'precio' => 0, 'favorito' => true, 'unidad' => 'serv.']);
             $n++;
         }
         return back()->with('mensaje', $n ? "Se agregaron $n servicios. Póngales precio tocando cada uno." : 'Ya tenía todos los servicios sugeridos.');

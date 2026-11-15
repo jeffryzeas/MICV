@@ -32,10 +32,6 @@ class ChatController extends Controller
 
     private function puedeVerConversacion(Request $request, JzChat $chat): bool
     {
-        if ($request->attributes->has('local_permissions')) {
-            // La copia firmada solo incluye las conversaciones autorizadas de la cuenta.
-            return ChatAcceso::habilitado($request->user());
-        }
         return ChatAcceso::puede($request->user(), $chat->otro($request->user()));
     }
 

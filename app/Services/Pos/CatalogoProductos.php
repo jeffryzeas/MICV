@@ -11,16 +11,6 @@ use Illuminate\Validation\Rule;
 
 class CatalogoProductos
 {
-    public static function revision(PosProducto $product): string
-    {
-        $fields = $product->only(['tipo','nombre','codigo','categoria_id','proveedor_id','precio','costo',
-            'exento','impuesto_tasa','stock_minimo','unidad','controla_stock','favorito','activo']);
-        // The same category/supplier may have a different numeric ID after sync.
-        $fields['categoria_id'] = $product->categoria ? CatalogoAuxiliar::revision($product->categoria) : null;
-        $fields['proveedor_id'] = $product->proveedor?->only(['nombre','activo']);
-        return hash('sha256',json_encode($fields,JSON_THROW_ON_ERROR));
-    }
-
     public static function crear(Request $request, int $tenant): PosProducto
     {
         $data = self::validar($request,$tenant);

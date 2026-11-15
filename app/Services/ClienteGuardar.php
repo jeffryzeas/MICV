@@ -34,14 +34,6 @@ class ClienteGuardar
         'linkedin', 'sitio_web', 'github', 'telefono_whatsapp', 'profesion_en', 'perfil_en',
     ];
 
-    /** Valida la ficha básica sin reemplazar estudios, experiencia ni archivos. */
-    public function validarEscritorio(Request $request): array
-    {
-        $request->merge(['numero_documento'=>\App\Support\Documentos::limpiar($request->input('tipo_documento'),$request->input('numero_documento'))]);
-        $datos=$request->validate($this->reglas(true),$this->mensajes(),$this->atributos());
-        return $this->completarSegunDocumento(\App\Support\SituacionLaboral::validar($datos));
-    }
-
     /**
      * @return array{cliente: Cliente, ya_existia: bool}
      */
@@ -58,7 +50,6 @@ class ClienteGuardar
                 ->where('numero_documento', $datos['numero_documento'])->lockForUpdate()->first();
 
             if ($existente) {
-                abort_if($request->attributes->get('desktop_create_only'),409,'Ese documento ya está registrado. Revise la ficha existente.');
                 // Ya estaba en la base general: solo se completan los datos que vienen llenos.
                 $nuevos = collect($datos)->only(self::CAMPOS)->filter(fn ($v) => filled($v))->all();
                 $nuevos['edad_calculada'] = $datos['edad_calculada'] ?? $existente->edad_calculada;

@@ -269,15 +269,13 @@ class AutoservicioController extends Controller
     public function panel(Request $request)
     {
         $cyber = $this->cyberDelUsuario($request);
-        $local = $request->attributes->has('local_permissions');
 
         return view("autoservicio.panel", [
             "cyber" => $cyber,
-            "cybers" => $request->user()->esAdmin() && (!$local || !(int) getenv('MICV_LOCAL_TENANT'))
+            "cybers" => $request->user()->esAdmin()
                 ? Cyber::orderBy("nombre")->get()
                 : collect(),
-            "local" => $local,
-            "enlace" => $cyber && !$local
+            "enlace" => $cyber
                 ? route("autoservicio.formulario", $cyber->codigo)
                 : null,
         ]);
@@ -291,11 +289,7 @@ class AutoservicioController extends Controller
             ->de($u)
             ->with("cyber:id,nombre")
             ->whereDate("fecha", ">=", today()->subDays(1));
-        $local = $request->attributes->has('local_permissions');
-        $tenant = (int) getenv('MICV_LOCAL_TENANT');
-        if ($local && $tenant > 0) {
-            $q->where('cyber_id', $tenant);
-        } elseif ($u->esAdmin() && $request->filled("cyber")) {
+        if ($u->esAdmin() && $request->filled("cyber")) {
             $q->where("cyber_id", $request->integer("cyber"));
         }
         $filas = $q
@@ -304,8 +298,7 @@ class AutoservicioController extends Controller
             ->limit(60)
             ->get();
 
-        $canManage = !$local || $tenant > 0;
-        $canAttend = $canManage && $u->tienePermiso('clientes.editar');
+        $canAttend = $u->tienePermiso('clientes.editar');
 
         return response()->json([
             "qr_abierto" => $this->cyberDelUsuario($request)?->qrAbierto(),
@@ -321,7 +314,7 @@ class AutoservicioController extends Controller
                         "hace" => $s->created_at->locale("es")->diffForHumans(),
                         "cyber" => $s->cyber?->nombre,
                         "telefono" => $s->datos["telefono"] ?? null,
-                        "descartar" => $canManage,
+                        "descartar" => true,
                         "atender" => $canAttend ? route("clientes.create", [
                             "autoservicio" => $s->id,
                         ]) : null,
@@ -340,13 +333,8 @@ class AutoservicioController extends Controller
     ) {
         $this->autorizar($request, $solicitud);
         \Illuminate\Support\Facades\DB::transaction(function () use ($request, $solicitud) {
-            $local = $request->attributes->has('local_permissions');
-            $tenant = $local ? (int) getenv('MICV_LOCAL_TENANT') : null;
-            $pendiente = AutoservicioSolicitud::bloquearPendiente($solicitud->id, $request->user(), $tenant);
+            $pendiente = AutoservicioSolicitud::bloquearPendiente($solicitud->id, $request->user());
             $pendiente->resolver($request->user());
-            \App\Services\Desktop\LocalBusinessJournal::record(
-                $request, $pendiente->cyber_id, 'autoservicio.discard', $pendiente->id, ['id' => $pendiente->id],
-            );
         });
 
         return response()->json(["ok" => true]);
@@ -432,10 +420,6 @@ class AutoservicioController extends Controller
     {
         $u = $request->user();
         if ($u->esAdmin()) {
-            $tenant = (int) getenv('MICV_LOCAL_TENANT');
-            if ($request->attributes->has('local_permissions') && $tenant > 0) {
-                return Cyber::find($tenant);
-            }
             return $request->filled("cyber")
                 ? Cyber::find($request->integer("cyber"))
                 : Cyber::orderBy("nombre")->first();

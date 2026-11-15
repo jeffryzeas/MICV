@@ -7,7 +7,6 @@ use App\Models\Pos\PosCompra;
 use App\Models\Pos\PosProducto;
 use App\Models\Pos\PosProveedor;
 use App\Services\Pos\Compras;
-use App\Services\Desktop\LocalBusinessJournal;
 use Illuminate\Http\Request;
 
 /** Compras a proveedores: suben el inventario y actualizan el costo promedio. */
@@ -47,11 +46,6 @@ class CompraController extends PosBase
     {
         $cy = $this->cyber($request);
         $compra = Compras::registrar($cy,$request->user(),$request->all());
-        LocalBusinessJournal::record($request,$cy->id,'purchase.create',$compra->id,[
-            'proveedor_id'=>$compra->proveedor_id ? LocalBusinessJournal::reference($request,'supplier.create',$compra->proveedor_id) : null,'numero_factura'=>$compra->numero_factura,
-            'fecha'=>$compra->fecha->toDateString(),'notas'=>$compra->notas,
-            'items'=>LocalBusinessJournal::productReferences($request,$compra->items()->get(['producto_id','cantidad','costo'])->toArray()),
-        ]);
         Actividad::registrar('pos_compra', '#' . $compra->id . ' · ' . $this->config($request)->dinero($compra->total));
         return redirect()->route('pos.compras.ver', $compra)->with('mensaje', 'Compra registrada. El inventario ya se actualizó.');
     }
@@ -67,9 +61,6 @@ class CompraController extends PosBase
         $this->delCyber($request, $compra);
         abort_unless($compra->estado === 'registrada', 422);
         Compras::anular($compra,$request->user());
-        LocalBusinessJournal::record($request,(int)$compra->cyber_id,'purchase.void',$compra->id,[
-            'id'=>LocalBusinessJournal::reference($request,'purchase.create',$compra->id),
-        ]);
         Actividad::registrar('pos_compra_anular', '#' . $compra->id);
         return back()->with('mensaje', 'Compra anulada: se rebajó del inventario.');
     }
