@@ -15,7 +15,9 @@ class GenerarVideoPromocional implements ShouldQueue
     use Queueable;
 
     public int $timeout = 570;
+
     public int $tries = 1;
+
     public bool $failOnTimeout = true;
 
     public function __construct(public int $usuario, public string $id)
@@ -26,10 +28,10 @@ class GenerarVideoPromocional implements ShouldQueue
 
     public function handle(VideosPromocionales $videos, VideoPromocional $motor): void
     {
-        if (!$videos->estado($this->usuario, $this->id)) {
+        if (! $videos->estado($this->usuario, $this->id)) {
             return;
         }
-        if (!User::whereKey($this->usuario)->where('rol', 'admin')->where('activo', true)->exists()) {
+        if (! User::whereKey($this->usuario)->where('rol', 'admin')->where('activo', true)->exists()) {
             throw new RuntimeException('La cuenta solicitante ya no tiene acceso al generador de video.');
         }
 
@@ -37,7 +39,7 @@ class GenerarVideoPromocional implements ShouldQueue
         $carpeta = $videos->carpeta($this->usuario, $this->id);
         $temporal = $carpeta.'/video-temporal.mp4';
         $motor->generar($temporal);
-        if (!File::move($temporal, $carpeta.'/video.mp4')) {
+        if (! File::move($temporal, $carpeta.'/video.mp4')) {
             throw new RuntimeException('No se pudo publicar el archivo MP4.');
         }
         $videos->actualizar($this->usuario, $this->id, 'listo');
@@ -46,12 +48,12 @@ class GenerarVideoPromocional implements ShouldQueue
     public function failed(?\Throwable $error): void
     {
         $videos = app(VideosPromocionales::class);
-        if (!$videos->estado($this->usuario, $this->id)) {
+        if (! $videos->estado($this->usuario, $this->id)) {
             return;
         }
         $carpeta = $videos->carpeta($this->usuario, $this->id);
         File::delete($carpeta.'/video-temporal.mp4');
-        File::deleteDirectory($carpeta.'/render');
         $videos->actualizar($this->usuario, $this->id, 'error');
+        File::deleteDirectory($carpeta.'/render');
     }
 }

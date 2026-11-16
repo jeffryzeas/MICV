@@ -23,6 +23,7 @@ return [
         'espeak' => env('MICV_VIDEO_ESPEAK', 'espeak-ng'),
         'piper' => env('MICV_VIDEO_PIPER', 'piper'),
         'modelo_voz' => env('MICV_VIDEO_MODELO_VOZ', ''),
+        'musica' => (bool) env('MICV_VIDEO_MUSICA', true),
     ],
 
     // Quitar el fondo de las fotos carné (modelo U²-Net, se descarga con: php artisan micv:modelo-fondo).

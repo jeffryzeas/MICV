@@ -9,7 +9,7 @@ Conserve su `.env`, base de datos y almacenamiento al actualizar. Confirme que `
 1. Instale FFmpeg y eSpeak NG en Ubuntu o Debian.
 
    ```bash
-   sudo apt install ffmpeg espeak-ng
+   sudo apt install ffmpeg espeak-ng fonts-dejavu-core
    ```
 
 2. Use el mismo Node, Puppeteer y Chromium que usa Mi CV para PDF. Si es una instalación nueva, instale las dependencias con `npm ci --omit=dev` y siga la guía de Chromium del README. Si el navegador se instaló en otra ruta, use el valor existente `MICV_CHROME_PATH`. El usuario de PHP y el usuario de la cola requieren acceso de escritura a `storage` y deben compartir ese directorio.
@@ -71,3 +71,51 @@ php artisan micv:video-promocional --salida=/ruta/privada/Mi-CV-Tutorial.mp4
 ```
 
 El resultado es MP4 con H.264/AAC, 1080 × 1920 y 30 cuadros por segundo. La duración depende de la voz.
+
+
+## Mejoras del video y seguimiento
+
+- Composición vertical con capítulos, contador de pasos, navegador enmarcado y cierre con llamada a la acción.
+- Escritura progresiva sobre los formularios reales; la demostración no envía los formularios ni crea cuentas.
+- Movimiento de cámara suave a 30 fps, cursor animado, pulsación de enfoque y transiciones de entrada y salida.
+- Subtítulos grandes por frases, calculados a partir de la duración real de cada WAV. El tiempo de cada frase dentro del audio es estimado por su longitud; no se usa reconocimiento ni alineación fonética.
+- Voz con nivel normalizado, filtro de ruido grave, pausas de lectura y audio AAC estéreo de 192 kbps. La música es un ambiente original sintetizado localmente. Use `MICV_VIDEO_MUSICA=false` para quitarla.
+- H.264 de alta calidad, CRF 18, 1080 × 1920, 30 fps y `faststart` para reproducción web.
+- El panel consulta el estado cada 2,5 segundos: preparación, pantallas, narración, animación y exportación. Muestra escena, motor de voz, porcentaje y tiempo transcurrido. Las etapas tienen pesos; durante la codificación el avance se calcula con el tiempo de video procesado por FFmpeg. El 100 % se reserva para el MP4 publicado.
+- Al recargar o volver al panel, el estado se recupera del servidor. La consulta pausa en pestañas ocultas y reintenta después de fallos de conexión. Los archivos siguen siendo privados para el administrador que los generó.
+
+No necesita nuevas tablas, paquetes de Node ni servicios de pago. Después de actualizar, ejecute `php artisan optimize:clear` y `php artisan queue:restart`. Mantenga activo el trabajador descrito arriba. No reemplace su `.env`, su base de datos ni su almacenamiento con archivos de ejemplo.
+
+### Voz neuronal recomendada
+
+Para obtener una narración más natural que la voz eSpeak de reserva, instale Piper en un entorno virtual y configure un modelo español. Ejemplo para el modelo mexicano `ald/medium` (CPU; sin clave de API):
+
+```bash
+cd /var/www/micv
+python3 -m venv storage/app/piper
+storage/app/piper/bin/pip install piper-tts==1.8.0
+mkdir -p storage/app/modelos/voz
+curl -fL https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/ald/medium/es_MX-ald-medium.onnx -o storage/app/modelos/voz/es_MX-ald-medium.onnx
+curl -fL https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/ald/medium/es_MX-ald-medium.onnx.json -o storage/app/modelos/voz/es_MX-ald-medium.onnx.json
+```
+
+Configure las rutas absolutas en su `.env`:
+
+```dotenv
+MICV_VIDEO_PIPER=/var/www/micv/storage/app/piper/bin/piper
+MICV_VIDEO_MODELO_VOZ=/var/www/micv/storage/app/modelos/voz/es_MX-ald-medium.onnx
+MICV_VIDEO_MUSICA=true
+```
+
+El usuario de la cola debe poder ejecutar Piper y leer ambos archivos del modelo. Cambie `/var/www/micv` si su instalación usa otra ruta. El panel identifica si la generación usa Piper o eSpeak; si un modelo configurado falla, la generación marca error para permitir revisar la instalación.
+
+Modelo: [ficha de ald/medium](https://huggingface.co/rhasspy/piper-voices/blob/main/es/es_MX/ald/medium/MODEL_CARD), conjunto de voz con licencia Unlicense. El ONNX no se incluye en el ZIP. SHA-256 del modelo probado: `019b3803293c93e34a206dd2e53a3889209a514e786fd7144f7b70196c579b63`.
+
+### Comprobaciones
+
+```bash
+php artisan test --filter=VideoPromocionalTest
+npm run test:video
+```
+
+Las pruebas cubren privacidad, cola única, progreso persistente, límite del 99 % antes de publicar, estados de error, lectura WAV y construcción segura de subtítulos.

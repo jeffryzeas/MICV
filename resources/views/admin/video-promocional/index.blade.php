@@ -1,8 +1,9 @@
 <x-layout titulo="Video promocional" activo="video-promocional">
+    <link rel="stylesheet" href="{{ asset('css/video-promocional.css') }}?v={{ @filemtime(public_path('css/video-promocional.css')) }}">
     <div class="page-heading">
         <div>
             <h2 class="page-title">Tutorial para crear un CV</h2>
-            <p class="mt-1 text-sm text-gray-500">Genere un video vertical con las pantallas actuales de Mi CV.</p>
+            <p class="mt-1 text-sm text-gray-500">Convierta las pantallas actuales de Mi CV en un tutorial vertical con movimiento, voz y subtítulos.</p>
         </div>
     </div>
 
@@ -14,7 +15,7 @@
                 <li>Completar los datos, los estudios y la experiencia.</li>
                 <li>Elegir una plantilla y descargar el CV en PDF.</li>
             </ol>
-            <p class="mt-5 border-t border-gray-200 pt-4 text-sm text-gray-500">Demostración con datos ficticios de Nicaragua. MP4 9:16 con voz en español, subtítulos y botones resaltados.</p>
+            <p class="mt-5 border-t border-gray-200 pt-4 text-sm text-gray-500">Demostración con datos ficticios de Nicaragua. Full HD · 1080 × 1920 · 30 fps. Formularios animados, enfoque guiado, subtítulos por frases y música suave. La voz neuronal se utiliza cuando Piper está configurado.</p>
 
             @unless($abierto)
                 <p class="mt-3 text-sm font-semibold text-amber-800 dark:text-amber-200">Abra el registro público para generar un tutorial que las personas puedan seguir.</p>
@@ -30,16 +31,25 @@
         <x-ui.panel title="Vista previa y descarga" icon="play">
             <div id="video-promocional"
                 @if($actual) data-estado="{{ $actual['estado'] }}" data-url="{{ route('admin.video-promocional.estado', $actual['id']) }}" @endif
-                data-abierto="{{ $abierto ? '1' : '0' }}">
+                data-abierto="{{ $abierto ? '1' : '0' }}" data-iniciado="{{ $actual['iniciado'] ?? '' }}">
                 <p id="video-estado" class="mb-4 text-sm text-gray-700" role="status" aria-live="polite">
-                    @switch($actual['estado'] ?? null)
-                        @case('pendiente') Video en cola. Puede volver a esta página más tarde. @break
-                        @case('procesando') Capturando pantallas y preparando la voz. @break
-                        @case('listo') Su video está listo. @break
-                        @case('error') Falló la generación. Revise el servicio de cola, Chromium, la voz y FFmpeg, o vuelva a intentarlo. @break
-                        @default Aquí aparecerá el video cuando termine la generación.
-                    @endswitch
+                    {{ $actual['mensaje'] ?? 'Aquí aparecerá el video cuando termine la generación.' }}
                 </p>
+                <div class="video-avance" aria-label="Avance de la generación">
+                    <div class="video-avance-cabecera">
+                        <strong id="video-porcentaje">{{ $actual['porcentaje'] ?? 0 }}%</strong>
+                        <span id="video-tiempo">{{ ($actual['estado'] ?? null) === 'listo' ? 'Generación completada' : 'Puede salir y volver a esta página.' }}</span>
+                    </div>
+                    <progress id="video-progreso" max="100" value="{{ $actual['porcentaje'] ?? 0 }}" aria-label="Porcentaje de generación"></progress>
+                    @php($ordenEtapas = ['cola', 'preparacion', 'capturas', 'voz', 'render', 'exportacion', 'completado'])
+                    @php($pasoActual = array_search($actual['etapa'] ?? '', $ordenEtapas, true))
+                    <ol class="video-etapas" aria-label="Etapas">
+                        @foreach(['cola' => 'En cola', 'preparacion' => 'Preparación', 'capturas' => 'Pantallas', 'voz' => 'Narración', 'render' => 'Animación', 'exportacion' => 'MP4', 'completado' => 'Listo'] as $clave => $etiqueta)
+                            <li data-etapa="{{ $clave }}" data-fase="{{ ($actual['estado'] ?? '') === 'error' ? 'error' : (($actual['etapa'] ?? '') === $clave ? 'actual' : ($pasoActual !== false && array_search($clave, $ordenEtapas, true) < $pasoActual ? 'completa' : 'pendiente')) }}">{{ $etiqueta }}</li>
+                        @endforeach
+                    </ol>
+                    <p id="video-detalle" class="text-xs text-gray-500">El avance corresponde a las etapas del renderizado.</p>
+                </div>
                 <div id="video-resultado" @class(['hidden' => ($actual['estado'] ?? null) !== 'listo'])>
                     <video id="video-vista" class="mx-auto block max-h-[620px] w-full rounded-xl bg-gray-900" controls playsinline preload="metadata"
                         @if(($actual['estado'] ?? null) === 'listo') src="{{ route('admin.video-promocional.archivo', $actual['id']) }}" @endif></video>
@@ -56,6 +66,6 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/video-promocional.js') }}" defer></script>
+        <script src="{{ asset('js/video-promocional.js') }}?v={{ @filemtime(public_path('js/video-promocional.js')) }}" defer></script>
     @endpush
 </x-layout>

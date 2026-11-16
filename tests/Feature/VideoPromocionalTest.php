@@ -56,12 +56,68 @@ class VideoPromocionalTest extends TestCase
             $id = (string) Str::uuid();
             $videos = app(VideosPromocionales::class);
             $videos->actualizar($propietario->id, $id, 'listo');
+            File::put($videos->carpeta($propietario->id, $id).'/estado.json', json_encode(['id' => $id, 'estado' => 'listo', 'creado' => now()->getTimestamp(), 'actualizado' => now()->getTimestamp()]));
+            $this->assertSame(100, $videos->estado($propietario->id, $id)['porcentaje']);
             File::put($videos->carpeta($propietario->id, $id).'/video.mp4', 'fixture');
 
             $descarga = route('admin.video-promocional.archivo', [$id, 'descargar' => 1]);
             $this->actingAs($cliente)->get(route('admin.video-promocional.index'))->assertForbidden();
             $this->actingAs($otro)->get($descarga)->assertNotFound();
             $this->actingAs($propietario)->get($descarga)->assertOk()->assertDownload('Mi-CV-Tutorial.mp4');
+        } finally {
+            File::deleteDirectory($carpeta);
+        }
+    }
+
+    public function test_publica_progreso_real_sin_permitir_que_sobrescriba_el_estado_final(): void
+    {
+        $carpeta = storage_path('framework/testing/'.Str::uuid());
+        $this->app->useStoragePath($carpeta);
+        try {
+            $admin = $this->cuenta('ADMIN-PROGRESO', 'admin');
+            $videos = app(VideosPromocionales::class);
+            $id = (string) Str::uuid();
+            $videos->actualizar($admin->id, $id, 'pendiente');
+            $this->travel(3)->seconds();
+            $inicio = $videos->actualizar($admin->id, $id, 'procesando');
+            $this->assertNotNull($inicio['iniciado']);
+            File::put($videos->carpeta($admin->id, $id).'/progreso.json', json_encode([
+                'etapa' => 'render', 'porcentaje' => 62,
+                'mensaje' => 'Animando escena 5 de 10.', 'escena' => 5, 'escenas' => 10,
+                'actualizado' => now()->getTimestamp() + 2, 'motor_voz' => 'piper',
+                'estado' => 'listo', 'ruta_interna' => '/privado',
+            ]));
+            $this->actingAs($admin)->getJson(route('admin.video-promocional.estado', $id))
+                ->assertOk()->assertJsonPath('estado', 'procesando')
+                ->assertJsonPath('porcentaje', 62)->assertJsonPath('etapa', 'render')
+                ->assertJsonPath('motor_voz', 'piper')->assertJsonMissingPath('ruta_interna');
+            $fin = $videos->actualizar($admin->id, $id, 'listo');
+            $this->assertSame(100, $fin['porcentaje']);
+            $this->assertSame($inicio['iniciado'], $fin['iniciado']);
+            $this->assertSame('completado', $videos->estado($admin->id, $id)['etapa']);
+            $this->actingAs($admin)->get(route('admin.video-promocional.index'))
+                ->assertOk()->assertSee('video-progreso')->assertSee('100%');
+        } finally {
+            File::deleteDirectory($carpeta);
+        }
+    }
+
+    public function test_tolera_progreso_invalido_y_limita_el_porcentaje_hasta_la_publicacion(): void
+    {
+        $carpeta = storage_path('framework/testing/'.Str::uuid());
+        $this->app->useStoragePath($carpeta);
+        try {
+            $videos = app(VideosPromocionales::class);
+            $id = (string) Str::uuid();
+            $videos->actualizar(1, $id, 'procesando');
+            $ruta = $videos->carpeta(1, $id).'/progreso.json';
+            File::put($ruta, '{');
+            $this->assertSame(1, $videos->estado(1, $id)['porcentaje']);
+            File::put($ruta, '{"porcentaje":150,"etapa":"exportacion"}');
+            $this->assertSame(99, $videos->estado(1, $id)['porcentaje']);
+            $error = $videos->actualizar(1, $id, 'error');
+            $this->assertSame(99, $error['porcentaje']);
+            $this->assertSame('error', $videos->estado(1, $id)['estado']);
         } finally {
             File::deleteDirectory($carpeta);
         }

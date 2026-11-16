@@ -2,7 +2,8 @@
 
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const { spawn } = require('node:child_process');
+const { duracionWav, subtitulos } = require('./timeline.cjs');
 const puppeteer = require('puppeteer');
 
 const MIME = {
@@ -16,20 +17,63 @@ const escapar = valor => String(valor ?? '').replace(/[&<>"']/g, letra => ({
 })[letra]);
 const color = (valor, predeterminado) => /^#[0-9a-f]{6}$/i.test(valor) ? valor : predeterminado;
 
-function ejecutar(programa, argumentos, carpeta, entrada) {
-    const resultado = spawnSync(programa, argumentos, {
-        cwd: carpeta, input: entrada, encoding: 'utf8', timeout: 65_000, maxBuffer: 512 * 1024,
+async function ejecutar(programa, argumentos, carpeta, entrada, progreso) {
+    return new Promise((resolver, rechazar) => {
+        const proceso = spawn(programa, argumentos, { cwd: carpeta, stdio: ['pipe', 'pipe', 'pipe'] });
+        let errores = '';
+        let pendiente = '';
+        const limite = setTimeout(() => proceso.kill('SIGKILL'), 120_000);
+        proceso.stderr.on('data', bloque => { errores = (errores + bloque).slice(-12000); });
+        proceso.stdout.on('data', bloque => {
+            pendiente += bloque;
+            const lineas = pendiente.split('\n');
+            pendiente = lineas.pop();
+            for (const linea of lineas) {
+                const tiempo = linea.match(/^out_time_us=(\d+)/);
+                if (tiempo && progreso) Promise.resolve(progreso(Number(tiempo[1]) / 1_000_000)).catch(error => {
+                    errores = error.message;
+                    proceso.kill('SIGTERM');
+                });
+            }
+        });
+        proceso.on('error', error => { clearTimeout(limite); rechazar(new Error(`${programa}: ${error.message}`)); });
+        proceso.on('close', codigo => {
+            clearTimeout(limite);
+            if (codigo === 0) resolver();
+            else rechazar(new Error(`${path.basename(programa)}: ${errores.trim() || 'el proceso se interrumpió o excedió el tiempo límite'}`));
+        });
+        proceso.stdin.on('error', () => {});
+        proceso.stdin.end(entrada ?? '');
     });
+}
 
-    if (resultado.error || resultado.status !== 0) {
-        throw new Error(`${path.basename(programa)}: ${resultado.error?.message ?? resultado.stderr?.trim() ?? resultado.signal}`);
-    }
+function reportero(datos) {
+    let cadena = Promise.resolve();
+    let ultimo = 0;
+    let anterior = 0;
+    return async (etapa, porcentaje, mensaje, escena = 0, forzar = true) => {
+        const ahora = Date.now();
+        if (!forzar && ahora - anterior < 800) return;
+        anterior = ahora;
+        ultimo = Math.min(99, Math.max(ultimo, Math.floor(porcentaje)));
+        const contenido = JSON.stringify({ etapa, porcentaje: ultimo, mensaje, escena,
+            escenas: datos.escenas.length, actualizado: Math.floor(ahora / 1000),
+            motor_voz: datos.modeloVoz ? 'piper' : 'espeak',
+        });
+        cadena = cadena.then(async () => {
+            const temporal = path.join(path.dirname(datos.carpeta), 'progreso.tmp');
+            await fs.writeFile(temporal, contenido, { mode: 0o600 });
+            await fs.rename(temporal, path.join(path.dirname(datos.carpeta), 'progreso.json'));
+        });
+        return cadena;
+    };
 }
 
 async function captar(pagina, escena, origen, dominio) {
+    await pagina.bringToFront();
     await pagina.setViewport(escena.modo === 'fin'
         ? { width: 810, height: 1056, deviceScaleFactor: 1 }
-        : { width: 420, height: 530, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+        : { width: 420, height: 500, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
     await pagina.goto(`${origen}/__escena/${escena.archivo}`, { waitUntil: 'load', timeout: 20_000 });
     await pagina.evaluate(() => document.fonts.ready);
     await pagina.evaluate(() => {
@@ -87,13 +131,6 @@ async function captar(pagina, escena, origen, dominio) {
             }
             if (modo === 'codigo') asignar('codigo', '000000');
 
-            if (modo === 'inicio') {
-                const direccion = document.createElement('div');
-                direccion.textContent = dominio;
-                direccion.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:100;background:#f5f7fa;color:#14283e;padding:11px 16px;font:600 13px Arial;text-align:center;border-bottom:1px solid #dce4ec';
-                document.body.append(direccion);
-            }
-
             objetivo.scrollIntoView({
                 block: modo === 'registro' ? 'start' : modo === 'galeria' ? 'nearest' : 'center',
                 behavior: 'instant',
@@ -103,7 +140,20 @@ async function captar(pagina, escena, origen, dominio) {
         }, { selector, modo: escena.modo, dominio });
     }
 
-    return pagina.screenshot({ type: 'png' });
+    // Determinar los campos que se escribirán sin disparar envíos ni peticiones al servidor.
+    return pagina.evaluate(({ selector, modo }) => {
+        const objetivo = selector ? document.querySelector(selector) : null;
+        const rect = objetivo?.getBoundingClientRect();
+        const campos = modo === 'registro' ? ['[name="primer_nombre"]', '[name="primer_apellido"]', '[name="email"]']
+            : modo === 'codigo' ? ['[name="codigo"]']
+            : ['datos', 'estudios', 'experiencia'].includes(modo) ? [selector] : [];
+        window.__videoCampos = campos.map(campo => {
+            const elemento = document.querySelector(campo);
+            return elemento ? { elemento, valor: elemento.value } : null;
+        }).filter(Boolean);
+        return rect ? { x: Math.min(385, Math.max(20, rect.x + Math.min(rect.width * .65, 180))),
+            y: Math.min(470, Math.max(25, rect.y + Math.min(rect.height / 2, 30))) } : null;
+    }, { selector, modo: escena.modo });
 }
 
 function tarjeta(escena, indice, total, marca, captura) {
@@ -113,53 +163,58 @@ function tarjeta(escena, indice, total, marca, captura) {
     const logo = /^data:image\/(png|jpe?g|webp);base64,/i.test(marca.logo ?? '')
         ? `<img class="logo" src="${escapar(marca.logo)}" alt="">`
         : '<span class="logo inicial">CV</span>';
-    const pasos = Array.from({ length: total - 1 }, (_, i) =>
-        `<span class="${i <= indice ? 'completo' : ''}"></span>`).join('');
-    const encabezado = final ? 'EMPIECE HOY' : `PASO ${indice + 1} DE ${total - 1}`;
+    const capitulo = indice < 4 ? '01 / CREE SU CUENTA' : indice < 7 ? '02 / CUENTE SU HISTORIA' : '03 / COMPARTA SU TALENTO';
+    const pasos = Array.from({ length: total }, (_, i) => `<i class="${i <= indice ? 'hecho' : ''}"></i>`).join('');
     return `<!doctype html><html lang="es"><meta charset="utf-8"><style>
-    *{box-sizing:border-box}body{margin:0;width:1080px;height:1920px;color:#fff;font-family:Arial,sans-serif;background:
-      radial-gradient(ellipse at 90% 11%,${primario} 1%,transparent 56%),
-      linear-gradient(154deg,#071526,#0b2440 53%,#081729);}
-    .marco{padding:78px 126px 180px 70px;height:100%;position:relative}
-    .marca{display:flex;align-items:center;gap:18px;min-width:0;height:64px;font-size:29px;font-weight:700}
-    .marca-texto{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .logo{display:block;width:64px;height:64px;border-radius:15px;background:#fff;object-fit:contain;padding:5px}
-    .inicial{background:${secundario};color:#081a2e;text-align:center;padding:17px 4px}
-    .progreso{display:flex;gap:8px;margin-top:28px}.progreso span{width:43px;height:5px;border-radius:4px;background:#ffffff34}.progreso .completo{background:#f1c65d}
-    .paso{margin:27px 0 9px;color:#f1c65d;font-size:24px;font-weight:700;letter-spacing:3px}
-    h1{margin:0;font-size:68px;letter-spacing:-3px;line-height:1.03}
-    .guia{margin:15px 0 24px;color:#d9e6f4;font-size:32px;line-height:1.2;min-height:76px}
-    .pantalla{display:block;width:820px;height:1036px;padding:0;border:8px solid #e6edf6;border-radius:34px;object-fit:cover;background:#fff;box-shadow:0 24px 66px #0007}
-    .cv{width:760px;height:990px;object-fit:contain;border-radius:15px}
-    .voz{position:absolute;top:1535px;left:70px;right:126px;min-height:126px;padding:21px 24px 20px;border-left:5px solid #f1c65d;
-      background:#071423;border-radius:10px;color:#fff;font-size:30px;line-height:1.23;font-weight:600}
-    .demo{position:absolute;top:1710px;left:70px;color:#bccbe0;font-size:22px;font-weight:600;letter-spacing:.7px}
-    </style><main class="marco">
-      <div class="marca">${logo}<span class="marca-texto">${escapar(marca.nombre)}</span></div>
-      <div class="progreso">${pasos}</div>
-      <p class="paso">${encabezado}</p><h1>${escapar(escena.titulo)}</h1>
-      <p class="guia">${escapar(escena.subtitulo)}</p>
-      <img class="pantalla ${final ? 'cv' : ''}" src="data:image/png;base64,${Buffer.from(captura).toString('base64')}" alt="">
-      <div class="voz">${escapar(escena.caption ?? escena.voz)}</div>
-      <div class="demo">Demostración con datos ficticios · Nicaragua</div>
-    </main></html>`;
+    *{box-sizing:border-box}body{margin:0;width:1080px;height:1920px;overflow:hidden;color:#fff;font-family:'DejaVu Sans',Arial,sans-serif;
+      background:radial-gradient(ellipse at 100% 6%,${primario}bd,transparent 55%),linear-gradient(156deg,#061522,#112c45 60%,#07121e)}
+    body:before{content:'';position:absolute;left:-240px;top:660px;width:610px;height:610px;border:1px solid #78b7ff21;border-radius:50%;box-shadow:0 0 0 90px #78b7ff05,0 0 0 180px #78b7ff04}
+    .marca{position:absolute;top:83px;left:76px;right:136px;display:flex;align-items:center;gap:16px;font-size:28px;font-weight:700;height:60px}
+    .marca-texto{max-width:420px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.dominio{margin-left:auto;font-size:18px;color:#bdd0e2;font-weight:400}
+    .logo{width:58px;height:58px;border-radius:17px;background:#fff;object-fit:contain;padding:5px}.inicial{display:grid;place-items:center;background:${secundario};color:#081b2b}
+    .capitulo{position:absolute;left:76px;top:182px;color:#86e3f2;font-size:20px;letter-spacing:2px;font-weight:700}
+    .numero{position:absolute;right:148px;top:162px;color:#ffffff10;font-size:160px;font-weight:700;letter-spacing:-12px;line-height:1}
+    h1{position:absolute;left:72px;top:232px;margin:0;width:830px;font-size:70px;line-height:1.07;letter-spacing:-3px;max-height:155px;overflow:hidden}
+    .guia{position:absolute;left:76px;top:390px;width:808px;margin:0;font-size:27px;line-height:1.35;color:#c0d4e6}
+    .dispositivo{position:absolute;left:90px;top:482px;width:812px;height:996px;padding:10px 12px 12px;border-radius:38px;background:linear-gradient(135deg,#b2c6d7,#34536c 35%,#7994ac);box-shadow:0 24px 80px #0008}
+    .navegador{height:40px;border-radius:24px 24px 0 0;background:#f5f8fc;color:#52667c;display:flex;align-items:center;justify-content:center;font-size:17px;letter-spacing:.4px}
+    .navegador:before{content:'●';font-size:10px;color:#10a887;margin-right:8px}
+    .ventana{overflow:hidden;width:788px;height:934px;background:#fff;border-radius:0 0 25px 25px}
+    #captura{display:block;width:100%;height:100%;object-fit:fill}.final .ventana{background:#e6edf5} .final #captura{object-fit:contain}
+    .voz-fondo{position:absolute;left:90px;top:1522px;width:812px;height:142px;border:1px solid #ffffff17;border-radius:24px;background:#061421d9}
+    .voz-label{position:absolute;left:112px;top:1506px;padding:0 10px;background:#0e2336;color:#86e3f2;font-size:14px;letter-spacing:2px;font-weight:700}
+    .pie{position:absolute;left:90px;right:178px;top:1702px;display:flex;align-items:center;justify-content:space-between;color:#9fb6cc;font-size:17px}
+    .pasos{position:absolute;left:90px;top:1755px;display:flex;gap:9px;width:812px}.pasos i{height:4px;background:#ffffff20;flex:1;border-radius:5px}.pasos .hecho{background:#86e3f2}
+    .cta{position:absolute;left:90px;top:1410px;width:812px;height:68px;border-radius:0 0 26px 26px;display:grid;place-items:center;background:${primario};font-size:26px;font-weight:700;color:#fff}
+    </style><body class="${final ? 'final' : ''}">
+      <div class="marca">${logo}<span class="marca-texto">${escapar(marca.nombre)}</span><span class="dominio">${escapar(marca.dominio)}</span></div>
+      <div class="capitulo">${final ? 'SU SIGUIENTE OPORTUNIDAD' : capitulo}</div><div class="numero">${String(indice + 1).padStart(2, '0')}</div>
+      <h1>${escapar(escena.titulo)}</h1><p class="guia">${escapar(escena.subtitulo)}</p>
+      <div class="dispositivo"><div class="navegador">${escapar(marca.dominio)}</div><div class="ventana"><img id="captura" src="${captura ? 'data:image/png;base64,' + Buffer.from(captura).toString('base64') : ''}" alt=""></div></div>
+      ${final ? `<div class="cta">Cree su cuenta · Haga su CV hoy</div>` : ''}
+      <div class="voz-fondo"></div><div class="voz-label">${final ? 'DÉ EL PRIMER PASO' : 'PASO A PASO'}</div>
+      <div class="pie"><span>Demostración · Datos ficticios</span><span>${final ? 'LISTO PARA COMPARTIR' : `${String(indice + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`}</span></div>
+      <div class="pasos">${pasos}</div>
+    </body></html>`;
 }
 
-async function capturas(datos) {
+async function capturas(datos, informar) {
     const navegador = await puppeteer.launch({
         executablePath: datos.chrome || undefined,
         headless: true,
         pipe: true,
         args: [
             '--disable-gpu', '--disable-dev-shm-usage', '--no-zygote',
-            '--disable-background-networking',
+            '--disable-background-networking', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows',
             ...(datos.sinSandbox ? ['--no-sandbox'] : []),
         ],
     });
 
     try {
         const pagina = await navegador.newPage();
+        pagina.setDefaultTimeout(20_000);
         const poster = await navegador.newPage();
+        poster.setDefaultTimeout(20_000);
         await pagina.setBypassServiceWorker(true);
         await pagina.setRequestInterception(true);
         const publicoReal = await fs.realpath(datos.publico);
@@ -198,9 +253,26 @@ async function capturas(datos) {
 
         await poster.setViewport({ width: 1080, height: 1920, deviceScaleFactor: 1 });
         for (const [indice, escena] of datos.escenas.entries()) {
-            const captura = await captar(pagina, escena, datos.origen, datos.dominio);
-            await poster.setContent(tarjeta(escena, indice, datos.escenas.length, datos, captura), { waitUntil: 'load' });
-            await poster.screenshot({ path: path.join(datos.carpeta, `escena-${indice}.png`) });
+            await informar('capturas', 3 + indice / datos.escenas.length * 23, `Preparando pantalla: ${escena.titulo}`, indice + 1);
+            escena.objetivo = await captar(pagina, escena, datos.origen, datos.dominio);
+            const cantidad = ['registro', 'codigo', 'datos', 'estudios', 'experiencia'].includes(escena.modo) ? 12 : 1;
+            escena.fotogramas = cantidad;
+            for (let paso = 0; paso < cantidad; paso++) {
+                await informar('capturas', 3 + (indice + paso / cantidad) / datos.escenas.length * 23, `Capturando: ${escena.titulo}`, indice + 1, false);
+                await pagina.evaluate(fraccion => {
+                    for (const { elemento, valor } of window.__videoCampos || []) {
+                        const orden = window.__videoCampos.findIndex(campo => campo.elemento === elemento);
+                        const avance = Math.min(1, Math.max(0, fraccion * window.__videoCampos.length - orden));
+                        elemento.value = valor.slice(0, Math.round(valor.length * avance));
+                    }
+                }, cantidad === 1 ? 1 : paso / (cantidad - 1));
+                await pagina.bringToFront();
+                const captura = await pagina.screenshot({ type: 'png' });
+                await poster.bringToFront();
+                await poster.setContent(tarjeta(escena, indice, datos.escenas.length, datos, captura), { waitUntil: 'load', timeout: 20_000 });
+                await poster.evaluate(() => document.fonts.ready);
+                await poster.screenshot({ path: path.join(datos.carpeta, `escena-${indice}-${paso}.png`) });
+            }
         }
     } finally {
         await navegador.close();
@@ -208,41 +280,83 @@ async function capturas(datos) {
 }
 
 async function generar(datos) {
-    await capturas(datos);
+    if (!Array.isArray(datos.escenas) || !datos.escenas.length) throw new Error('No hay escenas para renderizar.');
+    const informar = reportero(datos);
+    await informar('preparacion', 2, 'Comprobando FFmpeg y el motor de voz.');
+    await ejecutar(datos.ffmpeg, ['-version'], datos.carpeta);
+    if (datos.modeloVoz) await fs.access(datos.modeloVoz);
+    else await ejecutar(datos.espeak, ['--version'], datos.carpeta);
+    await capturas(datos, informar);
     const manifest = [];
-
     for (const [indice, escena] of datos.escenas.entries()) {
+        await informar('voz', 26 + indice / datos.escenas.length * 12, `Sintetizando narración: ${escena.titulo}`, indice + 1);
         const wav = `voz-${indice}.wav`;
-        const mp4 = `parte-${indice}.mp4`;
-
         if (datos.modeloVoz) {
-            ejecutar(datos.piper, ['-m', datos.modeloVoz, '-f', wav], datos.carpeta, escena.voz + '\n');
+            await ejecutar(datos.piper, ['-m', datos.modeloVoz, '-f', wav], datos.carpeta, escena.voz + '\n');
         } else {
-            ejecutar(datos.espeak, ['-v', 'es-419+f3', '-a', '78', '-s', '155', '-w', wav, '--stdin'], datos.carpeta, escena.voz);
+            await ejecutar(datos.espeak, ['-v', 'es-419+f3', '-a', '90', '-s', '152', '-w', wav, '--stdin'], datos.carpeta, escena.voz);
         }
-        ejecutar(datos.ffmpeg, [
-            '-hide_banner', '-loglevel', 'error', '-y', '-filter_threads', '1',
-            '-i', `escena-${indice}.png`, '-i', wav,
-            '-vf', "zoompan=z='1+0.018*(1-exp(-on/110))':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=2400:s=1080x1920:fps=30",
-            '-af', 'volume=0.83,alimiter=limit=0.88:level=false,apad=pad_dur=0.55', '-shortest', '-c:v', 'libx264', '-threads', '2', '-preset', 'veryfast',
-            '-crf', '21', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-ar', '48000', mp4,
-        ], datos.carpeta);
-        manifest.push(`file '${mp4}'`);
+        escena.duracionVoz = duracionWav(await fs.readFile(path.join(datos.carpeta, wav)));
+        // Una pausa de entrada y otra de lectura final, cuantizadas a cuadros completos.
+        escena.duracion = Math.ceil((escena.duracionVoz + 0.9) * 30) / 30;
     }
-
+    for (const [indice, escena] of datos.escenas.entries()) {
+        const avance = tiempo => informar('render', 38 + (indice + Math.min(1, tiempo / escena.duracion)) / datos.escenas.length * 56,
+            `Animando escena ${indice + 1} de ${datos.escenas.length}: ${escena.titulo}`, indice + 1, false);
+        await informar('render', 38 + indice / datos.escenas.length * 56, `Animando: ${escena.titulo}`, indice + 1);
+        const lista = [];
+        const escritura = Math.min(2.5, escena.duracion * .43);
+        for (let paso = 0; paso < escena.fotogramas; paso++) {
+            lista.push(`file 'escena-${indice}-${paso}.png'`);
+            lista.push(`duration ${escena.fotogramas === 1 ? escena.duracion : paso === escena.fotogramas - 1
+                ? escena.duracion - escritura : escritura / (escena.fotogramas - 1)}`);
+        }
+        lista.push(`file 'escena-${indice}-${escena.fotogramas - 1}.png'`);
+        await fs.writeFile(path.join(datos.carpeta, `imagenes-${indice}.txt`), lista.join('\n') + '\n');
+        await fs.writeFile(path.join(datos.carpeta, `subtitulos-${indice}.ass`), subtitulos(escena, escena.duracionVoz, escena.duracion, escena.objetivo));
+        const filtros = [
+            'fps=30',
+            // Zoom suave: el movimiento se calcula en cada uno de los 30 cuadros, independiente de la escritura.
+            "zoompan=z='1+0.012*(1-exp(-on/85))':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=1:s=1080x1920:fps=30",
+            `subtitles=subtitulos-${indice}.ass`,
+            'fade=t=in:st=0:d=0.22', `fade=t=out:st=${escena.duracion - .22}:d=0.22`, 'format=yuv420p',
+        ].join(',');
+        await ejecutar(datos.ffmpeg, [
+            '-hide_banner', '-loglevel', 'error', '-y', '-filter_threads', '1', '-progress', 'pipe:1', '-nostats',
+            '-f', 'concat', '-safe', '1', '-i', `imagenes-${indice}.txt`, '-i', `voz-${indice}.wav`,
+            '-vf', filtros, '-af', 'highpass=f=75,lowpass=f=8500,loudnorm=I=-16:TP=-1.5:LRA=9,aresample=48000,adelay=250:all=1,apad',
+            '-t', String(escena.duracion), '-r', '30', '-c:v', 'libx264', '-threads', '2', '-preset', 'veryfast',
+            '-crf', '18', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709',
+            '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-ac', '2', `parte-${indice}.mp4`,
+        ], datos.carpeta, null, avance);
+        manifest.push(`file 'parte-${indice}.mp4'`);
+    }
+    await informar('exportacion', 95, 'Uniendo escenas y preparando el MP4 para reproducción web.', datos.escenas.length);
     await fs.writeFile(path.join(datos.carpeta, 'partes.txt'), manifest.join('\n') + '\n');
-    ejecutar(datos.ffmpeg, [
-        '-hide_banner', '-loglevel', 'error', '-y', '-f', 'concat', '-safe', '1', '-i', 'partes.txt',
-        '-c', 'copy', '-movflags', '+faststart', datos.salida,
-    ], datos.carpeta);
+    const duracion = datos.escenas.reduce((total, escena) => total + escena.duracion, 0);
+    const salida = ['-hide_banner', '-loglevel', 'error', '-y', '-filter_complex_threads', '1', '-progress', 'pipe:1', '-nostats',
+        '-f', 'concat', '-safe', '1', '-i', 'partes.txt'];
+    if (datos.musica) {
+        // Ambiente original sintetizado localmente, sin descargas ni pistas de terceros.
+        salida.push('-f', 'lavfi', '-i', 'aevalsrc=0.004*(sin(2*PI*130.81*t)+sin(2*PI*164.81*t)+sin(2*PI*196*t))*(0.7+0.3*sin(2*PI*0.12*t)):s=48000',
+            '-filter_complex', `[1:a]afade=t=in:d=2,afade=t=out:st=${Math.max(0, duracion - 3)}:d=3[m];[0:a][m]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.95:level=false[a]`,
+            '-map', '0:v:0', '-map', '[a]', '-c:a', 'aac', '-b:a', '192k', '-ac', '2');
+    } else salida.push('-map', '0:v:0', '-map', '0:a:0', '-c:a', 'copy');
+    salida.push('-c:v', 'copy', '-movflags', '+faststart', '-t', String(duracion), datos.salida);
+    await ejecutar(datos.ffmpeg, salida, datos.carpeta, null, tiempo => informar('exportacion', 95 + Math.min(1, tiempo / duracion) * 4,
+        'Finalizando audio y optimizando el MP4.', datos.escenas.length, false));
+    await informar('exportacion', 99, 'MP4 generado. Publicando el archivo para descarga.', datos.escenas.length);
 }
 
-(async () => {
-    let entrada = '';
-    process.stdin.setEncoding('utf8');
-    for await (const bloque of process.stdin) entrada += bloque;
-    await generar(JSON.parse(entrada));
-})().catch(error => {
-    console.error(error.stack ?? error.message);
-    process.exitCode = 1;
-});
+if (require.main === module) {
+    (async () => {
+        let entrada = '';
+        process.stdin.setEncoding('utf8');
+        for await (const bloque of process.stdin) entrada += bloque;
+        await generar(JSON.parse(entrada));
+    })().catch(error => {
+        console.error(error.stack ?? error.message);
+        process.exitCode = 1;
+    });
+}
+module.exports = { generar, tarjeta, captar, reportero };

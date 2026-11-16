@@ -1,0 +1,17 @@
+.video-avance{padding:20px;margin:0 0 24px;border:1px solid #94a3b838;border-radius:16px;background:linear-gradient(135deg,#38bdf80b,#818cf80c)}
+.video-avance-cabecera{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;font-size:12px;color:#64748b}
+#video-porcentaje{font-size:28px;line-height:1;color:#0284c7;font-variant-numeric:tabular-nums}
+#video-progreso{display:block;width:100%;height:9px;border:0;border-radius:20px;overflow:hidden;background:#94a3b82b;accent-color:#0284c7}
+#video-progreso::-webkit-progress-bar{background:#94a3b82b;border-radius:20px}
+#video-progreso::-webkit-progress-value{background:linear-gradient(90deg,#0284c7,#22d3ee);border-radius:20px;transition:width .5s ease}
+#video-progreso::-moz-progress-bar{background:#0284c7;border-radius:20px}
+.video-etapas{display:flex;flex-wrap:wrap;gap:8px 12px;padding:16px 0;margin:0;list-style:none;font-size:11px;color:#64748b}
+.video-etapas li{display:flex;align-items:center;gap:5px}
+.video-etapas li:before{content:'';display:block;width:6px;height:6px;border-radius:50%;background:#94a3b866}
+.video-etapas li[data-fase=completa]:before{background:#10b981}
+.video-etapas li[data-fase=actual]{color:#0284c7;font-weight:700}
+.video-etapas li[data-fase=actual]:before{background:#0ea5e9;box-shadow:0 0 0 3px #38bdf822}
+.video-etapas li[data-fase=error]:before{background:#ef4444}
+.dark .video-avance-cabecera,.dark .video-etapas{color:#94a3b8}
+.dark #video-porcentaje,.dark .video-etapas li[data-fase=actual]{color:#38bdf8}
+@media(prefers-reduced-motion:reduce){#video-progreso::-webkit-progress-value{transition:none}}

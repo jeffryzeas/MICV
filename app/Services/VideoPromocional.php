@@ -32,6 +32,7 @@ class VideoPromocional
                     'chrome' => config('micv.pdf.chrome_path'),
                     'sinSandbox' => config('micv.pdf.no_sandbox'),
                     'ffmpeg' => config('micv.video.ffmpeg'),
+                    'musica' => config('micv.video.musica'),
                     'espeak' => config('micv.video.espeak'),
                     'piper' => config('micv.video.piper'),
                     'modeloVoz' => config('micv.video.modelo_voz'),
@@ -90,6 +91,13 @@ class VideoPromocional
                 'profesion' => 'Asistente administrativa',
                 'perfil_profesional' => 'Organizo documentos, doy seguimiento a solicitudes y preparo reportes.',
             ]);
+            // Datos ficticios completos y legibles, sin texto de relleno en el tutorial.
+            $cliente->experiencias[0]->forceFill([
+                'cargo' => 'Asistente administrativa',
+                'descripcion' => 'Organización de documentos, seguimiento de solicitudes y elaboración de reportes con Excel.',
+            ]);
+            $cliente->experiencias[1]->forceFill(['empresa' => 'Comercial de Ejemplo']);
+            $cliente->estudios[1]->forceFill(['institucion' => 'Centro de Formación de Ejemplo']);
             // Los datos de contacto del ejemplo también se omiten de la plantilla final.
             $cliente->referencias->each(fn ($referencia) => $referencia->forceFill(['telefono' => null, 'correo' => null]));
 
