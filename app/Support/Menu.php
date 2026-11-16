@@ -215,6 +215,12 @@ class Menu
                     "label" => "Usuarios",
                 ],
                 [
+                    "id" => "video-promocional",
+                    "url" => route("admin.video-promocional.index"),
+                    "icon" => "video",
+                    "label" => "Video promocional",
+                ],
+                [
                     "id" => "solicitudes",
                     "url" => route("admin.solicitudes.index"),
                     "icon" => "user-x",

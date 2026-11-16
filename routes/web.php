@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\PaisController;
 use App\Http\Controllers\Admin\RecaptchaController;
 use App\Http\Controllers\Admin\SolicitudController;
 use App\Http\Controllers\Admin\UsuarioController;
+use App\Http\Controllers\Admin\VideoPromocionalController;
 use App\Http\Controllers\ArchivoController;
 use App\Http\Controllers\Auth\InstaladorController;
 use App\Http\Controllers\Auth\LoginController;
@@ -736,6 +737,16 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
                     CyberController::class,
                     "destroy",
                 ])->name("cybers.destroy");
+
+                Route::prefix('video-promocional')->name('video-promocional.')->group(function () {
+                    Route::get('/', [VideoPromocionalController::class, 'index'])->name('index');
+                    Route::post('/', [VideoPromocionalController::class, 'store'])
+                        ->middleware('throttle:3,10')->name('store');
+                    Route::get('{video}/estado', [VideoPromocionalController::class, 'estado'])
+                        ->whereUuid('video')->name('estado');
+                    Route::get('{video}/archivo', [VideoPromocionalController::class, 'archivo'])
+                        ->whereUuid('video')->name('archivo');
+                });
 
                 Route::get("usuarios", [
                     UsuarioController::class,

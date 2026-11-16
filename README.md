@@ -1,3 +1,5 @@
+> **Video promocional de Mi CV.** Consulte [LEAME-VIDEO-PROMOCIONAL.md](LEAME-VIDEO-PROMOCIONAL.md) para habilitar el generador.
+
 > **Actualización de la edición web.** Consulte [LEAME-SOLO-WEB.md](LEAME-SOLO-WEB.md) antes de desplegar.
 
 > Registro sencillo y editor de documentos ampliado: consulte **LEAME-EDITOR-DOCUMENTOS.txt** para esta entrega.

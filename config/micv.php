@@ -18,6 +18,13 @@ return [
         'timeout'      => (int) env('MICV_PDF_TIMEOUT', 60),
     ],
 
+    'video' => [
+        'ffmpeg' => env('MICV_VIDEO_FFMPEG', 'ffmpeg'),
+        'espeak' => env('MICV_VIDEO_ESPEAK', 'espeak-ng'),
+        'piper' => env('MICV_VIDEO_PIPER', 'piper'),
+        'modelo_voz' => env('MICV_VIDEO_MODELO_VOZ', ''),
+    ],
+
     // Quitar el fondo de las fotos carné (modelo U²-Net, se descarga con: php artisan micv:modelo-fondo).
     'fondo' => [
         'perfil' => env('MICV_FONDO_PERFIL', 'actual'),
