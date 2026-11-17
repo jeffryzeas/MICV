@@ -20,6 +20,8 @@ return [
 
     'video' => [
         'ffmpeg' => env('MICV_VIDEO_FFMPEG', 'ffmpeg'),
+        'motor_voz' => env('MICV_VIDEO_MOTOR_VOZ', 'auto'),
+        'pocket' => env('MICV_VIDEO_POCKET', storage_path('app/video-voz/bin/pocket-tts')),
         'espeak' => env('MICV_VIDEO_ESPEAK', 'espeak-ng'),
         'piper' => env('MICV_VIDEO_PIPER', 'piper'),
         'modelo_voz' => env('MICV_VIDEO_MODELO_VOZ', ''),

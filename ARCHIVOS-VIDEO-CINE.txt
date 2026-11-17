@@ -1,0 +1,21 @@
+Actualización Video Cine · Archivos incluidos
+
+.env.example
+ARCHIVOS-VIDEO-CINE.txt
+LEAME-VIDEO-CINE.md
+LEAME-VIDEO-PROMOCIONAL.md
+app/Services/VideoPromocional.php
+app/Services/VideosPromocionales.php
+bin/instalar-video-cine.sh
+config/micv.php
+public/js/video-promocional.js
+resources/video-promocional/CREDITOS.txt
+resources/video-promocional/cine.cjs
+resources/video-promocional/configurar-voz.php
+resources/video-promocional/generar.cjs
+resources/video-promocional/timeline.cjs
+resources/video-promocional/valeria.png
+resources/video-promocional/voz.cjs
+resources/views/admin/video-promocional/index.blade.php
+tests/Feature/VideoPromocionalTest.php
+tests/js/video-promocional.test.cjs

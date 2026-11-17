@@ -36,7 +36,7 @@
             else elemento.removeAttribute('aria-current');
         }
         detalle.textContent = actual.escena > 0 ? `Escena ${actual.escena} de ${actual.escenas}` : 'El avance corresponde a las etapas del renderizado.';
-        if (actual.motor_voz) detalle.textContent += actual.motor_voz === 'piper' ? ' · Voz neuronal Piper' : ' · Voz eSpeak NG';
+        if (actual.motor_voz) detalle.textContent += ({pocket:' · Voz neuronal natural',piper:' · Voz neuronal Piper',espeak:' · Voz de respaldo'}[actual.motor_voz] || '');
         if (actual.estado === 'listo') {
             document.getElementById('video-vista').src = actual.vista;
             document.getElementById('video-descarga').href = actual.descarga;

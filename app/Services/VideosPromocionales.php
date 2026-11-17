@@ -39,7 +39,7 @@ class VideosPromocionales
                 'error' => 'No se pudo completar el video. Puede volver a intentarlo.',
                 default => 'Esperando al trabajador de video.',
             },
-            'iniciado' => null, 'escena' => 0, 'escenas' => 10,
+            'iniciado' => null, 'escena' => 0, 'escenas' => VideoPromocional::ESCENAS,
         ];
         $progreso = dirname($ruta).'/progreso.json';
         if ($datos['estado'] === 'procesando' && is_file($progreso)) {
@@ -79,7 +79,7 @@ class VideosPromocionales
             'iniciado' => $anterior['iniciado'] ?? ($estado === 'procesando' ? $ahora : null),
             'etapa' => $etapa, 'porcentaje' => $porcentaje, 'mensaje' => $mensaje,
             'escena' => $anterior['escena'] ?? 0,
-            'escenas' => $anterior['escenas'] ?? 10,
+            'escenas' => $anterior['escenas'] ?? VideoPromocional::ESCENAS,
             'motor_voz' => $anterior['motor_voz'] ?? null,
         ];
         File::replace($carpeta.'/estado.json', json_encode($datos, JSON_THROW_ON_ERROR), 0600);

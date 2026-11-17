@@ -3,7 +3,7 @@
     <div class="page-heading">
         <div>
             <h2 class="page-title">Tutorial para crear un CV</h2>
-            <p class="mt-1 text-sm text-gray-500">Convierta las pantallas actuales de Mi CV en un tutorial vertical con movimiento, voz y subtítulos.</p>
+            <p class="mt-1 text-sm text-gray-500">Un tutorial con CV lateral y foto, narración en español, movimiento por capas y transiciones suaves.</p>
         </div>
     </div>
 
@@ -12,10 +12,10 @@
             <ol class="ml-5 list-decimal space-y-3 text-sm text-gray-700">
                 <li>Abrir la página e iniciar el registro.</li>
                 <li>Crear la cuenta y verificar el correo.</li>
-                <li>Completar los datos, los estudios y la experiencia.</li>
-                <li>Elegir una plantilla y descargar el CV en PDF.</li>
+                <li>Añadir y encuadrar la foto; completar perfil, estudios y experiencia.</li>
+                <li>Elegir Lateral, revisar la vista previa y descargar el PDF con foto.</li>
             </ol>
-            <p class="mt-5 border-t border-gray-200 pt-4 text-sm text-gray-500">Demostración con datos ficticios de Nicaragua. Full HD · 1080 × 1920 · 30 fps. Formularios animados, enfoque guiado, subtítulos por frases y música suave. La voz neuronal se utiliza cuando Piper está configurado.</p>
+            <p class="mt-5 border-t border-gray-200 pt-4 text-sm text-gray-500">Demostración con datos ficticios de Nicaragua. Full HD · 1080 × 1920 · 30 fps. Trece escenas con foto ficticia, formularios animados, composición por capas, subtítulos y ambiente musical original. Pocket TTS se utiliza cuando está instalado; también admite Piper.</p>
 
             @unless($abierto)
                 <p class="mt-3 text-sm font-semibold text-amber-800 dark:text-amber-200">Abra el registro público para generar un tutorial que las personas puedan seguir.</p>

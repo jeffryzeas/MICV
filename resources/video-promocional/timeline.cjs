@@ -42,18 +42,35 @@ function frases(texto, duracion, inicio = 0.25) {
         return dato;
     });
 }
+function partir(texto, limite = 22) {
+    const lineas=[''];
+    for (const palabra of String(texto).split(/\s+/)) {
+        if (lineas.at(-1) && lineas.at(-1).length + palabra.length + 1 > limite) lineas.push('');
+        lineas[lineas.length-1]+=(lineas.at(-1)?' ':'')+palabra;
+    }
+    return lineas.map(limpiarAss).join('\\N');
+}
 function subtitulos(escena, voz, duracion, objetivo) {
-    const eventos = frases(escena.caption ?? escena.voz, voz).map(frase =>
-        `Dialogue: 2,${relojAss(frase.inicio)},${relojAss(frase.fin)},Voz,,0,0,0,,{\\fad(90,80)}${limpiarAss(frase.texto)}`);
-    // Una guía animada sobre la interfaz; no hace clic ni envía formularios.
-    if (objetivo && escena.modo !== 'fin') {
-        const x = Math.round(102 + objetivo.x / 420 * 784);
-        const y = Math.round(532 + objetivo.y / 500 * 934);
-        if (y > 525 && y < 1420) {
-            eventos.push(`Dialogue: 1,0:00:00.35,${relojAss(duracion - 0.3)},Cursor,,0,0,0,,{\\an7\\move(${x + 110},${y + 90},${x},${y},350,1100)\\fad(250,200)\\p1}m 0 0 l 0 38 11 29 19 46 28 42 19 25 34 25{\\p0}`);
-            eventos.push(`Dialogue: 0,0:00:01.25,0:00:02.25,Cursor,,0,0,0,,{\\an5\\pos(${x + 6},${y + 12})\\bord3\\1a&HFF&\\3c&H69E8FF&\\fscx70\\fscy70\\t(0,950,\\fscx150\\fscy150\\3a&HFF&)\\p1}m -22 0 b -22 -30 22 -30 22 0 b 22 30 -22 30 -22 0{\\p0}`);
+    const fin = relojAss(duracion);
+    const eventos = [
+        `Dialogue: 2,0:00:00.00,${fin},Capitulo,,0,0,0,,{\\an7\\move(82,212,82,190,0,650)\\fad(350,150)}${limpiarAss(escena.capitulo || 'GUÍA PASO A PASO')}`,
+        `Dialogue: 2,0:00:00.00,${fin},Titulo,,0,0,0,,{\\an7\\move(78,270,78,233,0,700)\\fad(320,180)}${partir(escena.titulo)}`,
+        `Dialogue: 2,0:00:00.18,${fin},Guia,,0,0,0,,{\\an7\\move(82,418,82,400,0,600)\\fad(350,180)}${partir(escena.subtitulo,56)}`,
+        `Dialogue: 3,0:00:01.20,${relojAss(duracion-.3)},Detalle,,0,0,0,,{\\an5\\move(508,1460,508,1445,0,550)\\fad(350,180)}${limpiarAss(escena.detalle || '')}`,
+    ];
+    for(const frase of frases(escena.caption ?? escena.voz,voz,.55)) {
+        // Resaltado editorial: los tiempos de cada frase se estiman a partir del WAV.
+        const texto=limpiarAss(frase.texto).replace(/\b(foto|Lateral|Español|PDF|Perfil|currículum|Guardar|Descargar)\b/gi,'{\\c&H8BC3DF&}$1{\\c&HFFFFFF&}');
+        eventos.push(`Dialogue: 4,${relojAss(frase.inicio)},${relojAss(frase.fin)},Voz,,0,0,0,,{\\an5\\pos(502,1596)\\fad(90,90)}${texto}`);
+    }
+    if(objetivo && !['hero','vista','fin'].includes(escena.modo)) {
+        const x=Math.round(102+objetivo.x/420*794);
+        const y=Math.round(514+objetivo.y/500*962);
+        if(y>535 && y<1445) {
+            eventos.push(`Dialogue: 3,0:00:00.70,0:00:03.40,Cursor,,0,0,0,,{\\an7\\move(${x+100},${y+65},${x},${y},0,650)\\fad(180,200)\\p1}m 0 0 l 0 38 11 29 19 46 28 42 19 25 34 25{\\p0}`);
+            for(const inicio of [1.4,1.85]) eventos.push(`Dialogue: 2,${relojAss(inicio)},${relojAss(inicio+.7)},Halo,,0,0,0,,{\\an5\\pos(${x+4},${y+10})\\fscx65\\fscy65\\t(0,650,\\fscx180\\fscy180\\alpha&HFF&)\\p1}m -20 0 b -20 -27 20 -27 20 0 b 20 27 -20 27 -20 0{\\p0}`);
         }
     }
-    return `[Script Info]\nScriptType: v4.00+\nPlayResX: 1080\nPlayResY: 1920\nWrapStyle: 0\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: Voz,DejaVu Sans,43,&H00FFFFFF,&H0069E8FF,&H00162336,&H80000000,-1,0,0,0,100,100,0,0,1,1,0,5,125,165,0,1\nStyle: Cursor,DejaVu Sans,30,&H00FFFFFF,&H00FFFFFF,&H00302415,&H00000000,0,0,0,0,100,100,0,0,1,2,2,7,0,0,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n${eventos.map(evento => evento.includes(',Voz,') ? evento.replace('{\\fad', '{\\pos(520,1590)\\fad') : evento).join('\n')}\n`;
+    return `[Script Info]\nScriptType: v4.00+\nPlayResX: 1080\nPlayResY: 1920\nWrapStyle: 0\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\nFormat: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding\nStyle: Titulo,DejaVu Sans,74,&H00FFFFFF,&H008BC3DF,&H00201809,&H00000000,-1,0,0,0,100,100,-2,0,1,0,0,7,80,155,0,1\nStyle: Capitulo,DejaVu Sans,18,&H008BC3DF,&H008BC3DF,&H00201809,&H00000000,-1,0,0,0,100,100,2,0,1,0,0,7,80,155,0,1\nStyle: Guia,DejaVu Sans,25,&H00E0D2C1,&H008BC3DF,&H00201809,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,80,155,0,1\nStyle: Detalle,DejaVu Sans,17,&H008BC3DF,&H008BC3DF,&H00160D03,&H00160D03,-1,0,0,0,100,100,1,0,3,8,0,5,70,155,0,1\nStyle: Voz,DejaVu Sans,42,&H00FFFFFF,&H008BC3DF,&H00162336,&H00000000,-1,0,0,0,100,100,0,0,1,0,0,5,110,185,0,1\nStyle: Cursor,DejaVu Sans,30,&H00FFFFFF,&H00FFFFFF,&H00302415,&H00000000,0,0,0,0,100,100,0,0,1,2,1,7,0,0,0,1\nStyle: Halo,DejaVu Sans,30,&H988BC3DF,&H008BC3DF,&H008BC3DF,&H00000000,0,0,0,0,100,100,0,0,1,1,0,5,0,0,0,1\n\n[Events]\nFormat: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text\n${eventos.join('\n')}\n`;
 }
-module.exports = { duracionWav, relojAss, frases, subtitulos, limpiarAss };
+module.exports = { duracionWav, relojAss, frases, subtitulos, limpiarAss, partir };

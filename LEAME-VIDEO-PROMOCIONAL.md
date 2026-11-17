@@ -1,5 +1,7 @@
 # Video promocional de Mi CV
 
+La actualización Cine con CV lateral, foto y Pocket TTS se instala siguiendo **LEAME-VIDEO-CINE.md**. Esta guía conserva las opciones de cola y la alternativa Piper.
+
 El administrador puede abrir **Video promocional**, pulsar **Generar video** y previsualizar o descargar el MP4. El registro público debe estar abierto. Cada video reproduce las vistas Blade y los recursos vigentes, con la marca del sitio y un perfil ficticio de La Dalia, Matagalpa. La demostración funciona en memoria y no crea usuarios ni envía correos.
 
 ## Activarlo en el VPS

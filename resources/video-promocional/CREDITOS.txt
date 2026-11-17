@@ -1,0 +1,20 @@
+Mi CV · Tutorial Cine
+
+Fotografía de Valeria: personaje ficticio, imagen generada para esta demostración.
+No se empleó la fotografía ni la voz de una cliente real.
+
+Motor de voz Pocket TTS: Kyutai. Código y ejecutable oficial bajo licencia MIT.
+https://github.com/kyutai-labs/pocket-tts
+La licencia del ejecutable se conserva al instalar en storage/app/video-voz/LICENSE-Pocket-TTS.
+
+Modelo de catálogo usado en la prueba sin credenciales: Kyutai,
+pocket-tts-without-voice-cloning, modelo español y voz de catálogo Lola.
+Licencia declarada en la ficha: Creative Commons Attribution 4.0 (CC BY 4.0).
+https://huggingface.co/kyutai/pocket-tts-without-voice-cloning
+https://creativecommons.org/licenses/by/4.0/
+El instalador descarga los modelos oficiales; los pesos no se redistribuyen dentro del ZIP.
+La narración se sintetiza a partir del guion del tutorial. El audio se normaliza y mezcla
+con un ambiente musical original generado mediante síntesis matemática local.
+
+Diseño de CV Lateral: plantilla pro existente del proyecto Mi CV.
+Composición, animación y montaje: actualización de este proyecto.

@@ -7,9 +7,11 @@ use App\Models\Configuracion;
 use App\Models\User;
 use App\Services\VideoPromocional;
 use App\Services\VideosPromocionales;
+use App\Support\Archivos;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -118,6 +120,34 @@ class VideoPromocionalTest extends TestCase
             $error = $videos->actualizar(1, $id, 'error');
             $this->assertSame(99, $error['porcentaje']);
             $this->assertSame('error', $videos->estado(1, $id)['estado']);
+        } finally {
+            File::deleteDirectory($carpeta);
+        }
+    }
+
+    public function test_prepara_cv_lateral_con_foto_sin_crear_cuentas_ni_dejar_fotos_temporales(): void
+    {
+        Storage::fake(Archivos::DISCO);
+        Configuracion::actual()->update(['registro_abierto' => true]);
+        $admin = $this->cuenta('ADMIN-CINE', 'admin');
+        $this->actingAs($admin);
+        $cantidad = User::count();
+        $carpeta = storage_path('framework/testing/cine-'.Str::uuid());
+        File::ensureDirectoryExists($carpeta);
+        try {
+            $metodo = new \ReflectionMethod(VideoPromocional::class, 'prepararEscenas');
+            $datos = $metodo->invoke(app(VideoPromocional::class), $carpeta);
+            $this->assertCount(VideoPromocional::ESCENAS, $datos['escenas']);
+            $this->assertStringStartsWith('data:image/png;base64,', $datos['foto']);
+            $html = File::get($carpeta.'/curriculum.html');
+            $this->assertStringContainsString('<aside class="lat">', $html);
+            $this->assertStringContainsString('<div class="foto-wrap"><img', $html);
+            $this->assertStringContainsString('data:image/png;base64,', $html);
+            $this->assertStringNotContainsString('Lorem ipsum dolor sit amet', $html);
+            $this->assertStringContainsString('const tieneFoto = true', File::get($carpeta.'/panel.html'));
+            $this->assertSame($cantidad, User::count());
+            $this->assertSame($admin->id, auth()->id());
+            $this->assertSame([], Storage::disk(Archivos::DISCO)->allFiles('videos-promocionales'));
         } finally {
             File::deleteDirectory($carpeta);
         }
