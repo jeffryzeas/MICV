@@ -152,6 +152,7 @@ class ClienteGuardar
         }
         if(in_array('datos',$grupos,true)){
             $laboral=\App\Support\SituacionLaboral::validar(array_merge($cliente->getAttributes(),$guardar));
+            $guardar=array_intersect_key($guardar,$laboral);
             $guardar['autorizacion_laboral']=$laboral['autorizacion_laboral']??null;
             $guardar['nacionalidad']=$laboral['nacionalidad'];
             foreach(['linkedin','github','sitio_web'] as $campo)if(array_key_exists($campo,$guardar))$guardar[$campo]=Cliente::limpiarEnlace($guardar[$campo],$campo);

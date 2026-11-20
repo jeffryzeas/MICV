@@ -2,14 +2,15 @@
 $I = fn ($key) => \App\Support\Iconos::svg($key);
 $academicos = $estudios->filter(fn ($e) => $e->nivel !== 'curso');
 $cursos = $estudios->filter(fn ($e) => $e->nivel === 'curso');
+$mostrarLaboral = \App\Support\SituacionLaboral::esExtranjero($c->pais_residencia ?? '', $c->nacionalidad);
 $datosCarta = array_values(array_filter([
     [$lang === 'en' ? 'Document No.' : 'N.º Documento', $c->numero_documento ? $c->documentoFormateado() : null],
     [$t('Fecha de nacimiento'), $c->fecha_nacimiento ? $c->fecha_nacimiento->locale($lang)->translatedFormat($lang === 'en' ? 'F j, Y' : 'j \d\e F \d\e\l Y') . ' · ' . $vt['edad'] : $vt['edad']],
     [$t('Estado civil'), $vt['estado_civil']], [$t('Sexo'), $vt['sexo']], [$t('Nacionalidad'), $vt['nacionalidad']],
-    [$lang === 'en' ? 'Work authorization' : 'Autorización laboral', \App\Support\SituacionLaboral::esExtranjero($c->pais_residencia ?? '', $c->nacionalidad) ? $c->autorizacion_laboral : null],
-    [$lang === 'en' ? 'Availability' : 'Disponibilidad', $c->disponibilidad],
+    [$lang === 'en' ? 'Work authorization' : 'Autorización laboral', $mostrarLaboral ? $c->autorizacion_laboral : null],
+    [$lang === 'en' ? 'Availability' : 'Disponibilidad', $mostrarLaboral ? $c->disponibilidad : null],
 ], fn ($row) => filled($row[1])));
-$cualidades = array_values(array_filter(array_map('trim', explode(',', $c->cualidades ?? ''))));
+$cualidades = array_values(array_filter(array_map('trim', explode(',', $mostrarLaboral ? ($c->cualidades ?? '') : ''))));
 @endphp
 <!DOCTYPE html><html lang="{{ $lang }}"><head><meta charset="utf-8"><title>CV — {{ $c->nombreCompleto() }}</title><style>{!! $fuentesCss !!}
 

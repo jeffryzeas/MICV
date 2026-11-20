@@ -14,6 +14,7 @@
     },
     "scripts": {
         "css": "tailwindcss -c tailwind.config.js -i resources/css/tema.css -o public/css/tema.css --minify",
+        "test:campos-laborales": "node --test tests/js/situacion-laboral.browser.test.cjs",
         "test:video": "node --test tests/js/video-promocional.test.cjs",
         "test:documentos": "node --test tests/js/documentos-core.test.cjs"
     },

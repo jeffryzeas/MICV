@@ -68,7 +68,8 @@
             <div><label class="{{ $lb }}">Habilidades (separadas por coma)</label><input type="text" name="habilidades_texto" value="{{ old('habilidades_texto') }}" placeholder="Ej: Excel, manejo de caja, trabajo en equipo" class="{{ $in }}"></div>
         </fieldset>
 
-        @include('partials.situacion-laboral')<label class="{{ $lb }}">Disponibilidad<input name="disponibilidad" maxlength="255" value="{{ old('disponibilidad') }}" class="{{ $in }}"></label><label class="{{ $lb }}">Cualidades separadas por coma<input name="cualidades" maxlength="255" value="{{ old('cualidades') }}" class="{{ $in }}"></label><details class="group rounded-xl border border-gray-200 p-3" @if(old('estudios')) open @endif>
+        @include('partials.situacion-laboral')
+        <details class="group rounded-xl border border-gray-200 p-3" @if(old('estudios')) open @endif>
             <summary class="font-semibold text-azul-950 flex items-center gap-2 cursor-pointer list-none"><x-icono name="graduation-cap" class="size-5 text-oro-500" /> Estudios <span class="text-xs text-gray-400 font-normal ml-auto">tocar para llenar</span></summary>
             <div class="space-y-3 mt-3" data-lista="estudios" data-max="30">
                 @foreach($estudios as $i => $e)

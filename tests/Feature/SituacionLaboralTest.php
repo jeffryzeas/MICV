@@ -31,4 +31,29 @@ class SituacionLaboralTest extends TestCase
         $this->expectException(ValidationException::class);
         SituacionLaboral::validar(['pais_residencia' => 'OT', 'nacionalidad' => 'Nicaragüense']);
     }
+    public function test_coincidencia_de_pais_omite_campos_ocultos_del_guardado(): void
+    {
+        foreach ([['NI', ' NICARAGUENSE '], ['CR', 'Costarricense'], ['ES', 'Española']] as [$pais, $nacionalidad]) {
+            $datos = SituacionLaboral::validar([
+                'pais' => 'PA', 'pais_residencia' => $pais, 'nacionalidad' => $nacionalidad,
+                'autorizacion_laboral' => 'Permiso anterior',
+                'disponibilidad' => 'Disponibilidad anterior', 'cualidades' => 'Puntual, responsable',
+            ]);
+            $this->assertNull($datos['autorizacion_laboral']);
+            $this->assertArrayNotHasKey('disponibilidad', $datos);
+            $this->assertArrayNotHasKey('cualidades', $datos);
+            $this->assertSame('PA', $datos['pais']);
+        }
+    }
+
+    public function test_residencia_distinta_conserva_la_declaracion_y_los_complementos(): void
+    {
+        $datos = SituacionLaboral::validar([
+            'pais' => 'CR', 'pais_residencia' => 'CR', 'nacionalidad' => 'Nicaragüense',
+            'autorizacion_laboral' => 'Cuento con permiso de trabajo vigente.',
+            'disponibilidad' => 'Disponibilidad inmediata.', 'cualidades' => 'Puntual, responsable',
+        ]);
+        $this->assertSame('Disponibilidad inmediata.', $datos['disponibilidad']);
+        $this->assertSame('Puntual, responsable', $datos['cualidades']);
+    }
 }

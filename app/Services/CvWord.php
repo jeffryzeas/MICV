@@ -18,6 +18,9 @@ class CvWord
         $d = CvDatos::armar($c, $esAts?'ats':'pro', null, $conFoto, $u, $lang);
         $t = $d['t'];
         $vt = $d['vt'];
+        $laborales = \App\Support\SituacionLaboral::esExtranjero($c->pais_residencia ?? '', $c->nacionalidad)
+            ? [['Autorización laboral', $c->autorizacion_laboral], ['Disponibilidad', $c->disponibilidad], ['Cualidades', $c->cualidades]]
+            : [];
 
         $foto = null;
         if ($conFoto && Archivos::existe($c->foto)) {
@@ -51,7 +54,7 @@ class CvWord
             ])->values()->all(),
             'habilidades' => $d['habilidades']->pluck('habilidad')->filter()->values()->all(),
             'idiomas' => $d['idiomas']->map(fn ($x) => ['nombre' => $x->nombre($lang), 'nivel' => $x->nivelTexto($lang), 'puntos' => max(0, min(5, (int) $x->puntos()))])->values()->all(),
-            'personales' => array_values(array_map(fn ($f) => [$f[0], (string) $f[1]], array_merge($d['datosPro'], array_filter([['Autorización laboral', \App\Support\SituacionLaboral::esExtranjero($c->pais_residencia ?? '', $c->nacionalidad) ? $c->autorizacion_laboral : null], ['Disponibilidad', $c->disponibilidad], ['Cualidades', $c->cualidades]], fn ($f) => filled($f[1]))))),
+            'personales' => array_values(array_map(fn ($f) => [$f[0], (string) $f[1]], array_merge($d['datosPro'], array_filter($laborales, fn ($f) => filled($f[1]))))),
             'referencias' => $d['referencias']->map(fn ($r) => [
                 'nombre' => $r->nombreConTratamiento(),
                 'detalle' => implode(' · ', array_filter([$r->detalle, $r->telefono ? $t('Tel.') . ' ' . $r->telefono : null, $r->correo])),

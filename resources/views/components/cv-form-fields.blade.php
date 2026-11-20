@@ -38,7 +38,11 @@
     if (empty($habilidades)) { $habilidades = ['']; }
 @endphp
 
-<div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Datos laborales"><h3>Datos laborales y cualidades</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-3">@include('partials.situacion-laboral')<label>Disponibilidad<input type="text" name="disponibilidad" maxlength="255" value="{{ old('disponibilidad', $cliente->disponibilidad) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></label><label>Cualidades (separadas por coma)<input type="text" name="cualidades" maxlength="255" value="{{ old('cualidades', $cliente->cualidades) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"></label></div><p class="text-xs text-gray-500">Disponibilidad y cualidades son opcionales. Los cursos se agregan en Estudios eligiendo nivel Curso. Use Detalle para indicar semestre, avance u otra información académica.</p></div>
+<div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Datos laborales">
+    <h3>Datos laborales y cualidades</h3>
+    @include('partials.situacion-laboral')
+    <p class="mt-3 text-xs text-gray-500">Los cursos se agregan en Estudios eligiendo nivel Curso. Use Detalle para indicar semestre, avance u otra información académica.</p>
+</div>
 {{-- ========== PERFIL PROFESIONAL ========== --}}
 <div class="jz-seccion border-t border-gray-200 pt-5 mt-5" data-titulo="Perfil" id="sec-perfil">
     <h3 class="text-sm font-bold uppercase text-azul-800 flex items-center gap-2 mb-2">

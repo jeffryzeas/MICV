@@ -63,6 +63,8 @@ class SituacionLaboral
         } else {
             // Un cambio de nacionalidad/residencia no debe dejar un permiso anterior en el CV.
             $datos['autorizacion_laboral'] = null;
+            // Los campos ocultos no forman parte de esta actualización.
+            unset($datos['disponibilidad'], $datos['cualidades']);
         }
         return $datos;
     }
