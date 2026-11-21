@@ -1,44 +1,30 @@
 @php $esAdmin = auth()->user()->esAdmin(); @endphp
 <x-layout :titulo="$esAdmin ? 'Clientes y usuarios registrados' : 'Lista de clientes'" activo="clientes">
 
-    <x-exportar :ruta="route('clientes.exportar')"/>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-oro-500">
-            <div class="text-xs uppercase font-bold text-azul-800">Total</div>
-            <div class="text-2xl font-bold text-azul-950 mt-1">{{ $total }}</div>
-        </div>
-        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-blue-400">
-            <div class="text-xs uppercase font-bold text-azul-800">Hombres</div>
-            <div class="text-2xl font-bold text-azul-950 mt-1">{{ $totalHombres }}</div>
-        </div>
-        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-pink-400">
-            <div class="text-xs uppercase font-bold text-azul-800">Mujeres</div>
-            <div class="text-2xl font-bold text-azul-950 mt-1">{{ $totalMujeres }}</div>
-        </div>
-        <a href="{{ route('clientes.create') }}" class="bg-azul-800 hover:bg-oro-500 transition-colors rounded-xl shadow p-4 text-white flex items-center gap-3">
-            <x-icono name="user-plus" class="size-6" /><span class="font-semibold text-sm">Registrar cliente</span>
-        </a>
-    </div>
-
-    <div class="bg-white rounded-xl shadow p-6">
-        <form method="GET" class="flex flex-wrap gap-3 items-end mb-5">
-            <div class="flex-1 min-w-[200px] relative">
-                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Buscar</label>
-                <x-icono name="search" class="absolute left-3 top-[34px] size-4 text-gray-400" />
-                <input type="search" name="q" value="{{ $q }}" placeholder="Documento, nombre, correo o teléfono" class="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2.5">
+    <div class="gestion gestion-clientes">
+    <header class="page-heading">
+        <div><h2 class="page-title">{{ $esAdmin ? 'Clientes y usuarios' : 'Clientes' }}</h2><p class="mt-1 text-sm text-gray-500">Fichas personales y currículums registrados.</p></div>
+        <div class="gestion-actions"><details class="gestion-export"><summary class="btn btn-sec"><x-icono name="download" class="size-4"/>Exportar</summary><x-exportar :ruta="route('clientes.exportar')"/></details><x-ui.button :href="route('clientes.create')" icon="user-plus">Registrar cliente</x-ui.button></div>
+    </header>
+    <dl class="gestion-totals"><div><dt>Total</dt><dd>{{ $total }}</dd></div><div><dt>Hombres</dt><dd>{{ $totalHombres }}</dd></div><div><dt>Mujeres</dt><dd>{{ $totalMujeres }}</dd></div></dl>
+    <div class="gestion-filters">
+        <form method="GET" class="gestion-client-filters">
+            <div class="gestion-search">
+                <label class="label-campo" for="clientes-q">Buscar</label>
+                <input type="search" id="clientes-q" name="q" value="{{ $q }}" placeholder="Documento, nombre, correo o teléfono" class="campo">
             </div>
-            <div class="min-w-[150px]">
-                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Sexo</label>
-                <select name="sexo" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
+            <div>
+                <label class="label-campo" for="clientes-sexo">Sexo</label>
+                <select id="clientes-sexo" name="sexo" class="campo">
                     <option value="">Todos</option>
                     <option value="M" @selected($sexo === 'M')>Masculino</option>
                     <option value="F" @selected($sexo === 'F')>Femenino</option>
                     <option value="O" @selected($sexo === 'O')>Otro</option>
                 </select>
             </div>
-            <div class="min-w-[180px]">
-                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Tipo de documento</label>
-                <select name="tipo_documento" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
+            <div>
+                <label class="label-campo" for="clientes-tipo_documento">Tipo de documento</label>
+                <select id="clientes-tipo_documento" name="tipo_documento" class="campo">
                     <option value="">Todos</option>
                     @foreach(\App\Support\Pais::todos() as $pc => $pd)
                         <optgroup label="{{ $pd['nombre'] }}">
@@ -50,9 +36,9 @@
                 </select>
             </div>
             @if($esAdmin)
-            <div class="min-w-[180px]">
-                <label class="block text-xs font-semibold uppercase text-azul-800 mb-1">Negocio</label>
-                <select name="cyber_id" class="w-full border border-gray-300 rounded-lg px-3 py-2.5">
+            <div>
+                <label class="label-campo" for="clientes-cyber_id">Negocio</label>
+                <select id="clientes-cyber_id" name="cyber_id" class="campo">
                     <option value="">Todos</option>
                     @foreach($cybers as $cy)
                         <option value="{{ $cy->id }}" @selected($cyberId === (string) $cy->id)>{{ $cy->nombre }}</option>
@@ -60,7 +46,7 @@
                 </select>
             </div>
             @endif
-            <button type="submit" class="inline-flex items-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors">
+            <button type="submit" class="btn btn-pri">
                 <x-icono name="search" class="size-4" /> Buscar
             </button>
             @if($q !== '' || $sexo !== '' || $tipoDoc !== '' || $cyberId !== '')
@@ -68,13 +54,17 @@
             @endif
         </form>
 
-        <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+    </div>
+    <section class="gestion-surface" aria-label="Listado de clientes">
+        <div class="gestion-section-heading"><h3>Clientes registrados <span class="gestion-count">{{ $clientes->total() }}</span></h3></div>
+        <p class="gestion-scroll-hint">Deslice la tabla para ver todas las columnas y acciones.</p>
+        <div class="gestion-table-scroll" role="region" aria-label="Clientes y sus fichas" tabindex="0">
+        <table class="gestion-table">
             <thead>
-                <tr class="text-left text-xs uppercase text-gray-500 border-b">
-                    <th class="py-2 pr-3">Documento</th><th class="py-2 pr-3">Nombre</th><th class="py-2 pr-3">Edad</th><th class="py-2 pr-3">Municipio</th>
-                    @if($esAdmin)<th class="py-2 pr-3">Negocio</th>@endif
-                    <th class="py-2"></th>
+                <tr>
+                    <th scope="col">Documento</th><th scope="col">Nombre</th><th scope="col">Edad</th><th scope="col">Municipio</th>
+                    @if($esAdmin)<th scope="col">Negocio</th>@endif
+                    <th scope="col" class="gestion-actions-heading">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -99,7 +89,7 @@
                     @if($esAdmin)
                         <td class="py-2.5 pr-3 text-xs">{{ $c->cybers->pluck('nombre')->implode(', ') ?: '—' }}</td>
                     @endif
-                    <td class="py-2.5 whitespace-nowrap">
+                    <td class="gestion-row-actions">
                         <a href="{{ route('clientes.show', $c) }}" class="inline-flex items-center gap-1 text-xs font-semibold text-oro-700 hover:text-oro-800">
                             <x-icono name="id-card" class="size-3.5" /> Ver ficha
                         </a>
@@ -112,11 +102,12 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="6" class="py-6 text-center text-gray-400">Sin resultados.</td></tr>
+                <tr><td colspan="{{ $esAdmin ? 6 : 5 }}" class="gestion-empty">Sin resultados.</td></tr>
             @endforelse
             </tbody>
         </table>
         </div>
-        @include('partials.paginacion', ['p' => $clientes])
+        <div class="gestion-pagination">@include('partials.paginacion', ['p' => $clientes])</div>
+    </section>
     </div>
 </x-layout>

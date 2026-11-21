@@ -1,7 +1,47 @@
 <x-layout titulo="Correos de clientes" activo="correos">
-<div class="w-full space-y-6"><header class="page-heading"><div><h1 class="page-title flex items-center gap-2"><x-icono name="mail" class="size-5"/>Correos de clientes</h1><p class="mt-1 text-sm text-gray-500">Consulte los registros y sus comprobantes.</p></div><x-ui.button :href="route('correos.create')" icon="mail-plus">Registrar correo</x-ui.button></header>
-@if(session('exito'))<p role="status" class="p-4 bg-green-50 rounded-xl">{{ session('exito') }}</p>@endif
-@if($errors->any())<div role="alert" class="p-4 bg-red-50 rounded-xl">@foreach($errors->all() as $e)<p>{{ $e }}</p>@endforeach</div>@endif
+    <div class="gestion">
+        <header class="page-heading">
+            <div>
+                <h2 class="page-title">Correos de clientes</h2>
+                <p class="mt-1 text-sm text-gray-500">Cuentas registradas y comprobantes de entrega.</p>
+            </div>
+            <x-ui.button :href="route('correos.create')" icon="plus">Registrar correo</x-ui.button>
+        </header>
+        @if(session('exito'))<p role="status" class="gestion-notice gestion-notice-success">{{ session('exito') }}</p>@endif
 
-<section class="bg-white rounded-2xl border p-6"><h2 class="text-xl font-bold mb-4">Registros</h2><form class="flex gap-2 mb-4"><input class="campo w-full" name="q" value="{{ request('q') }}" placeholder="Buscar correo, primer nombre o documento"><button class="btn btn-sec"><x-icono name="search"/>Buscar</button></form><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left border-b"><th class="p-3">Cliente</th><th>Correo</th><th>Proveedor</th><th>Fecha</th><th></th></tr></thead><tbody>@forelse($registros as $registro)<tr class="border-b"><td class="p-3">{{ $registro->cliente->nombreCompleto() }}</td><td>{{ $registro->correo }}</td><td>{{ $registro->proveedor }}</td><td>{{ $registro->created_at->timezone('America/Costa_Rica')->format('d/m/Y H:i') }}</td><td><a class="btn btn-sec" href="{{ route('correos.ver',$registro) }}">Ver comprobante</a></td></tr>@empty<tr><td colspan="5" class="p-4">Aún no hay correos registrados.</td></tr>@endforelse</tbody></table></div><div class="mt-4">{{ $registros->links() }}</div></section></div>
+        <section class="gestion-surface" aria-labelledby="correos-resultados">
+            <div class="gestion-list-toolbar">
+                <h3 id="correos-resultados">Registros <span class="gestion-count">{{ $registros->total() }}</span></h3>
+                <form method="GET" action="{{ route('correos.index') }}" class="gestion-search-form" role="search">
+                    <label for="correos-buscar" class="sr-only">Buscar correo, primer nombre o documento</label>
+                    <input id="correos-buscar" type="search" class="campo" name="q" value="{{ request('q') }}" placeholder="Correo, primer nombre o documento">
+                    <x-ui.button type="submit" variant="secondary" icon="search">Buscar</x-ui.button>
+                    @if(request()->filled('q'))<a class="gestion-link" href="{{ route('correos.index') }}">Limpiar</a>@endif
+                </form>
+            </div>
+            <p class="gestion-scroll-hint">Deslice la tabla para ver todas las columnas y acciones.</p>
+        <div class="gestion-table-scroll" role="region" aria-label="Correos registrados" tabindex="0">
+                <table class="gestion-table">
+                    <thead><tr><th scope="col">Cliente</th><th scope="col">Correo</th><th scope="col">Proveedor</th><th scope="col">Registro</th><th scope="col" class="gestion-actions-heading">Comprobante</th></tr></thead>
+                    <tbody>
+                        @forelse($registros as $registro)
+                            <tr>
+                                <td class="font-semibold">{{ $registro->cliente->nombreCompleto() }}</td>
+                                <td>{{ $registro->correo }}</td>
+                                <td>{{ $registro->proveedor }}</td>
+                                <td><time datetime="{{ $registro->created_at->toIso8601String() }}">{{ $registro->created_at->timezone('America/Costa_Rica')->format('d/m/Y H:i') }}</time></td>
+                                <td class="gestion-row-actions"><a class="gestion-link" href="{{ route('correos.ver', $registro) }}" aria-label="Ver comprobante de {{ $registro->correo }}">Ver comprobante <x-icono name="chevron-right" class="size-4"/></a></td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="5" class="gestion-empty">
+                                <p class="font-semibold">{{ request()->filled('q') ? 'No se encontraron correos con esa búsqueda.' : 'Aún no hay correos registrados.' }}</p>
+                                <a class="gestion-link mt-2" href="{{ request()->filled('q') ? route('correos.index') : route('correos.create') }}">{{ request()->filled('q') ? 'Ver todos los registros' : 'Registrar el primer correo' }}</a>
+                            </td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if($registros->hasPages())<div class="gestion-pagination">{{ $registros->links() }}</div>@endif
+        </section>
+    </div>
 </x-layout>

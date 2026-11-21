@@ -1,7 +1,8 @@
 <x-layout titulo="Usuarios" activo="usuarios">
+    <div class="gestion">
     <div class="page-heading">
         <div>
-            <h2 class="page-title">Cuentas del sistema</h2>
+            <h2 class="page-title">Usuarios</h2>
             <p class="mt-1 text-sm text-gray-500">Administre el acceso de administradores, equipos de negocio y clientes.</p>
         </div>
         <x-ui.button :href="route('admin.usuarios.create', $cyberId !== '' ? ['cyber_id' => $cyberId] : [])" icon="user-plus" class="w-full sm:w-auto">
@@ -9,9 +10,9 @@
         </x-ui.button>
     </div>
 
-    <x-ui.panel title="Buscar y filtrar" icon="list-filter" class="mb-5">
-        <form method="GET" action="{{ route('admin.usuarios.index') }}" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <x-ui.field label="Buscar" for="usuarios-buscar" class="sm:col-span-2 xl:col-span-4">
+    <section class="gestion-filters" aria-label="Buscar y filtrar usuarios">
+        <form method="GET" action="{{ route('admin.usuarios.index') }}" class="gestion-filter-grid">
+            <x-ui.field label="Buscar" for="usuarios-buscar" class="gestion-search">
                 <input id="usuarios-buscar" type="search" name="q" value="{{ $buscar }}" placeholder="Nombre, usuario o correo" maxlength="150" class="campo">
             </x-ui.field>
             <x-ui.field label="Negocio" for="usuarios-negocio">
@@ -44,28 +45,34 @@
                     <option value="pendiente" @selected($verificacion === 'pendiente')>Pendiente de verificar</option>
                 </select>
             </x-ui.field>
-            <div class="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-4">
+            <div class="gestion-filter-actions">
                 <x-ui.button type="submit" icon="search">Buscar</x-ui.button>
                 @if($hayFiltros)
                     <x-ui.button :href="route('admin.usuarios.index')" variant="secondary" icon="x">Limpiar filtros</x-ui.button>
                 @endif
             </div>
         </form>
-    </x-ui.panel>
+    </section>
 
-    <x-ui.panel :title="$usuarios->total() === 1 ? '1 cuenta' : $usuarios->total().' cuentas'" icon="users">
-        <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+    <section class="gestion-surface" aria-labelledby="usuarios-resultados">
+        <div class="gestion-section-heading"><h3 id="usuarios-resultados">Cuentas registradas <span class="gestion-count">{{ $usuarios->total() }}</span></h3></div>
+        <p class="gestion-scroll-hint">Deslice la tabla para ver todas las columnas y acciones.</p>
+        <div class="gestion-table-scroll" role="region" aria-label="Cuentas de usuario" tabindex="0">
+        <table class="gestion-table">
+            <thead><tr><th scope="col">Usuario</th><th scope="col">Rol y negocio</th><th scope="col">Estado y acceso</th><th scope="col" class="gestion-actions-heading">Acciones</th></tr></thead>
+            <tbody>
             @forelse($usuarios as $cuenta)
-                <li class="grid items-start gap-x-4 gap-y-3 py-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)_minmax(0,1.2fr)_auto]">
-                    <div class="flex min-w-0 items-start gap-3">
-                        <span aria-hidden="true" class="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-azul-800 dark:bg-gray-700">{{ $cuenta->iniciales() }}</span>
+                <tr>
+                    <td>
+                    <div class="min-w-0">
                         <div class="min-w-0 break-words text-sm">
                             <h3 class="font-semibold text-azul-950">{{ $cuenta->name }}</h3>
                             <p class="text-gray-700">{{ $cuenta->usuario }} @if($cuenta->is(auth()->user()))<span class="text-xs text-gray-500">· Su cuenta</span>@endif</p>
                             <p class="mt-1 text-gray-500">{{ $cuenta->email }}</p>
                         </div>
                     </div>
-                    <div class="min-w-0 break-words text-sm">
+                    </td>
+                    <td>
                         @if($cuenta->esCliente())
                             <p class="font-semibold text-gray-800">Cliente</p>
                             @if($cuenta->cliente?->cybers->isNotEmpty())
@@ -78,10 +85,10 @@
                         @else
                             <p class="font-semibold text-gray-800">{{ $cuenta->rolLegible() }}</p>
                         @endif
-                    </div>
-                    <div class="min-w-0 space-y-1.5 text-xs">
+                    </td>
+                    <td class="gestion-state">
                         <span @class([
-                            'inline-flex rounded-full px-2 py-1 font-semibold',
+                            'gestion-status',
                             'bg-emerald-50 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200' => $cuenta->activo,
                             'bg-gray-100 text-gray-700 dark:bg-gray-700' => !$cuenta->activo,
                         ])>{{ $cuenta->activo ? 'Activo' : 'Inactivo' }}</span>
@@ -97,14 +104,14 @@
                                 · Nunca
                             @endif
                         </p>
-                    </div>
-                    <div class="min-w-0">
+                    </td>
+                    <td class="gestion-row-actions">
                         <div class="flex flex-wrap items-start gap-2 sm:justify-end">
                             <x-ui.button :href="route('admin.usuarios.edit', $cuenta)" variant="secondary" icon="pencil" :aria-label="'Editar a '.$cuenta->name">Editar</x-ui.button>
                         </div>
                         @unless($cuenta->is(auth()->user()))
-                            <details class="mt-2 text-sm sm:text-right">
-                                <summary class="cursor-pointer rounded-lg px-2 py-2 font-medium text-azul-800 focus-visible:outline-azul-800" aria-label="Más acciones para {{ $cuenta->name }}">Más acciones</summary>
+                            <details class="gestion-more">
+                                <summary aria-label="Más acciones para {{ $cuenta->name }}">Más acciones</summary>
                                 <div class="mt-2 grid justify-items-start gap-2 sm:justify-items-end">
                                     @if($cuenta->esCliente() && !$cuenta->verificado())
                                         <form method="POST" action="{{ route('admin.usuarios.verificar', $cuenta) }}" data-confirmar="¿Marcar como verificado el correo {{ $cuenta->email }}?">
@@ -126,25 +133,27 @@
                                 </div>
                             </details>
                         @endunless
-                    </div>
-                </li>
+                    </td>
+                </tr>
             @empty
-                <li class="py-8 text-center">
+                <tr><td colspan="4" class="gestion-empty">
                     <x-icono :name="$hayFiltros ? 'search-x' : 'users'" class="mb-2 size-8 text-gray-500" />
                     <p class="font-semibold text-azul-950">{{ $hayFiltros ? 'Ninguna cuenta coincide con los filtros' : 'Aún no hay usuarios' }}</p>
                     @if($hayFiltros)
                         <x-ui.button :href="route('admin.usuarios.index')" variant="secondary" class="mt-4">Ver todas las cuentas</x-ui.button>
                     @endif
-                </li>
+                </td></tr>
             @endforelse
-        </ul>
+            </tbody>
+        </table></div>
 
         @if($usuarios->hasPages())
             <div class="border-t border-gray-200 pt-2">
                 @include('partials.paginacion', ['p' => $usuarios])
             </div>
         @endif
-    </x-ui.panel>
+    </section>
+    </div>
 
     @push('scripts')
         <script>

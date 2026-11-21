@@ -1,5 +1,36 @@
-<x-layout titulo="Comprobante de correo" activo="correos"><div class="w-full space-y-6"><a class="btn btn-sec" href="{{ route('correos.index') }}"><x-icono name="arrow-left"/>Volver a correos</a>@if(session('exito'))<p role="status">{{ session('exito') }}</p>@endif @if($errors->any())<div role="alert">@foreach($errors->all() as $e)<p>{{ $e }}</p>@endforeach</div>@endif
-<div class="bg-white border rounded-2xl p-6 space-y-4"><h1 class="text-2xl font-bold">{{ $correo->cliente->nombreCompleto() }}</h1><p class="text-xl break-all">{{ $correo->correo }}</p><p>{{ $correo->proveedor }} · {{ $correo->celular }} · {{ \App\Support\Pais::de($correo->pais)['nombre'] }}</p><p>Registrado: {{ $correo->created_at->timezone('America/Costa_Rica')->format('d/m/Y H:i') }} (Costa Rica, UTC−06:00)</p><p class="bg-amber-50 border rounded-xl p-4">El PDF incluye la contraseña del correo. Entréguelo únicamente al titular. El QR contiene nombre, correo, contraseña, celular y proveedor para que el titular escanee y guarde sus datos. No comparta la hoja ni su QR. Recomiende cambiarla después de la entrega.</p><a class="btn btn-pri" href="{{ route('correos.pdf',$correo) }}"><x-icono name="file-down"/>Descargar comprobante · Carta</a>
-@if(auth()->user()->tienePermiso('clientes.editar'))<a class="btn btn-sec" href="{{ route('clientes.edit',$correo->cliente) }}">Completar ficha y CV</a>@endif
-@if(auth()->user()->esAdmin() || (auth()->user()->esEncargado() && auth()->user()->tienePermiso('clientes.acceso')))<a class="btn btn-sec" href="{{ route('clientes.acceso',$correo->cliente) }}">Acceso del cliente a la plataforma</a>@endif
-</div><form method="POST" action="{{ route('correos.actualizar',$correo) }}" class="bg-white border rounded-2xl p-6 space-y-4">@csrf @method('PUT')<h2 class="font-bold text-xl">Actualizar los datos del correo</h2><label class="block">Celular vinculado<input class="campo w-full" type="tel" name="celular" required maxlength="40" value="{{ old('celular',$correo->celular) }}"></label><label class="block">Nueva contraseña del correo<input class="campo w-full" type="password" name="clave_correo" autocomplete="new-password" required maxlength="256"></label><button class="btn btn-sec"><x-icono name="save"/>Guardar actualización</button></form></div></x-layout>
+<x-layout titulo="Comprobante de correo" activo="correos">
+    <div class="gestion">
+        <header class="page-heading">
+            <div><h2 class="page-title">Comprobante de correo</h2><p class="mt-1 text-sm text-gray-500">{{ $correo->cliente->nombreCompleto() }}</p></div>
+            <x-ui.button :href="route('correos.index')" variant="secondary" icon="arrow-left">Volver a correos</x-ui.button>
+        </header>
+        @if(session('exito'))<p role="status" class="gestion-notice gestion-notice-success">{{ session('exito') }}</p>@endif
+        <div class="gestion-detail-grid">
+            <section class="gestion-surface gestion-form-section" aria-labelledby="correo-detalle">
+                <h3 id="correo-detalle">Cuenta registrada</h3>
+                <dl class="gestion-description">
+                    <div><dt>Correo</dt><dd class="break-all">{{ $correo->correo }}</dd></div>
+                    <div><dt>Proveedor</dt><dd>{{ $correo->proveedor }}</dd></div>
+                    <div><dt>Celular vinculado</dt><dd>{{ $correo->celular }}</dd></div>
+                    <div><dt>País</dt><dd>{{ \App\Support\Pais::de($correo->pais)['nombre'] }}</dd></div>
+                    <div><dt>Registrado</dt><dd>{{ $correo->created_at->timezone('America/Costa_Rica')->format('d/m/Y H:i') }} (Costa Rica)</dd></div>
+                </dl>
+                <p class="gestion-notice gestion-notice-warning">El PDF y el QR incluyen la contraseña. El QR contiene nombre, correo, contraseña, celular y proveedor. Entregue la hoja únicamente al titular, no la comparta y recomiende cambiar la contraseña después de la entrega.</p>
+                <div class="gestion-actions"><x-ui.button :href="route('correos.pdf', $correo)" icon="file-down">Descargar comprobante · Carta</x-ui.button></div>
+                <div class="gestion-related-links">
+                    @if(auth()->user()->tienePermiso('clientes.editar'))<a class="gestion-link" href="{{ route('clientes.edit',$correo->cliente) }}">Completar ficha y CV</a>@endif
+                    @if(auth()->user()->esAdmin() || (auth()->user()->esEncargado() && auth()->user()->tienePermiso('clientes.acceso')))<a class="gestion-link" href="{{ route('clientes.acceso',$correo->cliente) }}">Acceso del cliente a la plataforma</a>@endif
+                </div>
+            </section>
+            <form method="POST" action="{{ route('correos.actualizar',$correo) }}" class="gestion-surface gestion-form-section">
+                @csrf @method('PUT')
+                <h3>Actualizar datos</h3>
+                <div class="space-y-4">
+                    <x-ui.field label="Celular vinculado" for="correo-celular"><input id="correo-celular" class="campo" type="tel" name="celular" required maxlength="40" value="{{ old('celular',$correo->celular) }}"></x-ui.field>
+                    <x-ui.field label="Nueva contraseña del correo" for="correo-nueva-clave"><input id="correo-nueva-clave" class="campo" type="password" name="clave_correo" autocomplete="new-password" required maxlength="256"></x-ui.field>
+                    <x-ui.button type="submit" icon="check">Guardar actualización</x-ui.button>
+                </div>
+            </form>
+        </div>
+    </div>
+</x-layout>

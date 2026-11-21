@@ -11,6 +11,7 @@
 @endphp
 
 <x-layout :titulo="$editando ? 'Editar usuario' : 'Crear usuario'" activo="usuarios">
+    <div class="gestion">
     <div class="page-heading">
         <div class="min-w-0">
             <h2 class="page-title break-words">{{ $editando ? $usuario->name : 'Nueva cuenta' }}</h2>
@@ -19,11 +20,11 @@
         <x-ui.button :href="$lista" variant="secondary" icon="arrow-left">Volver a usuarios</x-ui.button>
     </div>
 
-    <form id="form-usuario" method="POST" action="{{ $editando ? route('admin.usuarios.update', $usuario) : route('admin.usuarios.store') }}" class="max-w-4xl space-y-4">
+    <form id="form-usuario" method="POST" action="{{ $editando ? route('admin.usuarios.update', $usuario) : route('admin.usuarios.store') }}" class="gestion-form gestion-surface">
         @csrf
         @if($editando) @method('PUT') @endif
 
-        <x-ui.panel title="Datos de la cuenta" icon="user-round">
+        <x-ui.panel title="Datos de la cuenta" class="gestion-form-section">
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-ui.field label="Nombre completo" for="usuario-nombre" error="name" class="sm:col-span-2">
                     <input id="usuario-nombre" name="name" value="{{ $valorAnterior('name', $usuario->name) }}" required maxlength="150" autocomplete="name" class="campo" @error('name') aria-invalid="true" aria-describedby="usuario-nombre-error" @enderror>
@@ -38,7 +39,7 @@
             </div>
         </x-ui.panel>
 
-        <x-ui.panel title="Rol y permisos" icon="shield-check">
+        <x-ui.panel title="Rol y permisos" class="gestion-form-section">
             @if($usuario->esCliente())
                 <input type="hidden" name="rol" value="cliente">
                 <x-permisos-cliente :usuario="$usuario"/>
@@ -86,7 +87,7 @@
             @endif
         </x-ui.panel>
 
-        <x-ui.panel title="Contraseña y estado" icon="key-round">
+        <x-ui.panel title="Contraseña y estado" class="gestion-form-section">
             <div class="grid gap-4 sm:grid-cols-2">
                 <x-ui.field :label="$editando ? 'Nueva contraseña' : 'Contraseña'" for="usuario-clave" error="password"
                     :hint="$editando ? 'Deje el campo vacío para conservar la contraseña actual.' : 'Use al menos 8 caracteres.'">
@@ -106,11 +107,12 @@
             </div>
         </x-ui.panel>
 
-        <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <div class="gestion-form-footer">
             <x-ui.button :href="$lista" variant="secondary">Cancelar</x-ui.button>
             <x-ui.button type="submit" :icon="$editando ? 'check' : 'user-plus'">{{ $editando ? 'Guardar cambios' : 'Crear usuario' }}</x-ui.button>
         </div>
     </form>
+    </div>
 
     @unless($usuario->esCliente())
         @push('scripts')
