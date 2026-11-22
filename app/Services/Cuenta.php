@@ -87,6 +87,9 @@ class Cuenta
                     ],
                 )
                 ->all(),
+            "gmail_postulaciones" => Schema::hasTable('gmail_cuentas') ? \App\Models\GmailCuenta::where('user_id',$u->id)->first()?->only(['correo','nombre','activo','verificada_en']) : null,
+            "empresas_postulaciones" => Schema::hasTable('postulacion_empresas') ? \App\Models\PostulacionEmpresa::where('user_id',$u->id)->get()->toArray() : [],
+            "postulaciones" => Schema::hasTable('postulaciones') ? \App\Models\Postulacion::visibles($u)->get()->toArray() : [],
             "tiene_foto" => (bool) $c?->tieneFoto(),
         ];
     }

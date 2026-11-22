@@ -181,6 +181,8 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
             "dashboard",
         );
 
+        require __DIR__.'/postulaciones.php';
+
         Route::get('municipios-nicaragua',[\App\Http\Controllers\MunicipioNicaraguaController::class,'index'])->name('municipios.index')->middleware('rol:admin');
         Route::prefix('contabilidad')->name('contabilidad.')->middleware('rol:admin,cyber')->group(function(){
             $c=\App\Http\Controllers\ContabilidadController::class;

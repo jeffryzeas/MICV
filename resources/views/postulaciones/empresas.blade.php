@@ -1,0 +1,11 @@
+<x-postulaciones-shell titulo="Empresas destinatarias" tab="empresas">
+    <header class="page-heading"><div><h2 class="page-title">Empresas destinatarias</h2><p class="mt-1 text-sm text-gray-500">Guarde el contacto y el puesto al que desea postularse.</p></div><x-ui.button :href="route('postulaciones.empresas.crear')" icon="plus">Registrar empresa</x-ui.button></header>
+    <section class="gestion-surface">
+        <div class="gestion-list-toolbar"><h3>Empresas <span class="gestion-count">{{ $empresas->total() }}</span></h3><form method="GET" class="gestion-search-form"><label class="sr-only" for="empresa-buscar">Buscar empresas</label><input id="empresa-buscar" class="campo" name="q" value="{{ $q }}" placeholder="Empresa, correo o cargo"><x-ui.button type="submit" variant="secondary" icon="search">Buscar</x-ui.button></form></div>
+        <p class="gestion-scroll-hint">Deslice para ver todas las columnas.</p>
+        <div class="gestion-table-scroll" role="region" aria-label="Empresas destinatarias" tabindex="0"><table class="gestion-table"><thead><tr><th scope="col">Empresa</th><th scope="col">Correo y contacto</th><th scope="col">Cargo</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead><tbody>
+            @forelse($empresas as $empresa)<tr><td><strong>{{ $empresa->nombre }}</strong>@if($empresa->compartida)<p class="text-xs text-gray-500">Catálogo compartido</p>@endif</td><td>{{ $empresa->correo }}<p class="text-xs text-gray-500">{{ $empresa->contacto }}</p></td><td>{{ $empresa->cargo ?: 'Según oportunidades disponibles' }}</td><td>{{ $empresa->activa ? 'Activa' : 'Archivada' }}</td><td class="gestion-row-actions">@if($empresa->activa)<a class="gestion-link" href="{{ route('postulaciones.crear',['empresa_id'=>$empresa->id]) }}">Preparar envío</a>@endif @if($empresa->puedeEditar(auth()->user()))<a class="gestion-link ml-3" href="{{ route('postulaciones.empresas.editar',$empresa) }}">Editar</a>@endif</td></tr>
+            @empty<tr><td colspan="5" class="gestion-empty">{{ $q ? 'No hay empresas que coincidan con la búsqueda.' : 'Registre una empresa para preparar su primera postulación.' }}</td></tr>@endforelse
+        </tbody></table></div>@if($empresas->hasPages())<div class="gestion-pagination">{{ $empresas->links() }}</div>@endif
+    </section>
+</x-postulaciones-shell>

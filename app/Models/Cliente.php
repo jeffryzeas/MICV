@@ -35,6 +35,15 @@ class Cliente extends Model
         'linkedin', 'sitio_web', 'github', 'telefono_whatsapp', 'profesion_en', 'perfil_en',
     ];
 
+    protected static function booted(): void
+    {
+        static::deleting(function (self $c) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('postulaciones')) {
+                Postulacion::where('cliente_id',$c->id)->eachById(fn($p)=>$p->delete());
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [

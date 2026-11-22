@@ -37,8 +37,11 @@
 
 <title>{{ $titulo }} · {{ $nombreSistema }}</title>
 <link rel="stylesheet" href="{{ asset('css/tema.css') }}?v={{ @filemtime(public_path('css/tema.css')) }}">
-@if(in_array($activo, ['usuarios', 'clientes', 'correos', 'correo', 'documentos'], true))
+@if(in_array($activo, ['usuarios', 'clientes', 'correos', 'correo', 'documentos', 'postulaciones'], true) || str_starts_with($activo,'postulaciones-'))
 <link rel="stylesheet" href="{{ asset('css/gestion.css') }}?v={{ filemtime(public_path('css/gestion.css')) }}">
+@endif
+@if(str_starts_with($activo, 'postulaciones'))
+<link rel="stylesheet" href="{{ asset('css/postulaciones.css') }}?v={{ filemtime(public_path('css/postulaciones.css')) }}">
 @endif
 <style>:root{--jz-azul-800: {{ \App\Support\Color::rgb($colorPrimario) }};--jz-oro-500: {{ \App\Support\Color::rgb($colorSecundario, '#C9971F') }};--jz-oro-700: {{ \App\Support\Color::oscuro($colorSecundario) }};}</style>
 <style>[x-cloak]{display:none!important}</style>

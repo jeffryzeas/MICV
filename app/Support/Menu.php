@@ -36,6 +36,16 @@ class Menu
         return self::base($u);
     }
 
+    private static function postulaciones(): array
+    {
+        return ['id'=>'postulaciones','icon'=>'send','label'=>'CV a empresas','hijos'=>[
+            ['id'=>'postulaciones-envios','url'=>route('postulaciones.index'),'icon'=>'mails','label'=>'Envíos e historial'],
+            ['id'=>'postulaciones-nuevo','url'=>route('postulaciones.crear'),'icon'=>'send','label'=>'Nuevo envío'],
+            ['id'=>'postulaciones-empresas','url'=>route('postulaciones.empresas'),'icon'=>'building-2','label'=>'Empresas destinatarias'],
+            ['id'=>'postulaciones-gmail','url'=>route('postulaciones.gmail'),'icon'=>'mail-check','label'=>'Gmail por cuenta'],
+        ]];
+    }
+
     private static function base(?User $u): array
     {
         if (!$u) {
@@ -44,6 +54,7 @@ class Menu
 
         if ($u->esCliente()) {
             return [
+                self::postulaciones(),
                 [
                     "id" => "chat",
                     "url" => route("chat.index"),
@@ -90,6 +101,7 @@ class Menu
         }
 
         $items = [
+            self::postulaciones(),
             ['id'=>'correos','url'=>route('correos.index'),'icon'=>'mail-plus','label'=>'Correos de clientes'],
             [
                 "id" => "chat",
@@ -337,6 +349,7 @@ class Menu
         if ($u->tienePermiso('contabilidad.ver')) $items[]=['id'=>'contabilidad','url'=>route('contabilidad.index'),'icon'=>'calculator','label'=>'Ingresos y gastos'];
         $mapa = [
             'contabilidad'=>'contabilidad.ver',
+            'postulaciones'=>'cv', 'postulaciones-envios'=>'cv', 'postulaciones-nuevo'=>'cv', 'postulaciones-empresas'=>'cv', 'postulaciones-gmail'=>'cv',
             "correos" => "correos",
             "chat" => "chat",
             "tarjetas" => "tarjetas",
@@ -370,7 +383,7 @@ class Menu
         }
         unset($item);
         // Daily work first, administrative settings last; permission filtering stays below.
-        $orden = array_flip(['dashboard', 'clientes', 'clientes-nuevo', 'autoservicio', 'pos', 'contabilidad', 'documentos', 'fotos', 'tarjetas', 'cartas', 'correos', 'chat', 'equipo', 'marca', 'cybers', 'usuarios', 'configuracion', 'seguridad', 'perfil']);
+        $orden = array_flip(['dashboard', 'clientes', 'clientes-nuevo', 'autoservicio', 'pos', 'contabilidad', 'documentos', 'fotos', 'tarjetas', 'cartas', 'postulaciones', 'correos', 'chat', 'equipo', 'marca', 'cybers', 'usuarios', 'configuracion', 'seguridad', 'perfil']);
         usort($items, fn ($a, $b) => ($orden[$a['id']] ?? 16) <=> ($orden[$b['id']] ?? 16));
 
         return array_values(

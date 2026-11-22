@@ -1,0 +1,30 @@
+<x-postulaciones-shell titulo="Enviar CV a una empresa" tab="nuevo">
+    <header class="page-heading"><div><h2 class="page-title">Enviar CV a una empresa</h2><p class="mt-1 text-sm text-gray-500">Prepare el mensaje, elija el CV y revíselo antes de enviarlo.</p></div></header>
+    @if($cuentas->isEmpty())<p class="gestion-notice gestion-notice-warning">Configure y compruebe una cuenta de Gmail para continuar. <a class="gestion-link" href="{{ route('postulaciones.gmail') }}">Configurar Gmail</a></p>@endif
+    @if($clientes->isEmpty())<p class="gestion-notice">Necesita una ficha de CV activa para preparar una postulación. @if(auth()->user()->esCliente())<a class="gestion-link" href="{{ route('mi-cv.editar') }}">Ir a mis datos</a>@else<a class="gestion-link" href="{{ route('clientes.create') }}">Registrar cliente</a>@endif</p>@endif
+    @if($empresas->isEmpty())<p class="gestion-notice">Registre primero una empresa destinataria. <a class="gestion-link" href="{{ route('postulaciones.empresas.crear') }}">Registrar empresa</a></p>@endif
+    <form method="POST" action="{{ route('postulaciones.preparar') }}" class="gestion-surface" id="post-compose" data-cargo-anterior="{{ session()->hasOldInput('cargo') ? '1' : '0' }}" data-redactar="{{ route('postulaciones.redactar') }}">@csrf
+        <div class="post-compose-grid">
+            <div>
+                <section class="gestion-form-section"><h3>Remitente y destinatario</h3><div class="form-grid">
+                    <x-ui.field label="Enviar desde" for="post-cuenta"><select class="campo" id="post-cuenta" name="gmail_cuenta_id" required>@forelse($cuentas as $cuenta)<option value="{{ $cuenta->id }}" @selected((string)old('gmail_cuenta_id')===(string)$cuenta->id)>{{ $cuenta->correo }}@if(auth()->user()->esAdmin()) · {{ $cuenta->user->name }}@endif</option>@empty<option value="">Configure Gmail</option>@endforelse</select></x-ui.field>
+                    <x-ui.field label="CV de" for="post-cliente"><select class="campo" id="post-cliente" name="cliente_id" required><option value="">Seleccione una persona</option>@foreach($clientes as $cliente)<option value="{{ $cliente->id }}" @selected((string)old('cliente_id',request('cliente_id',$clientes->count()===1?$cliente->id:''))===(string)$cliente->id)>{{ $cliente->nombreCompleto() }} · {{ $cliente->documentoFormateado() }}</option>@endforeach</select></x-ui.field>
+                    <x-ui.field label="Empresa" for="post-empresa"><select class="campo" id="post-empresa" name="empresa_id" required><option value="">Seleccione una empresa</option>@foreach($empresas as $empresa)<option value="{{ $empresa->id }}" data-correo="{{ $empresa->correo }}" data-cargo="{{ $empresa->cargo }}" @selected((string)old('empresa_id',request('empresa_id'))===(string)$empresa->id)>{{ $empresa->nombre }}</option>@endforeach</select><p class="mt-1 text-xs text-gray-500" id="post-para"></p></x-ui.field>
+                    <x-ui.field label="Cargo solicitado" for="post-cargo" hint="Opcional. En blanco se consideran las oportunidades disponibles."><input class="campo" id="post-cargo" name="cargo" maxlength="150" value="{{ old('cargo') }}" placeholder="Al puesto que se ajuste a mi perfil"></x-ui.field>
+                </div></section>
+                <section class="gestion-form-section"><div class="post-message-heading"><h3>Mensaje de presentación</h3><x-ui.button id="post-redactar" variant="secondary" icon="text-cursor-input">Generar redacción</x-ui.button></div><p class="post-help">La propuesta usa sus datos del CV y puede editarse antes del envío.</p>
+                    <x-ui.field label="Asunto" for="post-asunto"><input class="campo" id="post-asunto" name="asunto" value="{{ old('asunto') }}" required maxlength="200"></x-ui.field>
+                    <div class="mt-4"><x-ui.field label="Mensaje" for="post-mensaje"><textarea class="campo" id="post-mensaje" name="mensaje" rows="13" required maxlength="10000">{{ old('mensaje') }}</textarea></x-ui.field></div><p id="post-redaccion-estado" class="post-help" role="status" aria-live="polite"></p>
+                </section>
+            </div>
+            <aside class="post-cv-options"><h3>CV adjunto</h3><div class="space-y-4">
+                <x-ui.field label="Diseño" for="post-diseno"><select id="post-diseno" class="campo" name="diseno" required>@foreach(\App\Services\CvDatos::DISENOS as $key=>$nombre)<option value="{{ $key }}" @selected(old('diseno',\App\Models\Configuracion::actual()->cv()['diseno_defecto'])===$key)>{{ $nombre }}</option>@endforeach</select></x-ui.field>
+                <x-ui.field label="Colores" for="post-paleta"><select id="post-paleta" class="campo" name="paleta">@foreach(\App\Models\Configuracion::PALETAS_PRO as $key=>$p)<option value="{{ $key }}" @selected(old('paleta','cyber')===$key)>{{ $p['nombre'] }}</option>@endforeach</select></x-ui.field>
+                <x-ui.field label="Idioma del CV" for="post-idioma"><select id="post-idioma" class="campo" name="idioma"><option value="es" @selected(old('idioma','es')==='es')>Español</option><option value="en" @selected(old('idioma')==='en')>Inglés</option></select></x-ui.field>
+                <input type="hidden" name="foto" value="0"><label class="gestion-checkbox"><input type="checkbox" name="foto" value="1" class="casilla" @checked(old('foto','1')==='1')><span>Incluir fotografía, si el diseño la admite.</span></label>
+            </div><p class="post-help mt-4">Se guardará una versión PDF con estos datos y este diseño. Podrá descargarla desde el historial aunque modifique después su CV.</p></aside>
+        </div>
+        <div class="gestion-form-footer"><x-ui.button :href="route('postulaciones.index')" variant="secondary">Cancelar</x-ui.button><x-ui.button type="submit" icon="file-search" :disabled="$cuentas->isEmpty() || $clientes->isEmpty() || $empresas->isEmpty()">Preparar y revisar envío</x-ui.button></div>
+    </form>
+    @push('scripts')<script src="{{ asset('js/postulaciones.js') }}?v={{ filemtime(public_path('js/postulaciones.js')) }}" defer></script>@endpush
+</x-postulaciones-shell>
