@@ -1,13 +1,13 @@
 <x-postulaciones-shell titulo="Gmail para enviar CV" tab="gmail">
-    <header class="page-heading"><div><h2 class="page-title">Gmail para enviar CV</h2><p class="mt-1 text-sm text-gray-500">Envíe postulaciones desde su propia cuenta de Gmail o Google Workspace.</p></div></header>
+    <header class="page-heading"><div><h2 class="page-title flex items-center gap-2"><x-icono name="mail-check" class="size-6"/>Gmail para enviar CV</h2><p class="mt-1 text-sm text-gray-500">Envíe postulaciones desde su propia cuenta de Gmail o Google Workspace.</p></div></header>
     @if(auth()->user()->esAdmin())
         <div class="post-account-picker"><label class="label-campo" for="gmail-propietario">Cuenta del sistema</label><select id="gmail-propietario" class="campo" onchange="location.assign(this.value)">@foreach($usuarios as $usuario)<option value="{{ route('postulaciones.gmail',$usuario) }}" @selected($usuario->id===$propietario->id)>{{ $usuario->name }} · {{ $usuario->usuario }}</option>@endforeach</select></div>
     @endif
     <div class="gestion-settings-grid">
-        <div class="gestion-surface gestion-form-section">
-            <h3>{{ $propietario->name }}</h3>
+        <div class="post-registration-card bg-white rounded-xl shadow p-4 sm:p-6">
+            <h3 class="post-section-title"><x-icono name="user-round"/>{{ $propietario->name }}</h3>
             <p class="post-connection" role="status">{{ $cuenta?->lista() ? 'Conexión comprobada · '.$cuenta->correo : 'Pendiente de guardar o comprobar la conexión' }}</p>
-            <form method="POST" action="{{ route('postulaciones.gmail.guardar',$propietario) }}" class="space-y-4">@csrf @method('PUT')
+            <form method="POST" action="{{ route('postulaciones.gmail.guardar',$propietario) }}" class="space-y-4" data-jz-confirmar="¿Guardar la cuenta de Gmail?" data-jz-detalle="Los cambios se aplicarán a la cuenta de {{ $propietario->name }}." data-jz-boton="Sí, guardar cuenta">@csrf @method('PUT')
                 <x-ui.field label="Dirección de Gmail" for="gmail-correo"><input id="gmail-correo" class="campo" type="email" name="correo" required maxlength="150" autocomplete="email" placeholder="nombre@gmail.com" value="{{ old('correo',$cuenta?->correo) }}"></x-ui.field>
                 <x-ui.field label="Nombre del remitente" for="gmail-nombre"><input id="gmail-nombre" class="campo" name="nombre" required maxlength="150" value="{{ old('nombre',$cuenta?->nombre ?? $propietario->name) }}"></x-ui.field>
                 <x-ui.field label="Contraseña de aplicación de Google" for="gmail-clave" error="gmail_clave" :hint="$cuenta?->getRawOriginal('clave') ? 'Hay una contraseña guardada. Deje este campo vacío para conservarla.' : 'Son 16 letras. Puede pegarlas con los espacios que muestra Google.'">
@@ -20,7 +20,7 @@
             @if($cuenta?->getRawOriginal('clave'))
                 <div class="post-connection-actions">
                     <form method="POST" action="{{ route('postulaciones.gmail.comprobar',$propietario) }}">@csrf<x-ui.button type="submit" variant="secondary" icon="plug">Comprobar conexión</x-ui.button></form>
-                    <form method="POST" action="{{ route('postulaciones.gmail.desconectar',$propietario) }}" onsubmit="return confirm('¿Desconectar Gmail y eliminar la contraseña guardada?')">@csrf @method('DELETE')<x-ui.button type="submit" variant="danger">Desconectar</x-ui.button></form>
+                    <form method="POST" action="{{ route('postulaciones.gmail.desconectar',$propietario) }}" data-jz-confirmar="¿Desconectar Gmail?" data-jz-detalle="Se eliminará la contraseña guardada y se impedirán los envíos pendientes con esta cuenta." data-jz-boton="Sí, desconectar" data-jz-icono="warning" data-jz-peligro>@csrf @method('DELETE')<x-ui.button type="submit" variant="danger" icon="unplug">Desconectar</x-ui.button></form>
                 </div>
             @endif
         </div>

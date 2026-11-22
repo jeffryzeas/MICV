@@ -47,3 +47,37 @@
 @media(max-width:640px){.post-nav{gap:20px}.post-confirm{padding:16px;gap:16px}.post-confirm>.btn{width:100%}.post-cv-options{padding:16px}.post-history-filters>div:first-child{flex-basis:100%}.post-history-filters>div:nth-child(2){flex:1 1 180px}.post-review-grid .gestion-description>div{grid-template-columns:1fr;gap:2px}.post-bottom-actions>.btn{width:100%}.post-delivery{padding:16px}.post-email-preview{height:680px}}
 
 .post-mobile-pdf-help{display:none}@media(max-width:640px){.post-pdf-preview{display:none}.post-mobile-pdf-help{display:block;margin-top:12px}}
+/* Mismos controles, espaciado y encabezados que Registrar cliente. */
+.post-nav a{display:inline-flex;align-items:center;gap:7px}
+.post-registration-form,.post-registration-card{min-width:0}
+.postulaciones .post-registration-form .label-campo,.postulaciones .post-registration-card .label-campo{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;color:rgb(var(--jz-azul-800))}
+.postulaciones .post-registration-form .campo,.postulaciones .post-registration-card .campo{border-radius:8px;min-height:44px;padding:10px 12px}
+.postulaciones .post-registration-form .btn,.postulaciones .post-registration-card .btn{border-radius:8px;font-weight:600;min-height:44px}
+.post-section-title{display:flex;align-items:center;gap:9px;font-size:16px;font-weight:600;color:rgb(var(--jz-azul-800));margin-bottom:18px}
+.post-section-title>svg{width:20px;height:20px;flex-shrink:0;color:rgb(var(--jz-oro-500))}
+.post-registration-section+.post-registration-section{border-top:1px solid var(--gestion-border);padding-top:24px;margin-top:24px}
+.post-template-grid{display:grid;grid-template-columns:minmax(250px,1fr) minmax(0,2fr);gap:24px}
+.post-preview-panel{min-width:0}
+#post-cv-preview{width:100%;height:72vh;min-height:420px;border:1px solid var(--gestion-border);border-radius:8px;background:#667085;margin-top:12px}
+#post-cv-preview[hidden],.post-preview-empty[hidden]{display:none}
+.post-preview-empty{min-height:420px;background:var(--gestion-subtle);border:1px dashed var(--gestion-border);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--gestion-muted);padding:24px;text-align:center;margin-top:12px}
+.post-palettes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.post-palette{position:relative;display:flex;align-items:center;gap:8px;border:1px solid var(--gestion-border);border-radius:8px;padding:8px;font-size:11px;cursor:pointer;min-height:44px;color:var(--gestion-muted)}
+.post-palette input,.post-choice-row input{position:absolute;width:1px;height:1px;opacity:0}
+.post-palette:has(input:checked){border-color:rgb(var(--jz-azul-800));color:rgb(var(--jz-azul-800));box-shadow:0 0 0 1px rgb(var(--jz-azul-800))}
+.post-palette:has(input:focus-visible),.post-choice-row label:has(input:focus-visible){outline:2px solid rgb(var(--jz-azul-800));outline-offset:3px}
+.post-swatch{width:26px;height:26px;border-radius:50%;border:2px solid white;box-shadow:0 0 0 1px #cbd5e1;flex-shrink:0}
+#post-paletas:disabled{opacity:.5}
+.post-choice-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.post-choice-row label{position:relative;cursor:pointer;border-radius:8px}
+.post-choice-row label>span{display:flex;align-items:center;justify-content:center;gap:8px;border:2px solid var(--gestion-border);border-radius:8px;padding:10px;font-size:13px}
+.post-choice-row input:checked+span{border-color:rgb(var(--jz-azul-800));background:#eff5fc;color:rgb(var(--jz-azul-800));font-weight:600}
+.post-form-footer{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;border-top:1px solid var(--gestion-border);padding-top:20px;margin-top:24px}
+.post-message-heading .post-section-title{margin-bottom:0}
+.dark .postulaciones .post-registration-form .label-campo,.dark .postulaciones .post-registration-card .label-campo,.dark .post-section-title{color:#b5d6ff}
+.dark .post-palette:has(input:checked){border-color:#93bff0;color:#b5d6ff;box-shadow:0 0 0 1px #93bff0}
+.dark .post-choice-row input:checked+span{background:#243954;color:#b5d6ff;border-color:#93bff0}
+@media(max-width:1100px){.post-template-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)}}
+@media(max-width:767px){.post-template-grid{grid-template-columns:1fr}#post-cv-preview{height:64vh;min-height:360px}.post-preview-empty{min-height:220px}.post-palettes{grid-template-columns:repeat(2,minmax(0,1fr))}.post-form-footer>.btn{flex:1 1 auto}.post-nav{gap:16px}}
+
+.postulaciones .cv-filter[aria-pressed=true]{color:#fff}

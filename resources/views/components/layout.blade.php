@@ -46,6 +46,7 @@
 <style>:root{--jz-azul-800: {{ \App\Support\Color::rgb($colorPrimario) }};--jz-oro-500: {{ \App\Support\Color::rgb($colorSecundario, '#C9971F') }};--jz-oro-700: {{ \App\Support\Color::oscuro($colorSecundario) }};}</style>
 <style>[x-cloak]{display:none!important}</style>
 <script src="{{ asset('vendor/sweetalert2.all.min.js') }}"></script>
+<script src="{{ asset('js/alertas.js') }}?v={{ filemtime(public_path('js/alertas.js')) }}"></script>
 <script src="{{ asset('vendor/lucide.min.js') }}"></script>
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <style>
@@ -320,11 +321,10 @@
     }
     jzActualizarIconoModo();
     @if(session('mensaje'))
-        // El mensaje ya sale arriba de la página: aquí solo un aviso pequeño que se va solo (no interrumpe).
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: @json(session('mensaje')), showConfirmButton: false, timer: 3200, timerProgressBar: true });
+        jzAlerta({ icon: 'success', title: 'Operación completada', text: @json(session('mensaje')) });
     @endif
-    @if($errors->any() && $errors->has('general'))
-        Swal.fire({ icon: 'error', title: 'Error', text: @json($errors->first('general')) });
+    @if($errors->any())
+        jzAlerta({ icon: 'error', title: 'Revise los datos', text: @json($errors->first()) });
     @endif
 </script>
 <script>window.jzCamposConError = @json(isset($errors) ? $errors->keys() : []);</script>
@@ -345,7 +345,7 @@
         let actual = 0, sucio = false, enviando = false;
 
         const textoLleno = el => !el.disabled && el.type !== 'hidden' && ['text', 'tel', 'email', 'date', 'number', 'url', 'textarea', 'search'].includes(el.type || el.tagName.toLowerCase()) && el.value.trim() !== '';
-        const lleno = s => !!s.querySelector('[data-foto-lista]') || Array.from(s.querySelectorAll('input, textarea')).some(textoLleno);
+        const lleno = s => !!s.querySelector('[data-foto-lista]') || Array.from(s.querySelectorAll('input, textarea')).some(textoLleno) || (form.dataset.contarSelecciones === '1' && Array.from(s.querySelectorAll('select, input[type=radio]')).some(el => !el.disabled && (el.tagName === 'SELECT' ? el.value !== '' : el.checked)));
 
         nav.className = 'sticky top-14 z-20 flex gap-2 overflow-x-auto py-2 mb-4 -mx-1 px-1 bg-white/95 dark:bg-gray-900/95 backdrop-blur';
         nav.innerHTML = secs.map((s, i) => '<button type="button" data-i="' + i + '" class="jz-chip shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-gray-300 bg-white text-azul-800 hover:border-azul-800"><span class="jz-num inline-flex items-center justify-center size-4 rounded-full bg-gray-200 text-[10px]">' + (i + 1) + '</span>' + s.dataset.titulo + '</button>').join('');

@@ -27,12 +27,41 @@
             } catch { estado.textContent = 'No se pudo generar la propuesta. Puede escribir el asunto y el mensaje o volver a intentarlo.'; }
             finally { ocupada = false; boton.disabled = false; }
         }
-        boton.addEventListener('click', redactar);
+        boton.addEventListener('click', async () => {
+            if (asunto.value.trim() || mensaje.value.trim()) {
+                const r = await window.jzAlerta({icon:'question',title:'¿Generar una nueva redacción?',text:'Se reemplazarán el asunto y el mensaje actuales por una nueva propuesta.',showCancelButton:true,confirmButtonText:'Sí, generar redacción',focusCancel:true});
+                if (!r.isConfirmed) return;
+            }
+            redactar();
+        });
         empresa.addEventListener('change', () => { secuencia++; destinatario(true); if (!asunto.value && !mensaje.value && !ocupada) redactar(); else estado.textContent = 'Cambió la empresa. Revise el mensaje o genere una nueva redacción.'; });
         cliente.addEventListener('change', () => { secuencia++; if (!asunto.value && !mensaje.value && !ocupada) redactar(); else estado.textContent = 'Cambió la persona del CV. Revise el asunto y el mensaje.'; });
         cargo.addEventListener('input', () => { secuencia++; });
         destinatario(form.dataset.cargoAnterior !== '1' && !cargo.value);
         if (cliente.value && empresa.value && !asunto.value && !mensaje.value) redactar();
+        const visor = document.getElementById('post-cv-preview'), vacia = document.getElementById('post-vista-vacia'), vistaEstado = document.getElementById('post-vista-estado');
+        let vistaTimer, vistaSecuencia=0;
+        function vistaPrevia() {
+            clearTimeout(vistaTimer);
+            vistaTimer=setTimeout(() => {
+                const ruta=cliente.selectedOptions[0]?.dataset.vista;
+                if (!ruta) { vistaSecuencia++; visor.onload=null; visor.hidden=true; visor.removeAttribute('src'); vacia.hidden=false; vistaEstado.textContent='Seleccione una persona para ver su currículum.';return; }
+                const diseno=form.querySelector('input[name=diseno]:checked')?.value || 'esencial';
+                const fija=['clasico','carta','ats'].includes(diseno), foto=document.getElementById('post-foto'), paletas=document.getElementById('post-paletas');
+                paletas.disabled=fija; paletas.setAttribute('aria-disabled',String(fija)); foto.disabled=diseno==='ats';
+                document.getElementById('post-paleta-ayuda').textContent=fija?'Este diseño conserva sus colores propios.':'Seleccione una combinación de colores.';
+                const url=new URL(ruta,location.origin);
+                url.search=new URLSearchParams({diseno,paleta:fija?'':(form.querySelector('input[name=paleta]:checked')?.value||'cyber'),idioma:form.querySelector('input[name=idioma]:checked')?.value||'es',foto:foto.checked&&!foto.disabled?'1':'0'}).toString();
+                if (visor.dataset.actual===url.href) return;
+                visor.dataset.actual=url.href; visor.hidden=false; vacia.hidden=true; vistaEstado.textContent='Actualizando la vista previa…';
+                const version=++vistaSecuencia;
+                visor.onload=()=>{if(version===vistaSecuencia)vistaEstado.textContent='Vista previa con los datos actuales de su CV.';};
+                visor.src=url.href;
+            },180);
+        }
+        form.addEventListener('change',e=>{if(['cliente_id','diseno','paleta','idioma','foto'].includes(e.target.name))vistaPrevia();});
+        form.addEventListener('jz-paso',vistaPrevia);
+        vistaPrevia();
     }
     const panel = document.getElementById('post-delivery');
     if (!panel || !['en_cola','enviando'].includes(panel.dataset.estado)) return;

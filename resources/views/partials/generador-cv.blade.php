@@ -8,27 +8,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="space-y-4">
             <div>
-                <p class="label-campo">Diseño del currículum</p>
-                <button type="button" id="cv-open-gallery" class="btn btn-pri w-full" aria-haspopup="dialog" aria-controls="cv-gallery"><x-icono name="layout-template" class="size-5"/><span class="flex-1 text-left"><strong class="block">Ver los 31 diseños y elegir</strong><small class="mt-1 block text-xs font-normal text-white/90">30 estilos visuales + formato ATS</small></span><x-icono name="chevron-down" class="size-4"/></button>
-                <div class="mt-3 flex items-center gap-2" aria-hidden="true">@foreach(['esencial','balance','ats'] as $ejemplo)<img src="{{ asset('images/cv/'.$ejemplo.'.png') }}" alt="" class="h-16 w-12 rounded border border-gray-200 bg-gray-50 object-contain" loading="lazy">@endforeach<span class="text-xs text-gray-500">Pulse el botón para ver las plantillas y cambiar el diseño.</span></div>
-                <p id="cv-selected-name" class="mt-3 text-sm font-semibold text-azul-800" aria-live="polite"></p>
-                <p id="cv-ats-note" hidden class="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">ATS utiliza una columna, texto seleccionable y títulos claros, sin foto ni gráficos. Puede ocupar más de una página para conservar la legibilidad.</p>
-                <dialog id="cv-gallery" class="cv-gallery" aria-labelledby="cv-gallery-title" aria-describedby="cv-gallery-help">
-                  <header class="cv-gallery-header"><div class="flex items-start justify-between gap-3"><div><h3 id="cv-gallery-title" class="text-lg font-semibold text-azul-950">Elija el diseño de su currículum</h3><p id="cv-gallery-help" class="mt-1 text-sm text-gray-500">Desplácese hacia abajo para ver los 31 diseños. Pulse una tarjeta para aplicarla.</p></div><button type="button" id="cv-close-gallery" class="btn btn-sec shrink-0" aria-label="Cerrar galería"><x-icono name="x" class="size-4"/></button></div>
-                    <label class="mt-4 block"><span class="sr-only">Buscar diseños</span><input id="cv-design-search" type="search" class="campo" placeholder="Buscar diseño, estilo o ATS" autocomplete="off"></label>
-                    <div class="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filtrar diseños"><button type="button" class="btn btn-sec cv-filter" data-filter="all" aria-pressed="true">Todos (31)</button><button type="button" class="btn btn-sec cv-filter" data-filter="simple" aria-pressed="false">Sencillos</button><button type="button" class="btn btn-sec cv-filter" data-filter="new" aria-pressed="false">Nuevos (10)</button><button type="button" class="btn btn-sec cv-filter" data-filter="ats" aria-pressed="false">ATS</button></div>
-                    <p id="cv-results-count" class="mt-3 text-xs text-gray-500" aria-live="polite">31 diseños disponibles</p>
-                  </header>
-                  <div id="cv-gallery-list" class="cv-gallery-scroll" tabindex="0" aria-label="Galería de diseños; desplácese para ver más"><div class="cv-gallery-grid">
-                  @foreach(\App\Services\CvDatos::DISENOS as $k=>$t)
-                    <div class="jz-diseno cv-choice" data-title="{{ $t }}" data-description="{{ \App\Services\CvDatos::DESCRIPCION[$k] }}" data-simple="{{ in_array($k,\App\Services\CvDatos::SENCILLOS,true)?'1':'0' }}" data-new="{{ in_array($k,\App\Services\CvDatos::NUEVOS,true)?'1':'0' }}" data-ats="{{ $k==='ats'?'1':'0' }}">
-                      <input type="radio" name="diseno" value="{{ $k }}" class="sr-only" tabindex="-1" aria-hidden="true" @checked($cv['diseno_defecto']===$k)>
-                      <button type="button" class="cv-choice-button" data-choose="{{ $k }}" aria-label="Usar diseño {{ $t }}" aria-pressed="{{ $cv['diseno_defecto']===$k?'true':'false' }}"><span class="cv-card-top"><span class="text-xs font-semibold text-gray-500">{{ str_pad($loop->iteration,2,'0',STR_PAD_LEFT) }} / 31</span>@if($k==='ats')<span class="cv-card-tag">ATS</span>@elseif(in_array($k,\App\Services\CvDatos::NUEVOS,true))<span class="cv-card-tag">Nuevo</span>@endif<span class="cv-selected-badge hidden" data-selected>En uso</span></span><img loading="lazy" src="{{ asset('images/cv/'.$k.'.png') }}" alt="Captura de ejemplo del diseño {{ $t }}" width="816" height="1056"><strong>{{ $t }}</strong><small>{{ \App\Services\CvDatos::DESCRIPCION[$k] }}</small><span class="cv-card-action"><x-icono name="check" class="size-4"/>Usar este diseño</span></button>
-                    </div>
-                  @endforeach
-                  </div><p id="cv-no-results" hidden class="py-12 text-center text-sm text-gray-500">No encontramos diseños con esa búsqueda. Pruebe otro nombre o elija Todos.</p></div>
-                  <footer class="cv-gallery-footer"><span class="text-xs text-gray-500"><x-icono name="arrow-down" class="size-4"/> Desplácese para ver más diseños</span><button id="cv-scroll-selected" type="button" class="btn btn-sec">Ver diseño actual</button></footer>
-                </dialog>
+                @include('partials.selector-diseno-cv', ['disenoSeleccionado'=>$cv['diseno_defecto']])
                 <p class="text-[11px] text-gray-400 mt-1">Los diseños visuales se ajustan a una hoja. El formato ATS conserva un tamaño legible y puede ocupar más de una página. @if($cliente->datosPais()['escudo'] || !empty($cliente->datosPais()['escudo_subido']))El Clásico lleva el escudo de {{ $cliente->datosPais()['nombre'] }}.@else El Clásico es formal, con marco doble.@endif</p>
             </div>
             <p class="text-xs text-gray-500">Carta Amarillo y Azul conserva los colores del diseño original.</p><div id="bloquePaleta">
@@ -82,7 +62,7 @@
     </div>
 </div>
 @push('scripts')
-<script src="{{ asset('js/cv-gallery.js') }}" defer></script>
+<script src="{{ asset('js/cv-gallery.js') }}?v={{ filemtime(public_path('js/cv-gallery.js')) }}" defer></script>
 <style>.jz-diseno{border-color:#e5e7eb}.jz-diseno.sel{border-color:rgb(var(--jz-azul-800));background:#f0f5fb}
 .jz-op-t{font-size:12px;font-weight:700;text-transform:uppercase;color:#0B3C74;margin-bottom:6px}.jz-ops{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .jz-op input{display:none}.jz-op span{display:block;text-align:center;border:2px solid #e5e7eb;border-radius:10px;padding:10px 6px;font-weight:600;font-size:14px;color:#4b5563;cursor:pointer}

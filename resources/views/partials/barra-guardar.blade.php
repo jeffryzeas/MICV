@@ -17,8 +17,8 @@
         <button type="button" data-sig class="inline-flex items-center justify-center gap-1 border border-gray-300 hover:border-azul-800 text-azul-800 text-sm font-semibold size-10 sm:size-auto sm:px-3 sm:py-2.5 rounded-lg disabled:opacity-35 disabled:pointer-events-none" title="Paso siguiente">
             <span class="hidden sm:inline">Siguiente</span><x-icono name="chevron-right" class="size-4" />
         </button>
-        <button type="submit" class="inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold h-10 px-4 sm:px-5 rounded-lg transition-colors shrink-0">
-            <x-icono name="save" class="size-4" /><span class="hidden sm:inline">{{ $texto ?? 'Guardar' }}</span><span class="sm:hidden">Guardar</span>
+        <button type="submit" @disabled($deshabilitado ?? false) class="inline-flex items-center justify-center gap-2 bg-azul-800 hover:bg-oro-500 text-white text-sm font-semibold h-10 px-4 sm:px-5 rounded-lg transition-colors shrink-0">
+            <x-icono :name="$iconoGuardar ?? 'save'" class="size-4" /><span class="hidden sm:inline">{{ $texto ?? 'Guardar' }}</span><span class="sm:hidden">{{ $textoMovil ?? 'Guardar' }}</span>
         </button>
     </div>
 </div>
