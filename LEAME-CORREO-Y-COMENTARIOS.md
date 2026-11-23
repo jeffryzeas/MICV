@@ -45,13 +45,13 @@ El sistema guarda los comentarios públicos recibidos, incluso cuando el comenta
 
 ## Solo comentarios de una sala pública conocida
 
-Si el perfil participa en otra sala y TikTok no publica su asociación, abra su ficha y despliegue **Solo comentarios de una sala pública**. Escriba el @usuario desde el que se abre esa sala en **Usuario de la sala pública**, guarde y active la captura si está pausada. No es una selección de rol; es una fuente de chat indicada por el administrador. Deje vacío el campo para volver a la detección automática desde el perfil.
+Si el perfil participa en otras salas y TikTok no publica sus asociaciones, abra su ficha y despliegue **Solo comentarios de salas públicas**. Escriba los @usuarios desde los que se abren esas salas en **Usuarios de las salas públicas**, uno por línea o separados por comas, guarde y active la captura si está pausada. Puede registrar hasta 20; los duplicados se eliminan. No es una selección de rol; es una fuente de chat indicada por el administrador. Deje vacío el campo para volver a la detección automática desde el perfil.
 
 El proceso solicita el servicio público de chat mediante TikTokLive, con la comprobación de LIVE activada y procesamiento del primer lote. En este modo no solicita video ni metadatos adicionales de la sala. La conexión al chat debe ser aceptada por el servicio; un rechazo, límite o fallo de red conserva su diagnóstico y no se presenta como una captura exitosa. No utiliza credenciales de un invitado ni adquiere sus permisos.
 
 El panel muestra **Chat de la sala en directo** únicamente tras la conexión efectiva y dedica el espacio a los comentarios. El nombre del perfil monitoreado se conserva separado de la cuenta de acceso al chat. Los mensajes recibidos se archivan en su historial con sala e identificador originales y fuente de chat en cada registro; los PDF y paquetes incluyen esa procedencia. La participación del perfil en esa sala es una referencia del administrador, no una presencia confirmada automáticamente. No se afirma que sean comentarios exclusivos de esa persona ni que dos salas compartan todo su chat.
 
-Cambiar la fuente reinicia el proceso de esa cuenta y conserva el historial. Las pausas manuales y las esperas indicadas por el proveedor se respetan. No se garantiza la conexión desde cualquier VPS ni recibir todos los mensajes.
+Cada fuente tiene su proceso, estado y espera independientes. Guardar la lista conserva las fuentes existentes y sus esperas; solo se retiran las que ya no figuran. El historial y los informes se conservan. Si dos fuentes llegan a la misma sala, el mismo evento se guarda una vez y la sala no se cierra hasta terminar su última conexión. Las conexiones se limitan por TIKTOK_SIMULTANEOS: las demás esperan un cupo. Las pausas manuales y las esperas indicadas por el proveedor se respetan. No se garantiza la conexión desde cualquier VPS ni recibir todos los mensajes.
 
 ## Verificación
 
