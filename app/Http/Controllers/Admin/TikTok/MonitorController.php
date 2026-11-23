@@ -3,7 +3,7 @@ namespace App\Http\Controllers\Admin\TikTok;
 use App\Http\Controllers\Controller;
 use App\Jobs\ExportarTikTok;
 use App\Models\{Actividad,TikTokCuenta,TikTokLive,TikTokPublicacion,TikTokComentario,TikTokExportacion};
-use App\Services\TikTokConsulta;
+use App\Services\{TikTokConsulta,TikTokVideo};
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{DB,Storage};
@@ -21,9 +21,9 @@ class MonitorController extends Controller {
     }
     public function cuenta(Request $r,TikTokCuenta $cuenta,TikTokConsulta $consulta){
         $this->admin($r);$f=$consulta->filtros($r,$cuenta);$q=$consulta->query($cuenta,$f);$total=(clone$q)->count();$cursor=(clone$q)->max('id')??0;
-        $comentarios=$q->orderBy('ocurrido_ms')->orderBy('id')->paginate(100)->withQueryString();$lives=$cuenta->lives()->latest('iniciado_ms')->paginate(15,['*'],'lives_page');$publicaciones=$cuenta->publicaciones()->latest()->get();
-        $exportaciones=TikTokExportacion::where('cuenta_id',$cuenta->id)->where('user_id',$r->user()->id)->latest()->limit(10)->get();$salud=$consulta->salud();
-        return $this->privado(response()->view('admin.tiktok.cuenta',compact('cuenta','f','comentarios','lives','publicaciones','exportaciones','total','cursor','salud')));
+        $comentarios=$q->orderBy('ocurrido_ms')->orderBy('id')->paginate(100)->withQueryString();$lives=$consulta->lives($cuenta,$r)->paginate(15,['*'],'lives_page')->withQueryString();$publicaciones=$cuenta->publicaciones()->latest()->get();
+        $exportaciones=TikTokExportacion::where('cuenta_id',$cuenta->id)->where('user_id',$r->user()->id)->latest()->limit(10)->get();$salud=$consulta->salud();$liveActual=$cuenta->lives()->where('estado','en_live')->latest('iniciado_ms')->first();$video=app(TikTokVideo::class)->estado($cuenta,$liveActual);$perfil=$consulta->perfil($cuenta);
+        return $this->privado(response()->view('admin.tiktok.cuenta',compact('cuenta','f','comentarios','lives','publicaciones','exportaciones','total','cursor','salud','video','perfil')));
     }
     public function toggle(Request $r,TikTokCuenta $cuenta){
         $this->admin($r);$r->validate(['monitorear'=>'required|boolean']);$activo=$r->boolean('monitorear');
@@ -33,10 +33,23 @@ class MonitorController extends Controller {
         return back()->with('mensaje',$activo?'Captura activada. Se guardarán comentarios de los lives públicos que se detecten a partir de ahora.':'Captura pausada. El historial guardado sigue disponible.');
     }
     public function eventos(Request $r,TikTokCuenta $cuenta,TikTokConsulta $consulta){
-        $this->admin($r);$r->validate(['cursor'=>'nullable|integer|min:0']);$f=$consulta->filtros($r,$cuenta);$cursor=(int)$r->input('cursor',0);
-        $filas=$consulta->query($cuenta,$f)->where('id','>',$cursor)->orderBy('id')->limit(200)->get();
-        return $this->privado(response()->json(['comentarios'=>$filas->map(fn($m)=>$consulta->fila($m)),'cursor'=>$filas->max('id')??$cursor,'estado'=>$cuenta->estado,'etiqueta'=>TikTokCuenta::ESTADOS[$cuenta->estado]??$cuenta->estado,'detalle'=>$cuenta->detalle,'monitorear'=>$cuenta->monitorear,'salud'=>$consulta->salud(),'total'=>$consulta->query($cuenta,$f)->count(),'reintento'=>($cuenta->reintentar_ms??0)>TikTokConsulta::ahora()?TikTokConsulta::fecha($cuenta->reintentar_ms):null,'live_actual'=>$cuenta->lives()->where('estado','en_live')->latest('iniciado_ms')->value('id')]));
+        $this->admin($r);$r->validate(['cursor'=>'nullable|integer|min:0','lives_page'=>'nullable|integer|min:1|max:100000']);$f=$consulta->filtros($r,$cuenta);$cursor=(int)$r->input('cursor',0);
+        $filas=$consulta->query($cuenta,$f)->where('id','>',$cursor)->orderBy('id')->limit(200)->get();$liveActual=$cuenta->lives()->where('estado','en_live')->latest('iniciado_ms')->first();$historial=$consulta->lives($cuenta,$r)->paginate(15,['*'],'lives_page');
+        return $this->privado(response()->json(['comentarios'=>$filas->map(fn($m)=>$consulta->fila($m)),'cursor'=>$filas->max('id')??$cursor,'estado'=>$cuenta->estado,'etiqueta'=>TikTokCuenta::ESTADOS[$cuenta->estado]??$cuenta->estado,'detalle'=>$cuenta->detalle,'monitorear'=>$cuenta->monitorear,'salud'=>$consulta->salud(),'total'=>$consulta->query($cuenta,$f)->count(),'reintento'=>($cuenta->reintentar_ms??0)>TikTokConsulta::ahora()?TikTokConsulta::fecha($cuenta->reintentar_ms):null,'live_actual'=>$liveActual?->id,'video'=>app(TikTokVideo::class)->estado($cuenta,$liveActual),'perfil'=>$consulta->perfil($cuenta),'lives'=>$historial->map(fn($l)=>$consulta->liveFila($l)),'lives_total'=>$historial->total()]));
     }
+    public function eliminar(Request $r,TikTokCuenta $cuenta){
+        $this->admin($r);$usuario=$cuenta->usuario;
+        DB::transaction(function()use($cuenta){
+            $c=TikTokCuenta::whereKey($cuenta->id)->lockForUpdate()->firstOrFail();$ids=$c->lives()->pluck('id')->all();
+            TikTokExportacion::where('cuenta_id',$c->id)->eachById(fn($e)=>$e->delete());$c->delete();
+            DB::afterCommit(fn()=>app(TikTokVideo::class)->eliminar($ids));
+        });
+        Actividad::registrar('tiktok_cuenta_eliminar','@'.$usuario);
+        return redirect()->route('admin.tiktok.index')->with('mensaje','Cuenta de monitoreo eliminada junto con su historial local.');
+    }
+    public function video(Request $r,TikTokCuenta $cuenta,TikTokLive $live,TikTokVideo $video){$this->admin($r);abort_unless($live->cuenta_id===$cuenta->id,404);return $video->servir($cuenta,$live,null,$r->header('Range'));}
+    public function videoRecurso(Request $r,TikTokCuenta $cuenta,TikTokLive $live,TikTokVideo $video){$this->admin($r);abort_unless($live->cuenta_id===$cuenta->id,404);$r->validate(['t'=>'required|string|max:6000']);return $video->servir($cuenta,$live,$r->input('t'),$r->header('Range'));}
+    public function avatar(Request $r,TikTokCuenta $cuenta,TikTokVideo $video){$this->admin($r);return $video->avatar($cuenta);}
     public function publicacion(Request $r,TikTokCuenta $cuenta){
         $this->admin($r);$d=$r->validate(['url'=>'required|url|max:300','titulo'=>'nullable|string|max:255']);
         $patron='~^https://(?:www\.)?tiktok\.com/@'.preg_quote($cuenta->usuario,'~').'/video/(\d{5,30})/?(?:\?[^#]*)?$~iD';

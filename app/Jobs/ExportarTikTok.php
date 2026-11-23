@@ -27,6 +27,7 @@ class ExportarTikTok implements ShouldQueue {
             if(!$files)throw new \RuntimeException('No hay comentarios disponibles.');
             $ruta=$files[0];
             if(count($files)>1){$ruta=$dir.'/comentarios-pdf.zip';$zip=new ZipArchive();if($zip->open($disk->path($ruta),ZipArchive::CREATE|ZipArchive::OVERWRITE)!==true)throw new \RuntimeException('No se pudo crear el ZIP.');foreach($files as$f)$zip->addFile($disk->path($f),basename($f));if(!$zip->close())throw new \RuntimeException('No se pudo cerrar el ZIP.');$disk->delete($files);}
+            if(!TikTokExportacion::whereKey($e->id)->exists())throw new \RuntimeException('La cuenta o la exportación fueron eliminadas.');
             $e->update(['estado'=>'listo','archivo'=>$ruta,'procesados'=>$procesados]);
         }catch(\Throwable $error){$disk->deleteDirectory($dir);$e->update(['estado'=>'error','error'=>'No se pudo generar el informe. Revise el motor de PDF y el servicio micv-tiktok-pdf.']);throw $error;}
     }

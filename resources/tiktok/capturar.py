@@ -8,6 +8,7 @@ import signal
 import sys
 import time
 import uuid
+from urllib.parse import urlparse
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
@@ -31,9 +32,45 @@ def comentario(evento, sala):
                 ocurrido_ms=(ts * 1000 if ts and ts < 10**12 else ts) or ahora_ms())
 
 
-def restringido(perfil):
-    valores = [perfil.get(k) for k in ("secret", "private_account", "is_private")]
-    return any(v is True or str(v).lower() in {"1", "true", "private"} for v in valores)
+def perfil_publico(owner):
+    if not isinstance(owner, dict):
+        return {}
+    avatar = owner.get("avatar_thumb") or owner.get("avatar_medium") or owner.get("avatarThumb")
+    if isinstance(avatar, dict):
+        avatar = next(iter(avatar.get("url_list") or []), None)
+    region = str(owner.get("region") or owner.get("country") or "").upper()
+    return {"nombre": str(owner.get("nickname") or "")[:150],
+            "bio": str(owner.get("signature") or owner.get("bio_description") or "")[:500],
+            "avatar": avatar if isinstance(avatar, str) and len(avatar) <= 2048 else None,
+            "region": region if re.fullmatch(r"[A-Z]{2}", region) else None}
+
+
+def video_publico(info):
+    """Solo HLS entregado en la sala pública, sin consultar perfiles privados."""
+    stream = info.get("stream_url") or {}
+    if not isinstance(stream, dict):
+        return None
+    candidatos = [stream.get("hls_pull_url")]
+    mapa = stream.get("hls_pull_url_map") or {}
+    if isinstance(mapa, dict):
+        candidatos.extend(mapa.values())
+    try:
+        data = json.loads(stream["live_core_sdk_data"]["pull_data"]["stream_data"])["data"]
+        for calidad in ("origin", "sd", "hd", "ld"):
+            candidatos.append(data.get(calidad, {}).get("main", {}).get("hls"))
+    except (KeyError, ValueError, TypeError, AttributeError):
+        pass
+    for url in candidatos:
+        if not isinstance(url, str) or len(url) > 2048:
+            continue
+        try:
+            parsed = urlparse(url)
+            host = (parsed.hostname or "").lower()
+            if parsed.scheme == "https" and not parsed.username and not parsed.password and parsed.port in (None, 443) and any(host.endswith("." + dominio) for dominio in ("tiktokcdn.com", "tiktokcdn-us.com", "tiktokcdn-eu.com")):
+                return url
+        except ValueError:
+            pass
+    return None
 
 
 def espera_indicada(respuesta):
@@ -67,7 +104,7 @@ def clasificar_error(exc):
     detalle = "No se pudo conectar con TikTok. El monitoreo sigue activado y se reintentará automáticamente."
     if isinstance(exc, AgeRestrictedError):
         estado, codigo = "restringido", "acceso_restringido"
-        detalle = "TikTok indica una restricción de acceso. La captura se pausó; no se intentará eludirla."
+        detalle = "El capturador informa una restricción o no pudo verificar el acceso público a la sala. La captura se pausó."
     elif isinstance(exc, UserOfflineError):
         estado, codigo = "sin_live", "sin_live"
         detalle = "Esperando un LIVE público. El monitoreo sigue activado y comenzará a capturar cuando lo detecte."
@@ -112,9 +149,9 @@ def informar_error(exc):
     enviar("estado", **datos)
 
 
-async def conectar_con_limite(client, listo, segundos=60):
+async def conectar_con_limite(client, listo, segundos=60, **opciones):
     """Limita el establecimiento de conexión, sin cortar un LIVE ya conectado."""
-    conexion = asyncio.create_task(client.connect(fetch_room_info=True, process_connect_events=False))
+    conexion = asyncio.create_task(client.connect(fetch_room_info=True, process_connect_events=True, **opciones))
     inicio = asyncio.create_task(listo.wait())
     try:
         terminadas, _ = await asyncio.wait({conexion, inicio}, timeout=segundos, return_when=asyncio.FIRST_COMPLETED)
@@ -126,6 +163,25 @@ async def conectar_con_limite(client, listo, segundos=60):
             if not tarea.done():
                 tarea.cancel()
         await asyncio.gather(conexion, inicio, return_exceptions=True)
+
+
+async def conectar_con_comprobacion(client, listo, usuario):
+    from TikTokLive.client.errors import UserOfflineError
+    from TikTokLive.client.web.routes.fetch_room_id_api import FetchRoomIdAPIRoute
+    try:
+        await conectar_con_limite(client, listo)
+    except UserOfflineError:
+        # Un HTML viejo puede indicar offline antes de que el SDK consulte la API.
+        # Se contrasta una vez con la API pública; no se omite la comprobación LIVE.
+        enviar("diagnostico", codigo="verificando_sala", clase="ConsultaPublica", http=None)
+        data = await asyncio.wait_for(FetchRoomIdAPIRoute.fetch_user_room_data(web=client.web, unique_id=usuario), 15)
+        owner = data.get("data", {}).get("user", {})
+        if owner:
+            enviar("perfil", perfil=perfil_publico(owner))
+        sala = int(FetchRoomIdAPIRoute.parse_room_id(data) or 0)
+        if sala <= 0:
+            raise UserOfflineError()
+        await conectar_con_limite(client, listo, room_id=sala, fetch_live_check=True)
 
 
 async def ejecutar(usuario):
@@ -141,6 +197,7 @@ async def ejecutar(usuario):
     ultimo_conteo = 0.0
     listo = asyncio.Event()
     tarea = None
+    tarea_video = None
     try:
         client = TikTokLiveClient(unique_id=usuario)
 
@@ -150,14 +207,12 @@ async def ejecutar(usuario):
             info = client.room_info or {}
             perfil = info.get("owner") or {}
             listo.set()
-            if restringido(perfil):
-                finalizado = True
-                enviar("estado", estado="restringido", detalle="La cuenta o la transmisión restringen el acceso. La captura se pausó; no se intentará eludir la restricción.")
-                asyncio.create_task(client.disconnect())
-                return
+            # La privacidad del perfil no determina la visibilidad del LIVE.
+            # Solo se aceptan eventos que TikTok entregue a esta conexión sin login.
             autorizado = True
             enviar("inicio", sala=str(event.room_id), titulo=str(info.get("title") or "Live público")[:255],
-                   perfil={"nombre": str(perfil.get("nickname") or "")[:150], "bio": str(perfil.get("signature") or "")[:500]})
+                   perfil=perfil_publico(perfil),
+                   video_hls=video_publico(info))
 
         @client.on(CommentEvent)
         async def chat(event):
@@ -190,6 +245,22 @@ async def ejecutar(usuario):
                 enviar("latido")
                 await asyncio.sleep(10)
 
+        async def refrescar_video():
+            while True:
+                await asyncio.sleep(300)
+                if not autorizado or finalizado:
+                    continue
+                try:
+                    info = await asyncio.wait_for(client.web.fetch_room_info(), 15)
+                    enviar("video", sala=str(client.room_id), video_hls=video_publico(info))
+                    enviar("perfil", perfil=perfil_publico(info.get("owner") or {}))
+                except Exception as exc:
+                    datos = clasificar_error(exc)
+                    enviar("diagnostico", codigo="video_metadatos", clase=datos["clase"], http=datos["http"])
+                    if datos['estado'] == 'restringido':
+                        enviar("video", sala=str(client.room_id), video_hls=None)
+                    await asyncio.sleep(max(0, datos.get("espera_segundos", 300) - 300))
+
         async def parar():
             nonlocal finalizado
             finalizado = True
@@ -199,8 +270,9 @@ async def ejecutar(usuario):
         for sig in (signal.SIGTERM, signal.SIGINT):
             loop.add_signal_handler(sig, lambda: asyncio.create_task(parar()))
         tarea = asyncio.create_task(latidos())
+        tarea_video = asyncio.create_task(refrescar_video())
         enviar("estado", estado="conectando", detalle="Monitoreo automático activado. Comprobando si hay un LIVE público disponible.")
-        await conectar_con_limite(client, listo)
+        await conectar_con_comprobacion(client, listo, usuario)
     except Exception as exc:
         finalizado = True
         informar_error(exc)
@@ -208,6 +280,9 @@ async def ejecutar(usuario):
         if tarea:
             tarea.cancel()
             await asyncio.gather(tarea, return_exceptions=True)
+        if tarea_video:
+            tarea_video.cancel()
+            await asyncio.gather(tarea_video, return_exceptions=True)
         if client:
             try:
                 await client.disconnect(close_client=True)

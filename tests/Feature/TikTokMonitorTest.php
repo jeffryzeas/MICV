@@ -42,7 +42,7 @@ class TikTokMonitorTest extends TestCase {
     public function test_filtros_respetan_dia_en_costa_rica_e_id_de_otra_cuenta(): void {
         $c=$this->cuenta();$live=$this->capturar($c,0);$base=TikTokConsulta::ahora()-600000;$m=TikTokComentario::create(['cuenta_id'=>$c->id,'live_id'=>$live->id,'clave'=>hash('sha256','medianoche'),'autor'=>'uno','texto'=>'Día local','origen'=>'live_publico','ocurrido_ms'=>CarbonImmutable::parse('2026-11-23T05:59:59Z')->getTimestampMs(),'capturado_ms'=>$base]);
         TikTokComentario::create(['cuenta_id'=>$c->id,'live_id'=>$live->id,'clave'=>hash('sha256','otro-dia'),'autor'=>'dos','texto'=>'Día siguiente','origen'=>'live_publico','ocurrido_ms'=>CarbonImmutable::parse('2026-11-23T06:00:00Z')->getTimestampMs(),'capturado_ms'=>$base]);
-        $this->actingAs($this->usuario())->getJson(route('admin.tiktok.eventos',[$c,'desde'=>'2026-11-22','hasta'=>'2026-11-22']))->assertOk()->assertJsonCount(1,'comentarios')->assertJsonPath('comentarios.0.texto','Día local')->assertJsonPath('comentarios.0.fecha','22/11/2026 23:59:59');
+        $this->actingAs($this->usuario())->getJson(route('admin.tiktok.eventos',[$c,'desde'=>'2026-11-22','hasta'=>'2026-11-22']))->assertOk()->assertJsonCount(1,'comentarios')->assertJsonPath('comentarios.0.texto','Día local')->assertJsonPath('comentarios.0.fecha','22/11/2026 11:59:59 PM');
         $otro=$this->cuenta();$this->get(route('admin.tiktok.cuenta',[$otro,'live_id'=>$live->id]))->assertNotFound();$this->getJson(route('admin.tiktok.eventos',[$c,'desde'=>'2026-11-23','hasta'=>'2026-11-22']))->assertUnprocessable();
     }
     public function test_eventos_cursor_no_repite_y_textos_se_escapan_en_la_vista(): void {

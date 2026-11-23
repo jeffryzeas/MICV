@@ -14,8 +14,8 @@ class TikTokMonitor extends Command {
         if(function_exists('pcntl_async_signals')){pcntl_async_signals(true);pcntl_signal(SIGTERM,function()use(&$seguir){$seguir=false;});pcntl_signal(SIGINT,function()use(&$seguir){$seguir=false;});}
         $leer=function($id)use(&$hijos,$registro){
             $h=&$hijos[$id];$h['buffer'].=$h['p']->getIncrementalOutput();$h['p']->clearOutput();if(strlen($h['buffer'])>2*1024*1024)throw new \RuntimeException('El capturador excedió el búfer permitido.');
-            $eventos=[];while(($pos=strpos($h['buffer'],"\n"))!==false){$linea=substr($h['buffer'],0,$pos);$h['buffer']=substr($h['buffer'],$pos+1);if(strlen($linea)>65536)continue;$e=json_decode($linea,true);if(is_array($e)){if(($e['tipo']??null)==='diagnostico')$this->diagnostico($h['c'],$e);else $eventos[]=$e;}if(count($eventos)>=200){$registro->registrar($h['c'],$eventos);$eventos=[];}}
-            if($eventos)$registro->registrar($h['c'],$eventos);
+            $eventos=[];while(($pos=strpos($h['buffer'],"\n"))!==false){$linea=substr($h['buffer'],0,$pos);$h['buffer']=substr($h['buffer'],$pos+1);if(strlen($linea)>65536)continue;$e=json_decode($linea,true);if(is_array($e)){if(($e['tipo']??null)==='diagnostico')$this->diagnostico($h['c'],$e);else $eventos[]=$e;}if(count($eventos)>=200){$this->lote($registro,$h['c'],$eventos);$eventos=[];}}
+            if($eventos)$this->lote($registro,$h['c'],$eventos);
             $h['p']->clearErrorOutput();
         };
         try {
@@ -37,6 +37,10 @@ class TikTokMonitor extends Command {
             return 0;
         }catch(\Throwable $e){$this->error('Capturador detenido: '.$e->getMessage());return 1;}
         finally{foreach($hijos as$id=>$h){$h['p']->stop(3);try{$leer($id);}catch(\Throwable){}$h['c']->lives()->where('estado','en_live')->update(['estado'=>'interrumpido','terminado_ms'=>TikTokConsulta::ahora()]);}File::delete($dir.'/estado.json');flock($lock,LOCK_UN);fclose($lock);}
+    }
+    private function lote(TikTokRegistro $registro,TikTokCuenta $cuenta,array $eventos): void {
+        $n=$registro->registrar($cuenta,$eventos);
+        foreach($eventos as$e)if(($e['tipo']??null)==='inicio'&&$cuenta->estado==='en_live'&&$cuenta->lives()->where('sala',$e['sala']??'')->exists())$this->info('TikTok @'.$cuenta->usuario.' · LIVE guardado · sala '.$e['sala'].' · '.$n.' comentarios nuevos');
     }
     private function diagnostico(TikTokCuenta $cuenta,array $evento): void {
         if(($evento['v']??null)!==1)return;

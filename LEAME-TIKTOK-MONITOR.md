@@ -1,77 +1,58 @@
-# Mi CV · TikTok para administración
+# Mi CV · LIVE, perfil público y comentarios de TikTok
 
-Actualización para el proyecto Laravel existente. El ZIP tiene las carpetas del proyecto en su raíz y no contiene `.env`, credenciales, base de datos, `vendor`, `node_modules` ni datos de pruebas.
+Actualización del módulo exclusivo de administradores del proyecto Laravel existente. El ZIP tiene las carpetas del proyecto en su raíz. No contiene `.env`, credenciales, base de datos, `vendor`, `node_modules` ni rutas operativas de pruebas.
 
-## Corrección de monitoreo automático
+## Cambios de esta versión
 
-Esta versión corrige el tratamiento de `UserNotFoundError`: ya no lo interpreta como un perfil privado ni desactiva el monitoreo. La librería puede producirlo por cuenta no disponible o una respuesta incompleta de TikTok. Compruebe también que el @usuario sea correcto.
+- **La captura continúa al cerrar sesión o salir del navegador.** El servicio del VPS consulta las cuentas activadas y guarda los eventos sin depender de la sesión web. El reproductor sí requiere una sesión de administrador.
+- **Los comentarios públicos de participantes con perfil privado se guardan igual.** La privacidad del perfil personal no se usa como filtro de mensajes de un LIVE público, ni como indicador de privacidad del LIVE. No se consulta el contenido privado del participante.
+- Se procesa también el primer lote de mensajes que TikTok entregue al conectar. Los identificadores de mensaje y sala evitan duplicados.
+- Si el SDK dice `UserOfflineError`, se contrasta una vez con la API pública de sala. Si esta devuelve un identificador, el SDK vuelve a comprobar que esté en LIVE antes de conectar. No se omiten controles de acceso ni se usa una sesión de TikTok.
+- El intervalo predeterminado pasa a **30 segundos**. Una cuenta sin LIVE sigue activada para nuevas comprobaciones. Si hay límites del proveedor, se respeta una espera mayor. Si su `.env` ya fija otro intervalo, se conserva ese valor.
+- El historial de lives y sus contadores se actualizan automáticamente, aunque todavía no haya comentarios. Ahora se puede buscar por título y ordenar por nombre, fecha o cantidad de comentarios.
+- Fechas y horas en formato **AM/PM**, con la zona configurada visible en el perfil y los informes.
+- Tarjeta con **foto, nombre y biografía públicos**, y región/país cuando TikTok los proporcione. Si falta un dato, no se inventa ni se deduce por IP. La región se muestra como información proporcionada por TikTok.
+- Botón para **eliminar una cuenta de monitoreo y su historial local**, con confirmación normal. Detiene su monitoreo, borra comentarios, lives e informes locales y no modifica la cuenta original de TikTok.
+- Reproductor **HLS.js 1.7.4** dentro del panel, cuando la sala entregue una señal HLS pública compatible. La alternativa «Abrir en TikTok» sigue disponible. La reproducción y la captura de comentarios son independientes.
 
-- Sin LIVE o ante un fallo temporal, la cuenta conserva **Monitoreo automático activado**. Se comprueba de nuevo y comienza a capturar cuando se detecta un LIVE público, con una conexión disponible. Cerrar el navegador no desactiva la captura.
-- El panel separa la activación del monitoreo del estado de conexión y muestra la próxima comprobación. “Activado” no significa que ya exista una conexión de captura.
-- La conexión inicial tiene un límite de 60 segundos; este límite no corta un LIVE que ya esté conectado.
-- Se distinguen cuenta no disponible, red, tiempo agotado, rechazo HTTP, límite de peticiones, firma y formato incompatible. Se registra únicamente código, clase de error y estado HTTP, sin mensajes remotos, URLs con parámetros, cookies o tokens.
-- El supervisor conserva el plazo de reintento indicado por el proveedor al finalizar el proceso; no lo reduce a 90 segundos.
-- Las restricciones confirmadas siguen pausando la captura. Esta actualización no recupera contenido privado ni promete resolver un bloqueo externo de TikTok desde el VPS.
+## Lo que muestran los estados
 
-Para actualizar, use las instrucciones de instalación de abajo: la migración ya aplicada no se vuelve a crear. La activación previa se conserva. Si la versión anterior dejó una cuenta pausada por error, pulse **Activar captura** una vez. No se activan cuentas pausadas de forma indiscriminada.
+**Monitoreo automático activado** significa que la cuenta está programada para comprobarse, no que se haya establecido una conexión. **En directo** indica que se conectó a una sala. **Señal pública disponible** indica que la sala entregó una URL compatible; la reproducción todavía puede fallar por vencimiento, rechazo del CDN o incompatibilidad de navegador/formato.
 
-Tras actualizar y esperar la siguiente comprobación, revise:
-
-```bash
-journalctl -u micv-tiktok -n 60 --no-pager
-```
-
-Un diagnóstico tiene este formato (ejemplo, no resultado real de su servidor):
+El estado global del capturador se basa en un latido del servicio. El registro diferencia el inicio del servicio, los intentos y el guardado de un LIVE. Ejemplos de formato, no resultados garantizados:
 
 ```text
-TikTok @usuario · solicitud_rechazada · HTTPStatusError · HTTP 403
+TikTok @usuario · sin_live · UserOfflineError
+TikTok @usuario · verificando_sala · ConsultaPublica
+TikTok @usuario · LIVE guardado · sala 7000000000000000001 · 2 comentarios nuevos
 ```
 
-Ese ejemplo significa que la conexión fue rechazada. Mantener el monitoreo activo no elimina el rechazo. Un registro que solo diga `Started micv-tiktok.service` confirma el arranque, pero no demuestra una conexión a TikTok ni identifica la causa del fallo.
+El registro que solo dice `Started micv-tiktok.service` confirma el arranque. `UserOfflineError` significa que la biblioteca no detectó un LIVE, no que un comentarista tuviera perfil privado. La nueva comprobación alternativa puede ayudar si el HTML está desactualizado; no garantiza resolver una respuesta errónea o un bloqueo de TikTok desde el VPS.
 
-## Funciones incluidas
+## Instalación o actualización en el VPS
 
-- Menú **TikTok · Lives y comentarios**, exclusivo de administradores activos, con autorización también en el servidor.
-- Registro de cuentas por `@usuario`, activación y pausa del monitoreo, sin borrar el historial.
-- Captura de comentarios de LIVE públicos mientras el capturador está conectado. Guarda sala, autor público, nombre, texto, fecha y origen, con deduplicación por mensaje y sala.
-- Historial separado por live y filtros por día o intervalo, live, publicación, texto y autor. Las fechas se muestran en `America/Costa_Rica` por defecto; la base almacena milisegundos UTC.
-- Actualización del panel cada dos segundos mientras está visible; la captura continúa en el servidor aunque se cierre la página. La ventana limita sus filas para no saturar el navegador; la base y las exportaciones conservan los registros guardados.
-- Estado del capturador basado en una señal real del servicio, estados de conexión, pausa, restricciones y próximo reintento. Hasta tres conexiones simultáneas por defecto.
-- Enlaces al perfil público y al LIVE en TikTok. **El LIVE se abre en TikTok**, no en un reproductor de transmisión interno. Se conserva únicamente el nombre y la biografía públicos recibidos al conectar al LIVE; no se obtiene un perfil completo fuera de esa conexión.
-- Registro manual de URLs de publicaciones públicas con reproductor oficial de TikTok. Comentarios de publicaciones mediante importación autorizada JSON/CSV, identificados como importados.
-- Informes PDF A4 privados, ordenados por fecha, con progreso y descarga como archivo. Cada PDF contiene hasta 1000 comentarios; si hacen falta varias partes, se descargan en un ZIP. El informe fija los registros disponibles al solicitarlo y no agrega los que lleguen después. Solo puede descargarlo el administrador que lo solicitó.
-
-## Alcance real de la integración
-
-**No permite entrar a perfiles privados ni eludir restricciones**, ni usa cookies de sesión de una cuenta de TikTok, contraseñas, proxies para saltar bloqueos o credenciales de TikTok. Si se detecta una restricción, la captura se pausa. No recupera comentarios anteriores a la conexión ni garantiza capturar todos los mensajes ante interrupciones, límites o cambios de TikTok.
-
-TikTokLive captura eventos de LIVE públicos: **no ofrece un listado automático de todas las publicaciones o sus comentarios**. En este módulo las publicaciones se registran por URL y sus comentarios se importan desde una fuente autorizada. TikTok decide si permite reproducir cada publicación en su reproductor oficial.
-
-El capturador utiliza la librería no oficial TikTokLive 7.0.1, que puede depender del servicio externo de firma y sus límites. No hay una integración oficial ni una garantía de disponibilidad de TikTok. El módulo espera antes de reintentar cuando hay límites; no intenta evitarlos. La licencia de la dependencia se publica como Modified AGPL-3.0 en PyPI.
-
-## Instalación en el VPS
-
-1. Haga una copia del código y de la base de datos actuales. Suba `Mi-CV-TikTok-Automonitoreo.zip` a `/var/www/micv/`.
-2. En la sesión SSH del VPS, ejecute:
+Haga una copia del código y de la base de datos actuales. Suba `Mi-CV-TikTok-Live-Perfil.zip` a `/var/www/micv/` y ejecute:
 
 ```bash
 cd /var/www/micv
-unzip -o Mi-CV-TikTok-Automonitoreo.zip
+unzip -o Mi-CV-TikTok-Live-Perfil.zip
 sudo bash bin/instalar-tiktok.sh
 ```
 
-3. Recargue el navegador con Ctrl+F5, entre como administrador, abra **TikTok · Lives y comentarios**, registre un `@usuario` público y pulse **Activar captura**. Las cuentas nuevas quedan pausadas hasta que se activen; las cuentas ya activadas retoman el monitoreo al arrancar el servicio.
+Recargue el navegador con Ctrl+F5, entre como administrador y abra **TikTok · Lives y comentarios**. Registre un `@usuario` y pulse **Activar captura**. Las cuentas ya activadas conservan esa preferencia. Si la versión anterior dejó una cuenta pausada, actívela una vez; el instalador no activa indiscriminadamente cuentas pausadas.
 
-El instalador requiere el proyecto base operativo con `.env`, `vendor`, PHP CLI con los módulos que ya necesita Mi CV, acceso a la base de datos, Python 3.10 o posterior, red hacia PyPI/TikTok, Ubuntu con systemd y el motor PDF existente (Node, Puppeteer y Chromium). No reinstala el motor PDF; si los CV ya se generan correctamente, utiliza ese mismo servicio `CvPdf`.
+El instalador crea el entorno Python aislado `storage/app/tiktok-venv`, instala **TikTokLive 7.0.1**, limpia cachés y ejecuta únicamente la migración original del módulo si aún falta. Esta versión aprovecha la columna JSON de perfil existente y no cambia las tablas ya creadas.
 
-El script crea un entorno Python aislado en `storage/app/tiktok-venv`, instala la versión fijada de TikTokLive, limpia las cachés de Laravel y ejecuta únicamente la migración nueva. Instala y activa:
+Mantiene dos servicios con arranque automático:
 
-- `micv-tiktok.service`: supervisor PHP con procesos Python locales para capturar los LIVE públicos.
+- `micv-tiktok.service`: supervisor PHP con procesos Python de captura. Sin reinicios programados cada hora.
 - `micv-tiktok-pdf.service`: trabajador de la cola independiente `tiktok-exportaciones`.
 
-Ambos arrancan con el VPS y se reinician automáticamente. No modifica los servicios de video o de correo. El supervisor permanece activo sin reinicios programados cada hora. Si se detiene por una incidencia o al reiniciar el VPS, systemd lo arranca nuevamente; pueden perderse eventos durante una interrupción y no hay captura retroactiva.
+No modifica los servicios de correo o de video promocional. Reiniciar servicios al actualizar produce una interrupción breve; pueden perderse eventos durante cualquier desconexión y no hay recuperación garantizada de mensajes anteriores.
 
-Si PHP CLI o el usuario web tienen otra ubicación/nombre:
+Requisitos: proyecto Laravel instalado y operativo con PHP CLI, base de datos y cola `jobs`, Python 3.10+, Ubuntu/systemd, salida HTTPS hacia TikTok y su proveedor de firma. La reproducción y las fotos mediante el servidor requieren **PHP cURL**, DNS y certificados válidos. Los PDF usan el motor existente de Mi CV (Node, Puppeteer y Chromium). HLS.js y su licencia ya van incluidos; no hace falta instalar Node adicional para el reproductor.
+
+Si PHP CLI o el usuario web tienen otro nombre/ruta:
 
 ```bash
 sudo MICV_PHP_BIN=/usr/bin/php MICV_WEB_USUARIO=www-data bash bin/instalar-tiktok.sh
@@ -81,24 +62,27 @@ Opcionales en `.env`:
 
 ```dotenv
 TIKTOK_SIMULTANEOS=3
-TIKTOK_INTERVALO=90
+TIKTOK_INTERVALO=30
 TIKTOK_ZONA=America/Costa_Rica
 ```
 
-El límite de simultáneos está acotado entre 1 y 10; aumentarlo consume recursos y no elimina los límites de terceros. La comprobación de cuentas sin LIVE espera al menos 60 segundos y por defecto 90. Ante un límite de firma espera al menos 300 segundos y conserva una espera mayor indicada por el proveedor, hasta 24 horas. Un rechazo de conexión o fallo del servicio de firma también espera al menos 300 segundos. Tras cambiar estas opciones:
+Ejemplo para mostrar horas de Nicaragua: `TIKTOK_ZONA=America/Managua`. La región del perfil es un dato independiente de esta zona de visualización. El límite de conexiones está acotado entre 1 y 10; por defecto hay tres. Las demás cuentas esperan un cupo. El intervalo mínimo es 30 segundos. Ante un límite de peticiones se espera al menos 300 segundos, conservando una espera mayor del proveedor, hasta 24 horas. Un rechazo de conexión o un fallo de firma también espera al menos 300 segundos.
+
+Después de cambiar estas opciones:
 
 ```bash
 sudo -u www-data php artisan config:clear
 sudo systemctl restart micv-tiktok micv-tiktok-pdf
 ```
 
-## Uso y diagnóstico
+## Prueba en su cuenta
 
-- Active únicamente las cuentas que quiera capturar. Las demás quedan registradas y pausadas.
-- Sin un LIVE público disponible, verá el estado correspondiente y una próxima comprobación. Si hay más cuentas activas que conexiones disponibles, las restantes esperan un turno libre.
-- El filtro inicial muestra el día actual. Para consultar días anteriores cambie las fechas. En **Lives guardados → Ver comentarios** se aplica el rango de fechas de esa captura.
-- En **Exportar estos comentarios a PDF**, los filtros actuales se conservan en el informe. El archivo aparece en **Informes PDF** y se descarga con el botón de descarga.
-- Si aparece «Capturador sin señal», el panel no está recibiendo el latido del servicio. Si un PDF permanece en cola más de dos minutos, el panel indica revisar el trabajador de PDF.
+1. Active el monitoreo del @usuario exacto que emite el LIVE.
+2. Mantenga abierto un LIVE público mientras se realizan las comprobaciones. El panel mostrará por separado si el servicio está activo y si se conectó a la sala.
+3. Escriba un comentario visible en ese LIVE, incluso desde una cuenta cuyo perfil sea privado. Si TikTok lo entrega al capturador, se guardará.
+4. En el panel revise **Lives guardados**, los comentarios y el registro del servicio. La lista se actualiza sin recargar.
+5. Si aparece una señal compatible, pulse **Reproducir LIVE**. El video comienza silenciado; puede activar el sonido en los controles.
+6. Puede cerrar sesión: el servicio seguirá activo. Al volver, encontrará el historial guardado. El módulo archiva comentarios y metadatos del LIVE, **no graba el video**.
 
 ```bash
 systemctl status micv-tiktok micv-tiktok-pdf --no-pager -l
@@ -107,15 +91,25 @@ sudo -u www-data storage/app/tiktok-venv/bin/python -c 'from TikTokLive import T
 sudo -u www-data php artisan migrate:status
 ```
 
-Un cambio de TikTok puede exigir una actualización del adaptador y la dependencia. No actualice a ciegas a otra versión: la versión de eventos y sus pruebas deben seguir coincidiendo.
+Si un LIVE está abierto y el registro insiste en `sin_live`, conserve el diagnóstico de esa misma prueba. Un LIVE no detectado no se registra falsamente como capturado. Si el servicio está sin señal, revise systemd, permisos y conectividad. No cambie de versión de TikTokLive a ciegas: puede requerir adaptar los eventos y sus pruebas.
 
-La base contiene `tiktok_cuentas`, `tiktok_lives`, `tiktok_publicaciones`, `tiktok_comentarios` y `tiktok_exportaciones`. Los informes están en `storage/app/private/tiktok/exportaciones/`, fuera de `public/`. El directorio privado no debe publicarse ni enlazarse con `storage:link`. No se eliminan automáticamente comentarios antiguos: tenga en cuenta su crecimiento en copias de seguridad y almacenamiento.
+## Límites y reproducción
 
-## Importar comentarios de publicaciones
+Se utiliza una biblioteca **no oficial**. TikTok o el servicio de firma pueden bloquear peticiones, limitar tráfico o cambiar su protocolo. No se garantiza capturar todos los mensajes ni detectar todos los LIVE. Las restricciones de acceso confirmadas se respetan. No se usan contraseñas, cookies de una cuenta de TikTok o proxies para entrar a contenido privado.
 
-Registre la URL completa `https://www.tiktok.com/@usuario/video/ID` de la misma cuenta. El módulo no resuelve enlaces acortados ni descarga páginas arbitrarias. Después abra esa publicación y elija un JSON o CSV autorizado (máximo 5 MB y 5000 filas). Debe confirmar la autorización de la fuente en el formulario.
+La reproducción solo admite URLs HTTPS de determinados CDN de TikTok recibidas de la sala pública. El backend valida el origen y las direcciones DNS, fija la dirección de conexión, no sigue redirecciones y sirve manifiestos/segmentos por rutas de administrador con tokens temporales. No acepta una URL libre del navegador. Las URLs firmadas originales no se entregan en el HTML ni en el JSON del panel. Los manifiestos protegidos/cifrados no se reproducen. Si TikTok no entrega una señal compatible o rechaza su lectura, el panel ofrece abrir el LIVE en TikTok.
 
-JSON de ejemplo; los identificadores deben ser cadenas, incluso si solo contienen dígitos:
+La información pública de sala y la señal se vuelven a consultar aproximadamente cada cinco minutos durante una captura conectada; un fallo de esa actualización de video no desactiva la captura de comentarios. No se consultan álbumes o publicaciones privadas.
+
+Los metadatos de reproducción se guardan cifrados bajo `storage/app/private/tiktok/reproduccion/`. Los informes privados están en `storage/app/private/tiktok/exportaciones/`. No publique ni enlace estos directorios con `storage:link`. Los comentarios se conservan hasta eliminar el monitoreo: tenga en cuenta el crecimiento de la base y sus copias de seguridad.
+
+## Filtros, publicaciones e informes
+
+El filtro inicial de comentarios muestra el día actual en la zona configurada. Para días anteriores cambie las fechas. **Ver comentarios** de un LIVE aplica el intervalo de fechas de su captura. Las búsquedas admiten texto y autor. El panel conserva una ventana de hasta 300 comentarios para evitar saturar el navegador; la base y los informes incluyen los registros guardados que correspondan a los filtros.
+
+Puede registrar la URL canónica de una publicación pública de esa cuenta y verla en el reproductor oficial de TikTok. TikTok controla su disponibilidad. **TikTokLive no obtiene automáticamente todas las publicaciones ni sus comentarios**: estos se incorporan mediante un JSON/CSV autorizado, con origen claramente identificado como importación.
+
+Ejemplo de JSON UTF-8 (identificadores como cadenas):
 
 ```json
 [
@@ -129,27 +123,21 @@ JSON de ejemplo; los identificadores deben ser cadenas, incluso si solo contiene
 ]
 ```
 
-CSV equivalente, UTF-8, separado por comas:
+CSV equivalente, separado por comas, con cabecera `id,autor,nombre,texto,fecha`. Máximo 5000 filas y 5 MB. Use fechas ISO con zona; si se omite, se interpreta la configurada. Una fila inválida rechaza toda la importación. Los duplicados por publicación e identificador se omiten.
 
-```csv
-id,autor,nombre,texto,fecha
-ejemplo-001,usuario_ejemplo,Participante de ejemplo,Comentario autorizado.,2026-11-22T10:30:00-06:00
-```
-
-Use fechas ISO 8601 con zona horaria. Si se omite la zona, se interpreta la configurada para el módulo. Una fila inválida rechaza toda la importación, sin dejar una importación parcial. El mismo identificador de comentario de la misma publicación no se duplica.
+**Exportar estos comentarios a PDF** conserva filtros y fija el conjunto de registros existentes al solicitarlo. El informe A4 se genera en segundo plano, con hasta 1000 comentarios por PDF. Varias partes se descargan en un ZIP. Solo el administrador que solicitó el informe puede descargarlo. Si queda en cola más de dos minutos, el panel indica revisar `micv-tiktok-pdf`.
 
 ## Verificación realizada
 
-- Suite PHP completa: 146 pruebas, 1589 aserciones; incluye permisos, separación de salas y días, duplicados, restricciones, importaciones, archivos privados, informes de varias partes y supervisor con procesos de prueba, conservación de esperas del proveedor y transición de sin LIVE a captura posterior sin reactivar.
-- Adaptador Python: 16 pruebas de normalización, restricciones, diagnóstico sin datos sensibles, errores de conexión, límites, tiempos de espera y NDJSON Unicode. Ejecutar con `storage/app/tiktok-venv/bin/python tests/python/test_tiktok_capturar.py`.
-- Navegador Chromium: transición simulada de error a espera de LIVE conservando la activación y la fecha de reintento; panel de administración en escritorio, móvil y tema oscuro; comentarios simulados actualizados sin ejecutar HTML; confirmaciones normales y descarga PDF de la cola; acceso denegado a una cuenta sin rol de administrador.
-- El informe se renderizó con su plantilla real, A4 y datos ficticios. En el entorno de pruebas se cargó el HTML en memoria porque el Chromium administrado bloquea `file://`; producción utiliza el motor `CvPdf` existente.
+- Suite completa PHP: **153 pruebas, 1638 aserciones**. Incluye permisos, separación de salas y días, deduplicación, importación, PDF, reintentos, logout sin pausar, historial en tiempo real, orden, perfil público, eliminación y acceso al video protegido por administrador.
+- Python: **20 pruebas**, incluidos comentarios públicos de participantes con perfil privado, primer lote al conectar, comprobación alternativa de sala, restricciones, errores sin datos sensibles, límites y tiempos de conexión.
+- Chromium: reproducción real de un HLS local H.264/AAC de prueba, con manifiesto/segmentos servidos a través de las rutas Laravel y comprobación de dimensiones y tiempo de reproducción. Historial y comentarios actualizados sin recargar, foto y región de ejemplo, orden por nombre, tema oscuro, móvil y eliminación con confirmación.
+- Se hizo una consulta pública de `@jeffryzeas` desde el entorno de trabajo: en ese momento devolvió `UserOfflineError`, también tras la comprobación alternativa. No acredita qué ocurrió durante la prueba anterior del VPS.
 
-**No se ha probado una conexión a un LIVE real ni se ha instalado este paquete en su VPS.** La conexión efectiva debe comprobarse después de instalarlo, con un LIVE público disponible. No se incluyen cuentas ficticias ni rutas de pruebas en este paquete.
+**No se ha confirmado una captura o reproducción de un LIVE real de TikTok ni se ha instalado esta actualización en su VPS.** Los casos positivos de captura y video se probaron con eventos simulados y una señal local. La descarga PDF se probó previamente con su plantilla real y datos ficticios; el Chromium administrado requiere cargar ese HTML en memoria, mientras producción conserva el motor `CvPdf` existente.
 
-## Fuentes técnicas
+## Fuentes y dependencias
 
-- TikTokLive, documentación del proyecto: https://github.com/isaackogan/TikTokLive
-- Versión y requisitos fijados: https://pypi.org/project/TikTokLive/7.0.1/
+- TikTokLive 7.0.1: https://pypi.org/project/TikTokLive/7.0.1/ · https://github.com/isaackogan/TikTokLive · licencia publicada: Modified AGPL-3.0.
+- HLS.js 1.7.4: https://github.com/video-dev/hls.js · paquete NPM verificado con su integridad SHA512 antes de incluir `public/vendor/hls.min.js`; licencia Apache-2.0 en `public/vendor/hls-LICENSE.txt`.
 - Reproductor oficial de publicaciones: https://developers.tiktok.com/doc/embed-player
-- API oficial de perfil y videos, sujeta a permisos: https://developers.tiktok.com/doc/display-api-overview
