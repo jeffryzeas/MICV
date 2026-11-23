@@ -77,4 +77,33 @@ class TikTokMonitorTest extends TestCase {
         $this->app->instance(TikTokProceso::class,new class($script)extends TikTokProceso{public function __construct(private string $s){}public function crear(string $usuario): Process{$p=new Process(['/usr/bin/python3',$this->s]);$p->setTimeout(null);return$p;}});
         $this->artisan('micv:tiktok-monitor',['--duracion'=>1])->assertSuccessful();$this->assertSame(1,TikTokComentario::count());$this->assertFalse(app(TikTokConsulta::class)->salud()['activo']);$this->assertSame('interrumpido',$c->lives()->first()->estado);
     }
+    public function test_espera_y_fallos_temporales_conservan_monitoreo_y_el_panel_lo_explica(): void {
+        $c=$this->cuenta();
+        foreach(['sin_live','error','limitado']as$estado){
+            app(TikTokRegistro::class)->registrar($c,[$this->evento('estado',['estado'=>$estado,'detalle'=>'Reintento automático'])]);
+            $this->assertTrue($c->fresh()->monitorear);$this->assertSame($estado,$c->estado);
+        }
+        $this->actingAs($this->usuario())->get(route('admin.tiktok.cuenta',$c))->assertOk()->assertSee('Monitoreo automático activado');
+        $this->getJson(route('admin.tiktok.eventos',$c))->assertOk()->assertJsonPath('monitorear',true)->assertJsonPath('estado','limitado');
+    }
+    public function test_espera_del_proveedor_se_conserva_al_salir_del_proceso(): void {
+        $c=$this->cuenta();$dir=Storage::disk('local')->path('estado');mkdir($dir,0700,true);$script=$dir.'/limited.py';
+        file_put_contents($script,'print('.json_encode(json_encode($this->evento('estado',['estado'=>'limitado','espera_segundos'=>1800]))).',flush=True)');
+        $this->app->instance(TikTokProceso::class,new class($script)extends TikTokProceso{public function __construct(private string $s){}public function crear(string $usuario): Process{$p=new Process(['/usr/bin/python3',$this->s]);$p->setTimeout(null);return$p;}});
+        $this->artisan('micv:tiktok-monitor',['--duracion'=>1])->assertSuccessful();
+        $c->refresh();$this->assertTrue($c->monitorear);$this->assertGreaterThan(TikTokConsulta::ahora()+1797000,$c->reintentar_ms);
+        $c->update(['reintentar_ms'=>null]);app(TikTokRegistro::class)->registrar($c,[$this->evento('estado',['estado'=>'error','espera_segundos'=>999999999])]);
+        $this->assertLessThanOrEqual(TikTokConsulta::ahora()+86400000,$c->fresh()->reintentar_ms);
+    }
+    public function test_sin_live_reintenta_y_captura_un_live_posterior_sin_reactivar(): void {
+        config(['tiktok.intervalo'=>1]);$c=$this->cuenta();$dir=Storage::disk('local')->path('estado');mkdir($dir,0700,true);$script=$dir.'/offline_then_live.py';
+        $primero=json_encode($this->evento('estado',['estado'=>'sin_live','detalle'=>'Esperando un LIVE público']));
+        $inicio=json_encode($this->evento('inicio',['titulo'=>'LIVE posterior']));$comentario=json_encode($this->evento('comentario',['id'=>'posterior','autor'=>'prueba','texto'=>'Llegó después de estar offline']));
+        file_put_contents($script,"from pathlib import Path\nimport time\np=Path(__file__).with_suffix('.count')\nn=int(p.read_text())+1 if p.exists() else 1\np.write_text(str(n))\nif n==1:\n print(".json_encode($primero).",flush=True)\nelse:\n print(".json_encode($inicio).",flush=True)\n print(".json_encode($comentario).",flush=True)\n time.sleep(10)\n");
+        $this->app->instance(TikTokProceso::class,new class($script)extends TikTokProceso{public function __construct(private string $s){}public function crear(string $usuario): Process{$p=new Process(['/usr/bin/python3',$this->s]);$p->setTimeout(null);return$p;}});
+        $this->artisan('micv:tiktok-monitor',['--duracion'=>5])->assertSuccessful();
+        $this->assertSame('2',file_get_contents($dir.'/offline_then_live.count'));$this->assertTrue($c->fresh()->monitorear);
+        $this->assertSame(1,TikTokComentario::count());$this->assertSame('Llegó después de estar offline',TikTokComentario::first()->texto);
+    }
+
 }

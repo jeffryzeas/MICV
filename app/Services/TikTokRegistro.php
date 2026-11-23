@@ -20,6 +20,8 @@ class TikTokRegistro {
                     if(!array_key_exists($estado,TikTokCuenta::ESTADOS))continue;
                     $datos=['estado'=>$estado,'latido_ms'=>TikTokConsulta::ahora(),'detalle'=>$this->texto($e['detalle']??'',300)];
                     if($estado==='restringido')$datos['monitorear']=false;
+                    $espera=filter_var($e['espera_segundos']??null,FILTER_VALIDATE_INT);
+                    if($espera!==false&&$espera>=60)$datos['reintentar_ms']=max($c->reintentar_ms??0,TikTokConsulta::ahora()+min(86400,$espera)*1000);
                     $c->update($datos);continue;
                 }
                 if($tipo==='latido'){$c->update(['latido_ms'=>TikTokConsulta::ahora()]);continue;}

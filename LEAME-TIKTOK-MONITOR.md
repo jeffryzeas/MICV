@@ -2,6 +2,33 @@
 
 Actualización para el proyecto Laravel existente. El ZIP tiene las carpetas del proyecto en su raíz y no contiene `.env`, credenciales, base de datos, `vendor`, `node_modules` ni datos de pruebas.
 
+## Corrección de monitoreo automático
+
+Esta versión corrige el tratamiento de `UserNotFoundError`: ya no lo interpreta como un perfil privado ni desactiva el monitoreo. La librería puede producirlo por cuenta no disponible o una respuesta incompleta de TikTok. Compruebe también que el @usuario sea correcto.
+
+- Sin LIVE o ante un fallo temporal, la cuenta conserva **Monitoreo automático activado**. Se comprueba de nuevo y comienza a capturar cuando se detecta un LIVE público, con una conexión disponible. Cerrar el navegador no desactiva la captura.
+- El panel separa la activación del monitoreo del estado de conexión y muestra la próxima comprobación. “Activado” no significa que ya exista una conexión de captura.
+- La conexión inicial tiene un límite de 60 segundos; este límite no corta un LIVE que ya esté conectado.
+- Se distinguen cuenta no disponible, red, tiempo agotado, rechazo HTTP, límite de peticiones, firma y formato incompatible. Se registra únicamente código, clase de error y estado HTTP, sin mensajes remotos, URLs con parámetros, cookies o tokens.
+- El supervisor conserva el plazo de reintento indicado por el proveedor al finalizar el proceso; no lo reduce a 90 segundos.
+- Las restricciones confirmadas siguen pausando la captura. Esta actualización no recupera contenido privado ni promete resolver un bloqueo externo de TikTok desde el VPS.
+
+Para actualizar, use las instrucciones de instalación de abajo: la migración ya aplicada no se vuelve a crear. La activación previa se conserva. Si la versión anterior dejó una cuenta pausada por error, pulse **Activar captura** una vez. No se activan cuentas pausadas de forma indiscriminada.
+
+Tras actualizar y esperar la siguiente comprobación, revise:
+
+```bash
+journalctl -u micv-tiktok -n 60 --no-pager
+```
+
+Un diagnóstico tiene este formato (ejemplo, no resultado real de su servidor):
+
+```text
+TikTok @usuario · solicitud_rechazada · HTTPStatusError · HTTP 403
+```
+
+Ese ejemplo significa que la conexión fue rechazada. Mantener el monitoreo activo no elimina el rechazo. Un registro que solo diga `Started micv-tiktok.service` confirma el arranque, pero no demuestra una conexión a TikTok ni identifica la causa del fallo.
+
 ## Funciones incluidas
 
 - Menú **TikTok · Lives y comentarios**, exclusivo de administradores activos, con autorización también en el servidor.
@@ -16,7 +43,7 @@ Actualización para el proyecto Laravel existente. El ZIP tiene las carpetas del
 
 ## Alcance real de la integración
 
-**No permite entrar a perfiles privados ni eludir restricciones**, ni usa cookies de sesión, contraseñas, proxies para saltar bloqueos o credenciales de TikTok. Si se detecta una restricción, la captura se pausa. No recupera comentarios anteriores a la conexión ni garantiza capturar todos los mensajes ante interrupciones, límites o cambios de TikTok.
+**No permite entrar a perfiles privados ni eludir restricciones**, ni usa cookies de sesión de una cuenta de TikTok, contraseñas, proxies para saltar bloqueos o credenciales de TikTok. Si se detecta una restricción, la captura se pausa. No recupera comentarios anteriores a la conexión ni garantiza capturar todos los mensajes ante interrupciones, límites o cambios de TikTok.
 
 TikTokLive captura eventos de LIVE públicos: **no ofrece un listado automático de todas las publicaciones o sus comentarios**. En este módulo las publicaciones se registran por URL y sus comentarios se importan desde una fuente autorizada. TikTok decide si permite reproducir cada publicación en su reproductor oficial.
 
@@ -24,16 +51,16 @@ El capturador utiliza la librería no oficial TikTokLive 7.0.1, que puede depend
 
 ## Instalación en el VPS
 
-1. Haga una copia del código y de la base de datos actuales. Suba `Mi-CV-TikTok-Admin.zip` a `/var/www/micv/`.
+1. Haga una copia del código y de la base de datos actuales. Suba `Mi-CV-TikTok-Automonitoreo.zip` a `/var/www/micv/`.
 2. En la sesión SSH del VPS, ejecute:
 
 ```bash
 cd /var/www/micv
-unzip -o Mi-CV-TikTok-Admin.zip
+unzip -o Mi-CV-TikTok-Automonitoreo.zip
 sudo bash bin/instalar-tiktok.sh
 ```
 
-3. Recargue el navegador con Ctrl+F5, entre como administrador, abra **TikTok · Lives y comentarios**, registre un `@usuario` público y pulse **Activar captura**. No se inicia ninguna captura por instalar el módulo.
+3. Recargue el navegador con Ctrl+F5, entre como administrador, abra **TikTok · Lives y comentarios**, registre un `@usuario` público y pulse **Activar captura**. Las cuentas nuevas quedan pausadas hasta que se activen; las cuentas ya activadas retoman el monitoreo al arrancar el servicio.
 
 El instalador requiere el proyecto base operativo con `.env`, `vendor`, PHP CLI con los módulos que ya necesita Mi CV, acceso a la base de datos, Python 3.10 o posterior, red hacia PyPI/TikTok, Ubuntu con systemd y el motor PDF existente (Node, Puppeteer y Chromium). No reinstala el motor PDF; si los CV ya se generan correctamente, utiliza ese mismo servicio `CvPdf`.
 
@@ -42,7 +69,7 @@ El script crea un entorno Python aislado en `storage/app/tiktok-venv`, instala l
 - `micv-tiktok.service`: supervisor PHP con procesos Python locales para capturar los LIVE públicos.
 - `micv-tiktok-pdf.service`: trabajador de la cola independiente `tiktok-exportaciones`.
 
-Ambos arrancan con el VPS y se reinician automáticamente. No modifica los servicios de video o de correo. El supervisor se renueva aproximadamente cada hora, con una breve reconexión durante la que pueden perderse eventos; no hay captura retroactiva.
+Ambos arrancan con el VPS y se reinician automáticamente. No modifica los servicios de video o de correo. El supervisor permanece activo sin reinicios programados cada hora. Si se detiene por una incidencia o al reiniciar el VPS, systemd lo arranca nuevamente; pueden perderse eventos durante una interrupción y no hay captura retroactiva.
 
 Si PHP CLI o el usuario web tienen otra ubicación/nombre:
 
@@ -58,7 +85,7 @@ TIKTOK_INTERVALO=90
 TIKTOK_ZONA=America/Costa_Rica
 ```
 
-El límite de simultáneos está acotado entre 1 y 10; aumentarlo consume recursos y no elimina los límites de terceros. La comprobación de cuentas sin LIVE espera al menos 60 segundos y por defecto 90. Ante un límite de firma espera 300 segundos. Tras cambiar estas opciones:
+El límite de simultáneos está acotado entre 1 y 10; aumentarlo consume recursos y no elimina los límites de terceros. La comprobación de cuentas sin LIVE espera al menos 60 segundos y por defecto 90. Ante un límite de firma espera al menos 300 segundos y conserva una espera mayor indicada por el proveedor, hasta 24 horas. Un rechazo de conexión o fallo del servicio de firma también espera al menos 300 segundos. Tras cambiar estas opciones:
 
 ```bash
 sudo -u www-data php artisan config:clear
@@ -113,9 +140,9 @@ Use fechas ISO 8601 con zona horaria. Si se omite la zona, se interpreta la conf
 
 ## Verificación realizada
 
-- Suite PHP completa: 143 pruebas, 1568 aserciones; incluye permisos, separación de salas y días, duplicados, restricciones, importaciones, archivos privados, informes de varias partes y supervisor con un proceso de prueba.
-- Adaptador Python: cuatro pruebas de normalización de eventos, identificadores grandes, restricciones y NDJSON Unicode. Ejecutar con `storage/app/tiktok-venv/bin/python tests/python/test_tiktok_capturar.py`.
-- Navegador Chromium: panel de administración en escritorio, móvil y tema oscuro; comentarios simulados actualizados sin ejecutar HTML; confirmaciones normales y descarga PDF de la cola; acceso denegado a una cuenta sin rol de administrador.
+- Suite PHP completa: 146 pruebas, 1589 aserciones; incluye permisos, separación de salas y días, duplicados, restricciones, importaciones, archivos privados, informes de varias partes y supervisor con procesos de prueba, conservación de esperas del proveedor y transición de sin LIVE a captura posterior sin reactivar.
+- Adaptador Python: 16 pruebas de normalización, restricciones, diagnóstico sin datos sensibles, errores de conexión, límites, tiempos de espera y NDJSON Unicode. Ejecutar con `storage/app/tiktok-venv/bin/python tests/python/test_tiktok_capturar.py`.
+- Navegador Chromium: transición simulada de error a espera de LIVE conservando la activación y la fecha de reintento; panel de administración en escritorio, móvil y tema oscuro; comentarios simulados actualizados sin ejecutar HTML; confirmaciones normales y descarga PDF de la cola; acceso denegado a una cuenta sin rol de administrador.
 - El informe se renderizó con su plantilla real, A4 y datos ficticios. En el entorno de pruebas se cargó el HTML en memoria porque el Chromium administrado bloquea `file://`; producción utiliza el motor `CvPdf` existente.
 
 **No se ha probado una conexión a un LIVE real ni se ha instalado este paquete en su VPS.** La conexión efectiva debe comprobarse después de instalarlo, con un LIVE público disponible. No se incluyen cuentas ficticias ni rutas de pruebas en este paquete.

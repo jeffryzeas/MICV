@@ -29,7 +29,7 @@ Wants=network-online.target
 Type=simple
 User=$micv_usuario
 WorkingDirectory=$micv_raiz
-ExecStart=$micv_php $micv_raiz/artisan micv:tiktok-monitor --duracion=3600
+ExecStart=$micv_php $micv_raiz/artisan micv:tiktok-monitor --duracion=0
 Restart=always
 RestartSec=10
 KillMode=mixed
