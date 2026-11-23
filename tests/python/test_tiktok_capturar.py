@@ -265,6 +265,50 @@ class PublicLiveTest(unittest.TestCase):
    web=S(params={'room_id':'7777777777777777777'},get=AsyncMock(return_value=httpx.Response(200,json={'status_code':0,'data':info},request=httpx.Request('GET','https://webcast.tiktok.com/room/info/'))))
    self.assertEqual(await m.InfoSalaPublica(web)(),info);self.assertEqual(web.get.call_args.kwargs['url'],WebDefaults.tiktok_webcast_url+'/room/info/');self.assertEqual(web.get.call_args.kwargs['extra_params']['room_id'],'7777777777777777777')
   asyncio.run(run())
+ def test_chat_only_preserves_target_profile_and_records_public_source_without_video_requests(self):
+  from TikTokLive.events import ConnectEvent,CommentEvent,LiveEndEvent
+  from unittest.mock import AsyncMock
+  class Client:
+   instance=None
+   def __init__(self,**kwargs):
+    Client.instance=self;self.handlers={};self.room_id=7777777777777777777;self.room_info=None;self.web=S(get=AsyncMock(side_effect=AssertionError('No video or room metadata request')),close=AsyncMock());self.unique_id=kwargs['unique_id']
+   def on(self,event):
+    def register(cb):self.handlers[event]=cb;return cb
+    return register
+   async def connect(client,**kwargs):
+    self.assertEqual(client.unique_id,'sala_publica');self.assertFalse(kwargs['fetch_room_info']);self.assertTrue(kwargs.get('fetch_live_check',True))
+    await client.handlers[ConnectEvent](S(room_id=client.room_id));await client.handlers[CommentEvent](S(content='Comentario público de perfil privado',user=S(display_id='persona',nickname='Persona',private_account=True),common=S(msg_id=9000000000000000001,create_time=1730000000)));await asyncio.sleep(.02);await client.handlers[LiveEndEvent](None)
+   async def disconnect(self,**kwargs):pass
+  out=io.StringIO();perfil={'data':{'user':{'uniqueId':'objetivo','nickname':'Perfil objetivo'}}}
+  with patch('TikTokLive.TikTokLiveClient',Client),patch('TikTokLive.client.web.routes.fetch_room_id_api.FetchRoomIdAPIRoute.fetch_user_room_data',new=AsyncMock(return_value=perfil)),redirect_stdout(out):asyncio.run(m.ejecutar('objetivo','sala_publica'))
+  rows=[json.loads(x)for x in out.getvalue().splitlines()];inicio=next(r for r in rows if r['tipo']=='inicio');chat=next(r for r in rows if r['tipo']=='comentario')
+  self.assertEqual(inicio['deteccion']['usuario_sala'],'sala_publica');self.assertEqual(inicio['deteccion']['cuenta_consultada'],'objetivo');self.assertTrue(inicio['deteccion']['solo_comentarios']);self.assertIsNone(inicio['video_hls']);self.assertEqual(chat['publico']['usuario_sala'],'sala_publica');self.assertEqual(chat['texto'],'Comentario público de perfil privado');self.assertTrue(any(r.get('perfil',{}).get('nombre')=='Perfil objetivo'for r in rows));Client.instance.web.get.assert_not_awaited()
+ def test_chat_only_does_not_create_a_live_when_public_chat_rejects_the_connection(self):
+  from unittest.mock import AsyncMock
+  import httpx
+  class Client:
+   def __init__(self,**kwargs):self.web=S(close=AsyncMock())
+   def on(self,event):return lambda cb:cb
+   async def connect(self,**kwargs):raise httpx.HTTPStatusError('not logged',request=httpx.Request('GET','https://example.test/'),response=httpx.Response(403))
+   async def disconnect(self,**kwargs):pass
+  out=io.StringIO()
+  with patch('TikTokLive.TikTokLiveClient',Client),redirect_stdout(out):asyncio.run(m.ejecutar('objetivo','sala_publica'))
+  rows=[json.loads(x)for x in out.getvalue().splitlines()];self.assertFalse(any(r['tipo'] in('inicio','comentario')for r in rows));self.assertTrue(any(r.get('codigo')=='solicitud_rechazada'for r in rows))
+ def test_source_profile_is_not_published_over_target_during_chat_room_discovery(self):
+  from unittest.mock import AsyncMock
+  from TikTokLive.client.errors import UserOfflineError
+  async def run():
+   listo=asyncio.Event();calls=[]
+   class Client:
+    web=object()
+    async def connect(self,**kwargs):
+     calls.append(kwargs)
+     if len(calls)==1:raise UserOfflineError()
+     listo.set()
+   out=io.StringIO()
+   with patch('TikTokLive.client.web.routes.fetch_room_id_api.FetchRoomIdAPIRoute.fetch_user_room_data',new=AsyncMock(return_value={'data':{'user':{'uniqueId':'sala_publica','roomId':'7777777777777777777','nickname':'Titular'}}})),redirect_stdout(out):await m.conectar_con_comprobacion(Client(),listo,'sala_publica',solo_comentarios=True,publicar_perfil=False)
+   self.assertFalse(any(json.loads(x)['tipo']=='perfil'for x in out.getvalue().splitlines()));self.assertFalse(calls[-1]['fetch_room_info']);self.assertTrue(calls[-1]['fetch_live_check'])
+  asyncio.run(run())
  def test_hls_only_accepts_public_tiktok_cdn_hosts(self):
   good='https://pull-hls-test.tiktokcdn.com/live/index.m3u8?token=example'
   self.assertEqual(m.video_publico({'stream_url':{'hls_pull_url':good}}),good)

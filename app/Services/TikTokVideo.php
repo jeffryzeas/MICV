@@ -31,10 +31,11 @@ class TikTokVideo
     }
     public function activo(TikTokCuenta $cuenta,TikTokLive $live): bool
     {
-        return $live->cuenta_id===$cuenta->id&&$cuenta->monitorear&&$cuenta->estado==='en_live'&&$live->estado==='en_live'&&($cuenta->latido_ms??0)>TikTokConsulta::ahora()-45000;
+        return !$cuenta->sala_publica_usuario&&$live->cuenta_id===$cuenta->id&&$cuenta->monitorear&&$cuenta->estado==='en_live'&&$live->estado==='en_live'&&($cuenta->latido_ms??0)>TikTokConsulta::ahora()-45000;
     }
     public function estado(TikTokCuenta $cuenta,?TikTokLive $live): array
     {
+        if($cuenta->sala_publica_usuario)return ['disponible'=>false,'url'=>null,'mensaje'=>'Modo solo comentarios: no se solicita señal de video.'];
         $disponible=$live&&$this->activo($cuenta,$live)&&$this->fuente($live);
         return ['disponible'=>(bool)$disponible,'url'=>$disponible?route('admin.tiktok.video',[$cuenta,$live]):null,
             'mensaje'=>$disponible?'Señal pública disponible. Pulse Reproducir para verla.':($live&&$this->activo($cuenta,$live)?'TikTok no entregó una señal HLS pública compatible. Puede abrir el LIVE en TikTok; la captura de comentarios continúa.':'La reproducción estará disponible cuando se conecte a un LIVE público compatible.')];

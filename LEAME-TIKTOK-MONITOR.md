@@ -23,7 +23,7 @@ unzip -o Mi-CV-TikTok-Forense.zip
 sudo bash bin/instalar-tiktok.sh
 ```
 
-Después recargue con Ctrl+F5 y entre como administrador. El instalador detiene los trabajadores del módulo durante la actualización, limpia las cachés, aplica las cinco migraciones de TikTok que falten y vuelve a arrancar los servicios. Conserva las cuentas y las pausas manuales; recupera el monitoreo que se desactivó por el antiguo estado automático «restringido». Las nuevas quedan pausadas hasta que las active.
+Después recargue con Ctrl+F5 y entre como administrador. El instalador detiene los trabajadores del módulo durante la actualización, limpia las cachés, aplica las seis migraciones de TikTok que falten y vuelve a arrancar los servicios. Conserva las cuentas y las pausas manuales; recupera el monitoreo que se desactivó por el antiguo estado automático «restringido». Las nuevas quedan pausadas hasta que las active.
 
 Servicios que arrancan con el VPS:
 
@@ -146,8 +146,8 @@ TikTokLive es no oficial y puede dejar de funcionar por cambios, bloqueos o lím
 
 ## Verificación de esta entrega
 
-- PHP: **172 pruebas**. Incluye permisos, sesiones, fotos y archivos privados, hashes, IDs grandes, exportación por LIVE, datos anteriores, publicación importada, varias partes, eliminación y verificación que detecta alteraciones. Las pruebas de informes renderizan también su plantilla HTML.
-- Python: **34 pruebas**, con ID original/generado, hash del texto, recortes, tipos reales del protocolo TikTokLive 7.0.1, perfiles privados que comentan públicamente, conexión, restricciones, reintentos y metadatos.
+- PHP: **176 pruebas**. Incluye permisos, sesiones, fotos y archivos privados, hashes, IDs grandes, exportación por LIVE, datos anteriores, publicación importada, varias partes, eliminación y verificación que detecta alteraciones. Las pruebas de informes renderizan también su plantilla HTML.
+- Python: **37 pruebas**, con ID original/generado, hash del texto, recortes, tipos reales del protocolo TikTokLive 7.0.1, perfiles privados que comentan públicamente, conexión, restricciones, reintentos y metadatos.
 - Chromium: reproducción efectiva de un HLS local H.264/AAC y de otro con AES-128 y redirección validada; detener la vista conserva el monitoreo. Interfaz, fotos de prueba, actualización sin ejecutar HTML, confirmación abierta durante eventos, exportación en cola y descarga de PDF y paquete. Escritorio, móvil y modo oscuro revisados.
 - PDF de muestra A4 generado por Chromium con datos ficticios, fotos de prueba, seis páginas y numeración. El paquete se extrajo y verificó con el script incluido.
 
@@ -166,3 +166,7 @@ La actualización presenta los comentarios debajo de cada perfil, incluidos los 
 ## Acceso al LIVE y privacidad del perfil
 
 Un aviso de acceso de TikTok ya no deja la cuenta desactivada permanentemente ni se presenta como perfil privado. El estado es «Esperando acceso al LIVE», con monitoreo activado y comprobaciones separadas por al menos cinco minutos, o más si el proveedor lo indica. Mientras no haya acceso verificable no se inicia una captura. Las pausas manuales siguen bajo control del administrador.
+
+## Solo comentarios desde una sala indicada
+
+La ficha permite indicar el @usuario de una sala pública conocida y seguir su chat desde el perfil monitoreado. Este modo no solicita video ni metadatos adicionales de sala, conserva la comprobación de LIVE y requiere que el servicio público de chat acepte la conexión. Cada mensaje y el informe conservan la cuenta de origen; la presencia del perfil en esa sala no se da por confirmada. Consulte LEAME-CORREO-Y-COMENTARIOS.md para configurar la fuente, volver a la detección automática y conocer sus límites.

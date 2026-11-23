@@ -18,6 +18,25 @@ class TikTokMonitorTest extends TestCase {
     private function cuenta(): TikTokCuenta{return TikTokCuenta::create(['usuario'=>'demo_'.Str::lower(Str::random(8)),'monitorear'=>true,'estado'=>'pendiente']);}
     private function evento(string $tipo,array $d=[]): array{return ['v'=>1,'tipo'=>$tipo,'capturado_ms'=>TikTokConsulta::ahora(),'sala'=>'7000000000000000001']+$d;}
     private function capturar(TikTokCuenta $c,int $n=2): TikTokLive{$eventos=[$this->evento('inicio',['titulo'=>'Live público de prueba','perfil'=>['nombre'=>'Cuenta de prueba','bio'=>'Descripción pública']])];for($i=1;$i<=$n;$i++)$eventos[]=$this->evento('comentario',['id'=>(string)$i,'autor'=>'persona','nombre'=>'Persona','texto'=>'Comentario '.$i,'ocurrido_ms'=>TikTokConsulta::ahora()]);app(TikTokRegistro::class)->registrar($c,$eventos);return $c->lives()->firstOrFail();}
+    public function test_sala_publica_se_guarda_sin_seleccionar_rol_y_respeta_pausa_manual(): void {
+        $c=$this->cuenta();$c->update(['monitorear'=>false,'estado'=>'inactivo']);$admin=$this->usuario();
+        $this->actingAs($admin)->post(route('admin.tiktok.sala-publica',$c),['sala_publica_usuario'=>' @Sala_Publica '])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame('sala_publica',$c->fresh()->sala_publica_usuario);$this->assertFalse($c->fresh()->monitorear);$this->assertSame('inactivo',$c->fresh()->estado);
+        $this->post(route('admin.tiktok.sala-publica',$c),['sala_publica_usuario'=>'https://127.0.0.1/private'])->assertSessionHasErrors('sala_publica_usuario');
+        $this->actingAs($this->usuario('cliente'))->post(route('admin.tiktok.sala-publica',$c),['sala_publica_usuario'=>'otro'])->assertForbidden();
+        $this->actingAs($admin)->post(route('admin.tiktok.sala-publica',$c),['sala_publica_usuario'=>''])->assertRedirect();$this->assertNull($c->fresh()->sala_publica_usuario);
+    }
+    public function test_configurar_otra_sala_pone_pendiente_sin_borrar_historial_y_no_reinicia_si_no_cambia(): void {
+        $c=$this->cuenta();$this->capturar($c);$this->actingAs($this->usuario())->post(route('admin.tiktok.sala-publica',$c),['sala_publica_usuario'=>'sala_publica'])->assertRedirect();
+        $this->assertSame('pendiente',$c->fresh()->estado);$this->assertSame(2,$c->comentarios()->count());$c->refresh()->update(['estado'=>'en_live']);
+        $this->post(route('admin.tiktok.sala-publica',$c),['sala_publica_usuario'=>'sala_publica'])->assertRedirect();$this->assertSame('en_live',$c->fresh()->estado);
+    }
+    public function test_monitor_envia_usuario_objetivo_y_fuente_publica_al_proceso(): void {
+        $c=$this->cuenta();$c->update(['sala_publica_usuario'=>'sala_publica']);
+        $factory=new class extends TikTokProceso{public array $llamadas=[];public function crear(string $usuario,?string $salaPublica=null): Process{$this->llamadas[]=[$usuario,$salaPublica];$p=new Process(['/usr/bin/python3','-c','pass']);$p->setTimeout(null);return$p;}};
+        $this->app->instance(TikTokProceso::class,$factory);$this->artisan('micv:tiktok-monitor',['--duracion'=>1])->assertSuccessful();$this->assertSame([[$c->usuario,'sala_publica']],$factory->llamadas);
+        $comando=(new TikTokProceso)->crear($c->usuario,'sala_publica')->getCommandLine();$this->assertStringContainsString('--sala-publica',$comando);$this->assertStringContainsString('sala_publica',$comando);
+    }
     public function test_solo_admin_accede_a_todas_las_rutas_y_menu(): void {
         $c=$this->cuenta();$this->get(route('admin.tiktok.index'))->assertRedirect();
         foreach(['cliente','cyber']as$rol){$u=$this->usuario($rol);$u->rol==='cyber' && $u->update(['cyber_id'=>\App\Models\Cyber::create(['codigo'=>'TT'.Str::random(6),'nombre'=>'Negocio activo','activo'=>true])->id]);$this->actingAs($u);foreach(['index'=>[],'cuenta'=>[$c],'eventos'=>[$c]]as$r=>$p)$this->get(route('admin.tiktok.'.$r,$p))->assertForbidden();$this->post(route('admin.tiktok.captura',$c),['monitorear'=>1])->assertForbidden();$this->post(route('admin.tiktok.exportar',$c))->assertForbidden();$this->assertFalse(collect(\App\Support\Menu::para($u))->contains('id','tiktok'));}
@@ -86,7 +105,7 @@ class TikTokMonitorTest extends TestCase {
     }
     public function test_servicio_cli_consume_un_hijo_local_y_publica_salud_sin_api_abierta(): void {
         $c=$this->cuenta();$dir=Storage::disk('local')->path('estado');mkdir($dir,0700,true);$script=$dir.'/fake.py';$eventos=[$this->evento('inicio',['titulo'=>'Prueba local']),$this->evento('comentario',['id'=>'fake-1','autor'=>'prueba','texto'=>'Evento simulado'])];file_put_contents($script,'import json'."\n".'for line in '.json_encode(array_map(fn($e)=>json_encode($e),$eventos)).': print(line,flush=True)');
-        $this->app->instance(TikTokProceso::class,new class($script)extends TikTokProceso{public function __construct(private string $s){}public function crear(string $usuario): Process{$p=new Process(['/usr/bin/python3',$this->s]);$p->setTimeout(null);return$p;}});
+        $this->app->instance(TikTokProceso::class,new class($script)extends TikTokProceso{public function __construct(private string $s){}public function crear(string $usuario,?string $salaPublica=null): Process{$p=new Process(['/usr/bin/python3',$this->s]);$p->setTimeout(null);return$p;}});
         $this->artisan('micv:tiktok-monitor',['--duracion'=>1])->assertSuccessful();$this->assertSame(1,TikTokComentario::count());$this->assertFalse(app(TikTokConsulta::class)->salud()['activo']);$this->assertSame('interrumpido',$c->lives()->first()->estado);
     }
     public function test_espera_y_fallos_temporales_conservan_monitoreo_y_el_panel_lo_explica(): void {
@@ -101,7 +120,7 @@ class TikTokMonitorTest extends TestCase {
     public function test_espera_del_proveedor_se_conserva_al_salir_del_proceso(): void {
         $c=$this->cuenta();$dir=Storage::disk('local')->path('estado');mkdir($dir,0700,true);$script=$dir.'/limited.py';
         file_put_contents($script,'print('.json_encode(json_encode($this->evento('estado',['estado'=>'limitado','espera_segundos'=>1800]))).',flush=True)');
-        $this->app->instance(TikTokProceso::class,new class($script)extends TikTokProceso{public function __construct(private string $s){}public function crear(string $usuario): Process{$p=new Process(['/usr/bin/python3',$this->s]);$p->setTimeout(null);return$p;}});
+        $this->app->instance(TikTokProceso::class,new class($script)extends TikTokProceso{public function __construct(private string $s){}public function crear(string $usuario,?string $salaPublica=null): Process{$p=new Process(['/usr/bin/python3',$this->s]);$p->setTimeout(null);return$p;}});
         $this->artisan('micv:tiktok-monitor',['--duracion'=>1])->assertSuccessful();
         $c->refresh();$this->assertTrue($c->monitorear);$this->assertGreaterThan(TikTokConsulta::ahora()+1797000,$c->reintentar_ms);
         $c->update(['reintentar_ms'=>null]);app(TikTokRegistro::class)->registrar($c,[$this->evento('estado',['estado'=>'error','espera_segundos'=>999999999])]);
@@ -112,7 +131,7 @@ class TikTokMonitorTest extends TestCase {
         $primero=json_encode($this->evento('estado',['estado'=>'sin_live','detalle'=>'Esperando un LIVE público']));
         $inicio=json_encode($this->evento('inicio',['titulo'=>'LIVE posterior']));$comentario=json_encode($this->evento('comentario',['id'=>'posterior','autor'=>'prueba','texto'=>'Llegó después de estar offline']));
         file_put_contents($script,"from pathlib import Path\nimport time\np=Path(__file__).with_suffix('.count')\nn=int(p.read_text())+1 if p.exists() else 1\np.write_text(str(n))\nif n==1:\n print(".json_encode($primero).",flush=True)\nelse:\n print(".json_encode($inicio).",flush=True)\n print(".json_encode($comentario).",flush=True)\n time.sleep(10)\n");
-        $this->app->instance(TikTokProceso::class,new class($script)extends TikTokProceso{public function __construct(private string $s){}public function crear(string $usuario): Process{$p=new Process(['/usr/bin/python3',$this->s]);$p->setTimeout(null);return$p;}});
+        $this->app->instance(TikTokProceso::class,new class($script)extends TikTokProceso{public function __construct(private string $s){}public function crear(string $usuario,?string $salaPublica=null): Process{$p=new Process(['/usr/bin/python3',$this->s]);$p->setTimeout(null);return$p;}});
         $this->artisan('micv:tiktok-monitor',['--duracion'=>5])->assertSuccessful();
         $this->assertSame('2',file_get_contents($dir.'/offline_then_live.count'));$this->assertTrue($c->fresh()->monitorear);
         $this->assertSame(1,TikTokComentario::count());$this->assertSame('Llegó después de estar offline',TikTokComentario::first()->texto);

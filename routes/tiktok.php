@@ -9,6 +9,7 @@ Route::prefix('admin/tiktok')->name('admin.tiktok.')->middleware('rol:admin')->g
     Route::post('cuentas/{cuenta}/lives/{live}/exportar',[T::class,'exportarLive'])->name('exportar-live')->middleware('throttle:10,1');
     Route::get('cuentas/{cuenta}/avatar',[T::class,'avatar'])->name('avatar')->middleware('throttle:60,1');
     Route::get('cuentas/{cuenta}',[T::class,'cuenta'])->name('cuenta');
+    Route::post('cuentas/{cuenta}/sala-publica',[T::class,'salaPublica'])->name('sala-publica')->middleware('throttle:guardar');
     Route::post('cuentas/{cuenta}/captura',[T::class,'toggle'])->name('captura')->middleware('throttle:guardar');
     Route::get('cuentas/{cuenta}/eventos',[T::class,'eventos'])->name('eventos')->middleware('throttle:chat-leer');
     Route::get('cuentas/{cuenta}/lives/{live}/video',[T::class,'video'])->name('video')->middleware('throttle:240,1');

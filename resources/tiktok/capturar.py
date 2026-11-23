@@ -290,9 +290,9 @@ def informar_error(exc):
     enviar("estado", **datos)
 
 
-async def conectar_con_limite(client, listo, segundos=60, **opciones):
+async def conectar_con_limite(client, listo, segundos=60, con_info=True, **opciones):
     """Limita el establecimiento de conexión, sin cortar un LIVE ya conectado."""
-    conexion = asyncio.create_task(client.connect(fetch_room_info=True, process_connect_events=True, **opciones))
+    conexion = asyncio.create_task(client.connect(fetch_room_info=con_info, process_connect_events=True, **opciones))
     inicio = asyncio.create_task(listo.wait())
     try:
         terminadas, _ = await asyncio.wait({conexion, inicio}, timeout=segundos, return_when=asyncio.FIRST_COMPLETED)
@@ -306,7 +306,7 @@ async def conectar_con_limite(client, listo, segundos=60, **opciones):
         await asyncio.gather(conexion, inicio, return_exceptions=True)
 
 
-async def conectar_con_comprobacion(client, listo, usuario):
+async def conectar_con_comprobacion(client, listo, usuario, solo_comentarios=False, publicar_perfil=True):
     from TikTokLive.client.errors import UserOfflineError, UserNotFoundError
     from TikTokLive.client.web.routes.fetch_room_id_live_html import FailedParseRoomIdError
     from TikTokLive.client.web.routes.fetch_room_id_api import FetchRoomIdAPIRoute
@@ -314,7 +314,7 @@ async def conectar_con_comprobacion(client, listo, usuario):
     client._micv_fuente_sala = "sdk"
     client._micv_perfil_objetivo = None
     try:
-        await conectar_con_limite(client, listo)
+        await conectar_con_limite(client, listo, con_info=not solo_comentarios)
         return
     except recuperables:
         if listo.is_set():
@@ -331,7 +331,7 @@ async def conectar_con_comprobacion(client, listo, usuario):
         client._micv_perfil_objetivo = perfil_publico(perfil)
         try:
             # Se conserva la comprobación de LIVE y de acceso del SDK.
-            await conectar_con_limite(client, listo, room_id=int(sala), fetch_live_check=True)
+            await conectar_con_limite(client, listo, con_info=not solo_comentarios, room_id=int(sala), fetch_live_check=True)
             return True
         except UserOfflineError:
             if listo.is_set():
@@ -344,7 +344,8 @@ async def conectar_con_comprobacion(client, listo, usuario):
         if isinstance(perfil, dict):
             alias = str(perfil.get("uniqueId") or usuario)
             if alias.lower() == usuario.lower():
-                enviar("perfil", perfil=perfil_publico(perfil))
+                if publicar_perfil:
+                    enviar("perfil", perfil=perfil_publico(perfil))
                 if await intentar(perfil, "api_usuario"):
                     return
     except (UserNotFoundError, FailedParseRoomIdError, KeyError, json.JSONDecodeError):
@@ -357,13 +358,16 @@ async def conectar_con_comprobacion(client, listo, usuario):
         raise ValueError("Estado público demasiado grande")
     perfil = usuario_de_perfil_html(respuesta.text, usuario)
     if perfil:
-        enviar("perfil", perfil=perfil_publico(perfil))
+        if publicar_perfil:
+            enviar("perfil", perfil=perfil_publico(perfil))
         if await intentar(perfil, "perfil_publico"):
             return
     raise SalaNoDeterminada()
 
 
-async def ejecutar(usuario):
+async def ejecutar(usuario, sala_publica=None):
+    fuente = sala_publica or usuario
+    solo_comentarios = bool(sala_publica)
     try:
         from TikTokLive import TikTokLiveClient
         from TikTokLive.events import ConnectEvent, CommentEvent, DisconnectEvent, LiveEndEvent, RoomUserSeqEvent
@@ -378,14 +382,15 @@ async def ejecutar(usuario):
     tarea = None
     tarea_video = None
     tarea_senal = None
+    tarea_perfil = None
     try:
-        client = TikTokLiveClient(unique_id=usuario)
+        client = TikTokLiveClient(unique_id=fuente)
         if getattr(client, "web", None):
             client.web.fetch_room_info = InfoSalaPublica(client.web)
 
         @client.on(ConnectEvent)
         async def inicio(event):
-            nonlocal autorizado, finalizado, tarea_senal
+            nonlocal autorizado, finalizado, tarea_senal, tarea_perfil
             info = client.room_info or {}
             perfil = info.get("owner") or {}
             listo.set()
@@ -393,14 +398,26 @@ async def ejecutar(usuario):
             # Solo se aceptan eventos que TikTok entregue a esta conexión sin login.
             autorizado = True
             titular = perfil_publico(perfil)
-            objetivo = getattr(client, "_micv_perfil_objetivo", None)
+            objetivo = getattr(client, "_micv_perfil_objetivo", None) if fuente == usuario else None
             if titular.get("usuario", "").lower() == usuario.lower():
                 objetivo = titular
             enviar("inicio", sala=str(event.room_id), perfil_objetivo=objetivo or {},
-                   deteccion={"cuenta_consultada": usuario, "fuente_sala": getattr(client, "_micv_fuente_sala", "sdk")}, titulo=str(info.get("title") or "Live público")[:255],
+                   deteccion={"cuenta_consultada": usuario, "fuente_sala": "sala_publica_indicada" if solo_comentarios else getattr(client, "_micv_fuente_sala", "sdk"), "usuario_sala": fuente, "solo_comentarios": solo_comentarios}, titulo=str(info.get("title") or ("Chat público · @" + fuente if solo_comentarios else "Live público"))[:255],
                    perfil=perfil_publico(perfil),
-                   video_hls=video_publico(info))
-            if not video_publico(info):
+                   video_hls=None if solo_comentarios else video_publico(info))
+            if solo_comentarios and fuente != usuario:
+                async def completar_perfil():
+                    from TikTokLive.client.web.routes.fetch_room_id_api import FetchRoomIdAPIRoute
+                    try:
+                        data = await asyncio.wait_for(FetchRoomIdAPIRoute.fetch_user_room_data(web=client.web, unique_id=usuario), 15)
+                        perfil = (data.get("data") or {}).get("user")
+                        if isinstance(perfil, dict) and str(perfil.get("uniqueId") or "").lower() == usuario.lower() and autorizado and not finalizado:
+                            enviar("perfil", perfil=perfil_publico(perfil))
+                    except Exception as exc:
+                        d = clasificar_error(exc)
+                        enviar("diagnostico", codigo="perfil_publico", clase=d["clase"], http=d["http"])
+                tarea_perfil = asyncio.create_task(completar_perfil())
+            if not solo_comentarios and not video_publico(info):
                 async def completar_senal():
                     try:
                         url = await senal_publica(client, info, event.room_id)
@@ -414,7 +431,9 @@ async def ejecutar(usuario):
         @client.on(CommentEvent)
         async def chat(event):
             if autorizado and not finalizado:
-                enviar("comentario", **comentario(event, client.room_id))
+                datos = comentario(event, client.room_id)
+                datos["publico"].update(usuario_sala=fuente, solo_comentarios=solo_comentarios, publicar_perfil=fuente == usuario)
+                enviar("comentario", **datos)
 
         @client.on(LiveEndEvent)
         async def fin(_):
@@ -469,13 +488,16 @@ async def ejecutar(usuario):
         for sig in (signal.SIGTERM, signal.SIGINT):
             loop.add_signal_handler(sig, lambda: asyncio.create_task(parar()))
         tarea = asyncio.create_task(latidos())
-        tarea_video = asyncio.create_task(refrescar_video())
-        enviar("estado", estado="conectando", detalle="Monitoreo automático activado. Comprobando si hay un LIVE público disponible.")
-        await conectar_con_comprobacion(client, listo, usuario)
+        tarea_video = None if solo_comentarios else asyncio.create_task(refrescar_video())
+        enviar("estado", estado="conectando", detalle=("Solo comentarios. Comprobando el chat público de @" + fuente + "." if solo_comentarios else "Monitoreo automático activado. Comprobando si hay un LIVE público disponible."))
+        await conectar_con_comprobacion(client, listo, fuente, solo_comentarios=solo_comentarios, publicar_perfil=fuente == usuario)
     except Exception as exc:
         finalizado = True
         informar_error(exc)
     finally:
+        if tarea_perfil:
+            tarea_perfil.cancel()
+            await asyncio.gather(tarea_perfil, return_exceptions=True)
         if tarea_senal:
             tarea_senal.cancel()
             await asyncio.gather(tarea_senal, return_exceptions=True)
@@ -497,7 +519,10 @@ async def ejecutar(usuario):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("usuario")
+    parser.add_argument("--sala-publica", default=None, help="@usuario de la sala pública para escuchar solo comentarios")
     args = parser.parse_args()
     if not re.fullmatch(r"[a-z0-9_.]{2,24}", args.usuario):
         sys.exit(2)
-    asyncio.run(ejecutar(args.usuario))
+    if args.sala_publica is not None and not re.fullmatch(r"[a-z0-9_.]{2,24}", args.sala_publica):
+        sys.exit(2)
+    asyncio.run(ejecutar(args.usuario, args.sala_publica))

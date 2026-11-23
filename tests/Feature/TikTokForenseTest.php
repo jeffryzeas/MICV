@@ -83,6 +83,16 @@ class TikTokForenseTest extends TestCase {
   $this->assertTrue($c->fresh()->monitorear);$this->assertSame('no_determinado',$c->estado);$this->assertSame(0,$c->lives()->count());
   $this->getJson(route('admin.tiktok.eventos',$c))->assertOk()->assertJsonPath('estado','no_determinado')->assertJsonPath('etiqueta','No se pudo determinar la sala');
  }
+ public function test_chat_de_sala_publica_se_guarda_bajo_perfil_sin_asegurar_su_participacion_y_sin_video(): void {
+  $c=TikTokCuenta::create(['usuario'=>'perfil_objetivo','sala_publica_usuario'=>'sala_publica','monitorear'=>true]);
+  app(TikTokRegistro::class)->registrar($c,[$this->evento('inicio',['titulo'=>'Chat público','perfil_objetivo'=>['nombre'=>'Perfil objetivo','usuario'=>$c->usuario],'perfil'=>[],'deteccion'=>['cuenta_consultada'=>$c->usuario,'fuente_sala'=>'sala_publica_indicada','usuario_sala'=>'sala_publica','solo_comentarios'=>true]]),$this->evento('comentario',['id'=>'solo-chat','autor'=>'comentario_publico','texto'=>'Comentario recibido sin solicitar video','publico'=>['usuario'=>'comentario_publico','id_usuario'=>'7000000000000000001','usuario_sala'=>'sala_publica','solo_comentarios'=>true]])]);
+  $live=$c->lives()->firstOrFail();$this->assertSame(1,$live->comentarios);$this->assertFalse($live->deteccion_inicio['participacion_confirmada']);$this->assertSame('sala_publica',$live->deteccion_inicio['usuario_sala']);
+  $this->getJson(route('admin.tiktok.eventos',$c))->assertOk()->assertJsonPath('etiqueta','Chat de la sala en directo')->assertJsonPath('comentarios.0.usuario_sala','sala_publica')->assertJsonPath('video.disponible',false)->assertJsonPath('total',1);
+  $this->get(route('admin.tiktok.cuenta',$c))->assertOk()->assertSee('tt-workspace-chat')->assertSee('no está confirmada automáticamente');
+  $this->post(route('admin.tiktok.exportar-live',[$c,$live]));$e=TikTokExportacion::first();
+  $pdf=$this->mock(TikTokPdf::class,fn($mock)=>$mock->shouldReceive('generar')->once()->andReturnUsing(function($d){$this->assertFalse($d['autores'][0]['es_creador']);$html=(new TikTokPdf)->documento($d)['html'];$this->assertStringContainsString('Cuenta de acceso al chat: @sala_publica',$html);$this->assertStringContainsString('Fuente del chat: @sala_publica',$html);$this->assertStringContainsString('Comentario recibido sin solicitar video',$html);return '%PDF-1.4 ejemplo';}));
+  (new ExportarTikTok($e->id))->handle(app(TikTokConsulta::class),$pdf);$this->assertSame('listo',$e->fresh()->estado);$this->assertSame(1,$e->fresh()->metadatos['resumen']['sellados']);
+ }
  public function test_deduplica_fotos_y_preserva_ids_grandes_y_hash_del_registro(): void {
   $c=$this->capturar();Queue::assertPushed(GuardarTikTokAvatar::class,1);$this->assertSame(1,TikTokAdjunto::count());$this->assertSame(2,TikTokComentario::count());
   foreach(TikTokComentario::all()as$m){$this->assertSame('9999999999999999999',$m->autor_id);$this->assertSame($m->hash_registro,hash('sha256',TikTokIntegridad::json(TikTokIntegridad::original($m))));$this->assertStringNotContainsString('SECRETO',json_encode($m->datos_publicos));}

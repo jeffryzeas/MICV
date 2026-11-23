@@ -7,3 +7,5 @@
 .tt-app section[id],.tt-app form[id],.tt-app a,.tt-app button{scroll-margin-top:85px}
 
 .tt-status[data-estado=acceso_pendiente]{background:#fff5dd;color:#87651c}.dark .tt-status[data-estado=acceso_pendiente]{background:#3b321f;color:#e1c58a}
+
+.tt-workspace.tt-workspace-chat{grid-template-columns:minmax(0,1fr)}.tt-workspace-chat .tt-player-panel{display:none}.tt-workspace-chat .tt-comment-stream{height:620px}

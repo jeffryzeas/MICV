@@ -26,11 +26,17 @@
 <div class="meta"><div><small>Primer evento seleccionado · hora local</small>{{ $local($resumen['primero_ms']) }}<br><span class="muted">{{ $utc($resumen['primero_ms']) }}</span></div><div><small>Último evento seleccionado · hora local</small>{{ $local($resumen['ultimo_ms']) }}<br><span class="muted">{{ $utc($resumen['ultimo_ms']) }}</span></div><div><small>Primera recepción del capturador · UTC</small>{{ $utc($resumen['primera_captura_ms']) }}</div><div><small>Última recepción seleccionada · UTC</small>{{ $utc($resumen['ultima_captura_ms']) }}</div></div>
 <div class="body-text"><p>La captura de eventos de LIVE utiliza la biblioteca no oficial TikTokLive 7.0.1 y el adaptador Mi CV. El registro distingue la hora declarada del evento y la recepción en el capturador. El reloj del VPS no constituye un sello de tiempo de una autoridad externa.</p><p>El conjunto de comentarios queda limitado al identificador local {{ $exportacion->hasta_id }} y a los filtros indicados. Los estados de adjuntos se fijan durante la preparación. Los datos importados se identifican expresamente y no se presentan como recibidos del LIVE.</p>@if(!empty($filtros['q']))<p><b>Búsqueda aplicada:</b> {{ $filtros['q'] }}</p>@endif @if($exportacion->metadatos['observaciones']??null)<p><b>Observaciones del solicitante:</b> {{ $exportacion->metadatos['observaciones'] }}</p>@endif</div>
 @if($live?->deteccion_inicio)
-<div class="notice"><b>Detección automática.</b> Cuenta consultada: {{ '@'.$live->deteccion_inicio['cuenta_consultada'] }}. Fuente de asociación: {{ $live->deteccion_inicio['fuente_sala'] }}.
+<div class="notice"><b>{{ ($live->deteccion_inicio['solo_comentarios']??false)?'Sala pública indicada por el administrador.':'Detección automática.' }}</b> {{ ($live->deteccion_inicio['solo_comentarios']??false)?'Perfil monitoreado':'Cuenta consultada' }}: {{ '@'.$live->deteccion_inicio['cuenta_consultada'] }}. Fuente de asociación: {{ $live->deteccion_inicio['fuente_sala'] }}.
 @if($live->perfil_inicio['usuario']??null)
 Titular de la sala entregado por TikTok: {{ '@'.$live->perfil_inicio['usuario'] }}.
 @endif
-La cuenta consultada no se identifica automáticamente como titular ni como participante confirmado; los comentarios pertenecen a la sala indicada.</div>
+@if($live->deteccion_inicio['usuario_sala']??null)
+Cuenta de acceso al chat: {{ '@'.$live->deteccion_inicio['usuario_sala'] }}.
+@endif
+@if($live->deteccion_inicio['solo_comentarios']??false)
+Modo solo comentarios, sin solicitar video ni metadatos adicionales del LIVE.
+@endif
+El perfil monitoreado no se identifica automáticamente como titular ni como participante confirmado; los comentarios pertenecen a la sala indicada.</div>
 @endif
 @if($referenciaSala['anfitrion_declarado']??null)
 <div class="notice"><b>Fuente pública observada: {{ '@'.$referenciaSala['cuenta_observada'] }}.</b> Cuenta relacionada por el administrador con {{ '@'.$referenciaSala['anfitrion_declarado'] }} como invitado de una sala compartida. Esta relación no fue verificada por TikTok. Los registros corresponden únicamente a la cuenta y sala observadas; no prueban acceso al chat ni al contenido del otro perfil.</div>

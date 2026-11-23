@@ -27,9 +27,10 @@ class TikTokMonitor extends Command {
                 }}
                 if(time()-$ultimo>=3){$ultimo=time();$cuentas=TikTokCuenta::where('monitorear',true)->orderBy('reintentar_ms')->orderBy('id')->get();$ids=$cuentas->pluck('id')->all();
                     foreach(array_keys($hijos)as$id)if(!in_array($id,$ids,true)){$hijos[$id]['p']->stop(3);$leer($id);unset($hijos[$id]);}
+                    foreach($cuentas as$c)if(isset($hijos[$c->id])&&($hijos[$c->id]['fuente']??null)!==$c->sala_publica_usuario){$hijos[$c->id]['p']->stop(3);$leer($c->id);unset($hijos[$c->id]);TikTokRegistro::cerrar($c->id,'cambio_sala_publica',TikTokConsulta::ahora());$c->lives()->where('estado','en_live')->update(['estado'=>'interrumpido','terminado_ms'=>TikTokConsulta::ahora()]);$c->refresh();$c->update(['estado'=>$c->monitorear?'pendiente':'inactivo']);}
                     foreach($cuentas as$c){if(count($hijos)>=config('tiktok.simultaneos'))break;if(isset($hijos[$c->id])||($c->reintentar_ms??0)>TikTokConsulta::ahora())continue;
                         if(!is_executable(config('tiktok.python')))throw new \RuntimeException('Falta el entorno Python. Ejecute bin/instalar-tiktok.sh.');
-                        $c->update(['estado'=>'conectando','detalle'=>null,'reintentar_ms'=>null]);$p=$procesos->crear($c->usuario);$p->start();$hijos[$c->id]=['c'=>$c,'p'=>$p,'buffer'=>''];
+                        $c->update(['estado'=>'conectando','detalle'=>null,'reintentar_ms'=>null]);$p=$c->sala_publica_usuario?$procesos->crear($c->usuario,$c->sala_publica_usuario):$procesos->crear($c->usuario);$p->start();$hijos[$c->id]=['c'=>$c,'p'=>$p,'buffer'=>'','fuente'=>$c->sala_publica_usuario];
                     }
                     $tmp=$dir.'/estado.tmp';file_put_contents($tmp,json_encode(['ms'=>TikTokConsulta::ahora(),'procesos'=>count($hijos)]),LOCK_EX);chmod($tmp,0600);rename($tmp,$dir.'/estado.json');
                 }

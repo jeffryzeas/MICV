@@ -11,6 +11,9 @@
  </div>
  <div class="text">{{ $r['texto'] }}</div>
  <div class="entry-foot">
+  @if($r['publicos']['usuario_sala']??null)
+  <span>Fuente del chat: {{ '@'.$r['publicos']['usuario_sala'] }} · {{ ($r['publicos']['solo_comentarios']??false)?'Solo comentarios públicos':'Captura pública' }}</span>
+  @endif
   <span>Registro local #{{ $m['id'] }} · Evento {{ $r['publicos']['id_evento']??'no registrado' }} · {{ ['tiktok'=>'TikTok','generado_por_adaptador'=>'Generado por adaptador'][$r['publicos']['id_evento_fuente']??'']??'Origen no declarado' }}</span>
   <span>
    @if($m['contexto']['sala']??null)

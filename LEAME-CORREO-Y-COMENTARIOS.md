@@ -43,6 +43,16 @@ Cuando TikTok no publica una asociación suficiente, el estado es **No se pudo d
 
 El sistema guarda los comentarios públicos recibidos, incluso cuando el comentarista tiene perfil privado, pero no garantiza recibir todos los eventos, el chat de otra sala ni todo lo ocurrido en una transmisión compartida. El monitoreo activo continúa al cerrar sesión mientras el servicio del VPS esté funcionando.
 
+## Solo comentarios de una sala pública conocida
+
+Si el perfil participa en otra sala y TikTok no publica su asociación, abra su ficha y despliegue **Solo comentarios de una sala pública**. Escriba el @usuario desde el que se abre esa sala en **Usuario de la sala pública**, guarde y active la captura si está pausada. No es una selección de rol; es una fuente de chat indicada por el administrador. Deje vacío el campo para volver a la detección automática desde el perfil.
+
+El proceso solicita el servicio público de chat mediante TikTokLive, con la comprobación de LIVE activada y procesamiento del primer lote. En este modo no solicita video ni metadatos adicionales de la sala. La conexión al chat debe ser aceptada por el servicio; un rechazo, límite o fallo de red conserva su diagnóstico y no se presenta como una captura exitosa. No utiliza credenciales de un invitado ni adquiere sus permisos.
+
+El panel muestra **Chat de la sala en directo** únicamente tras la conexión efectiva y dedica el espacio a los comentarios. El nombre del perfil monitoreado se conserva separado de la cuenta de acceso al chat. Los mensajes recibidos se archivan en su historial con sala e identificador originales y fuente de chat en cada registro; los PDF y paquetes incluyen esa procedencia. La participación del perfil en esa sala es una referencia del administrador, no una presencia confirmada automáticamente. No se afirma que sean comentarios exclusivos de esa persona ni que dos salas compartan todo su chat.
+
+Cambiar la fuente reinicia el proceso de esa cuenta y conserva el historial. Las pausas manuales y las esperas indicadas por el proveedor se respetan. No se garantiza la conexión desde cualquier VPS ni recibir todos los mensajes.
+
 ## Verificación
 
 Pruebas de Laravel: correo formal, copias históricas, aviso en HTML y texto MIME con transporte simulado, adjunto, comentarios debajo de cada perfil, creador por UID y coincidencia de usuario, detección de sala, separación entre perfil consultado y titular, referencias históricas y conservación de historiales. Capturador Python con TikTokLive 7.0.1: identificadores grandes, normalización, perfiles privados que comentan públicamente y restricciones.
