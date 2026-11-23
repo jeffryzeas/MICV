@@ -68,8 +68,8 @@ class TikTokMonitorTest extends TestCase {
     }
     public function test_exportacion_grande_genera_zip_y_revocacion_impide_procesar(): void {
         $c=$this->cuenta();$live=$this->capturar($c,0);$base=[];for($i=0;$i<1001;$i++)$base[]=['cuenta_id'=>$c->id,'live_id'=>$live->id,'clave'=>hash('sha256','fila'.$i),'autor'=>'persona','texto'=>'Fila '.$i,'origen'=>'live_publico','ocurrido_ms'=>TikTokConsulta::ahora(),'capturado_ms'=>TikTokConsulta::ahora()];TikTokComentario::insert($base);
-        $u=$this->usuario();$this->actingAs($u)->post(route('admin.tiktok.exportar',$c));$e=TikTokExportacion::firstOrFail();$pdf=$this->mock(TikTokPdf::class,fn($m)=>$m->shouldReceive('generar')->twice()->andReturn('%PDF-1.4 informe'));
-        (new ExportarTikTok($e->id))->handle(app(TikTokConsulta::class),$pdf);$e->refresh();$this->assertSame(1001,$e->procesados);$this->assertStringEndsWith('.zip',$e->archivo);$z=new \ZipArchive();$this->assertTrue($z->open(Storage::disk('local')->path($e->archivo)));$this->assertSame(2,$z->numFiles);$z->close();
+        $u=$this->usuario();$this->actingAs($u)->post(route('admin.tiktok.exportar',$c));$e=TikTokExportacion::firstOrFail();$pdf=$this->mock(TikTokPdf::class,fn($m)=>$m->shouldReceive('generar')->times(6)->andReturn('%PDF-1.4 informe'));
+        (new ExportarTikTok($e->id))->handle(app(TikTokConsulta::class),$pdf);$e->refresh();$this->assertSame(1001,$e->procesados);$this->assertStringEndsWith('.zip',$e->archivo);$z=new \ZipArchive();$this->assertTrue($z->open(Storage::disk('local')->path($e->archivo)));$this->assertSame(6,$z->numFiles);$z->close();
         $this->post(route('admin.tiktok.exportar',$c));$nuevo=TikTokExportacion::latest()->whereKeyNot($e->id)->firstOrFail();$u->update(['rol'=>'cliente']);(new ExportarTikTok($nuevo->id))->handle(app(TikTokConsulta::class),$pdf);$this->assertSame('error',$nuevo->fresh()->estado);
     }
     public function test_servicio_cli_consume_un_hijo_local_y_publica_salud_sin_api_abierta(): void {

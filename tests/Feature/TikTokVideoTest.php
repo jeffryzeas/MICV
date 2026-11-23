@@ -50,7 +50,7 @@ class TikTokVideoTest extends TestCase
     }
     public function test_foto_publica_es_local_y_no_se_reproducen_senales_protegidas(): void {
         $c=$this->cuenta();$l=$this->inicio($c);$png=base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aR1sAAAAASUVORK5CYII=');
-        Http::fake(['*avatar.png*'=>Http::response($png,200,['Content-Type'=>'image/png']),'*m3u8*'=>Http::response("#EXTM3U\n#EXT-X-KEY:METHOD=AES-128,URI=\"key\"\nseg.ts\n",200,['Content-Type'=>'application/vnd.apple.mpegurl'])]);
+        Http::fake(['*avatar.png*'=>Http::response($png,200,['Content-Type'=>'image/png']),'*m3u8*'=>Http::response("#EXTM3U\n#EXT-X-KEY:METHOD=SAMPLE-AES,URI=\"key\"\nseg.ts\n",200,['Content-Type'=>'application/vnd.apple.mpegurl'])]);
         $this->get(route('admin.tiktok.avatar',$c))->assertOk()->assertHeader('Content-Type','image/png');$this->get(route('admin.tiktok.video',[$c,$l]))->assertStatus(502);
     }
     public function test_cerrar_sesion_no_pausa_y_se_guardan_comentarios_publicos_de_un_perfil_privado(): void {
@@ -62,4 +62,14 @@ class TikTokVideoTest extends TestCase
         $c=$this->cuenta();$live=$this->inicio($c);$id=$c->id;$path=config('tiktok.directorio').'/reproduccion/'.$live->id.'.enc';$this->assertFileExists($path);$this->delete(route('admin.tiktok.eliminar',$c))->assertRedirect(route('admin.tiktok.index'));
         $this->assertFileDoesNotExist($path);$this->assertDatabaseMissing('tiktok_cuentas',['id'=>$id]);$this->assertSame(0,TikTokLive::count());$this->assertSame(0,app(TikTokRegistro::class)->registrar($c,[['v'=>1,'tipo'=>'latido','capturado_ms'=>TikTokConsulta::ahora()]]));
     }
+    public function test_redireccion_publica_validada_resuelve_segmentos_en_el_origen_final(): void {
+        $c=$this->cuenta();$l=$this->inicio($c);
+        Http::fake(['https://pull-hls.tiktokcdn.com/live/index.m3u8*'=>Http::response('',302,['Location'=>'https://edge.tiktokcdn.com/actual/list.m3u8']),'https://edge.tiktokcdn.com/actual/list.m3u8'=>Http::response("#EXTM3U\n#EXTINF:2,\nseg.ts\n",200,['Content-Type'=>'application/vnd.apple.mpegurl']),'https://edge.tiktokcdn.com/actual/seg.ts'=>Http::response('segmento',200,['Content-Type'=>'video/mp2t'])]);
+        $r=$this->get(route('admin.tiktok.video',[$c,$l]));$r->assertOk();$lines=explode("\n",trim($r->getContent()));$this->get(end($lines))->assertOk()->assertContent('segmento');Http::assertSent(fn($r)=>$r->url()==='https://edge.tiktokcdn.com/actual/seg.ts');
+    }
+    public function test_hls_aes128_con_clave_publica_es_compatible_sin_licencias_drm(): void {
+        $c=$this->cuenta();$l=$this->inicio($c);Http::fake(['*index.m3u8*'=>Http::response("#EXTM3U\n#EXT-X-KEY:METHOD=AES-128,URI=\"clave.key\"\n#EXTINF:2,\nseg.ts\n",200,['Content-Type'=>'application/vnd.apple.mpegurl']),'*clave.key'=>Http::response('0123456789abcdef',200,['Content-Type'=>'application/octet-stream'])]);
+        $r=$this->get(route('admin.tiktok.video',[$c,$l]));$r->assertOk();preg_match('/URI="([^"]+)"/',$r->getContent(),$m);$this->get($m[1])->assertOk()->assertContent('0123456789abcdef');
+    }
+
 }

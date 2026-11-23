@@ -19,10 +19,11 @@ class TikTokMonitor extends Command {
             $h['p']->clearErrorOutput();
         };
         try {
+            \Illuminate\Support\Facades\DB::table('tiktok_sesiones')->whereNull('fin_ms')->update(['fin_ms'=>TikTokConsulta::ahora(),'motivo'=>'reinicio_servicio']);
             TikTokCuenta::where('monitorear',true)->where('estado','en_live')->update(['estado'=>'pendiente']);
             while($seguir&&microtime(true)<$fin){
                 foreach(array_keys($hijos)as$id){$leer($id);if(!$hijos[$id]['p']->isRunning()){
-                    $leer($id);$c=TikTokCuenta::find($id);if($c&&$c->monitorear){if(in_array($c->estado,['conectando','en_live'],true))$c->update(['estado'=>'error','detalle'=>'El proceso de captura terminó sin una conexión activa. Se volverá a comprobar más adelante.']);$espera=$c->estado==='limitado'?300:config('tiktok.intervalo');$c->update(['reintentar_ms'=>max($c->reintentar_ms??0,TikTokConsulta::ahora()+$espera*1000)]);$c->lives()->where('estado','en_live')->update(['estado'=>'interrumpido','terminado_ms'=>TikTokConsulta::ahora()]);}unset($hijos[$id]);
+                    $leer($id);$c=TikTokCuenta::find($id);if($c&&$c->monitorear){if(in_array($c->estado,['conectando','en_live'],true))$c->update(['estado'=>'error','detalle'=>'El proceso de captura terminó sin una conexión activa. Se volverá a comprobar más adelante.']);$espera=$c->estado==='limitado'?300:config('tiktok.intervalo');$c->update(['reintentar_ms'=>max($c->reintentar_ms??0,TikTokConsulta::ahora()+$espera*1000)]);TikTokRegistro::cerrar($c->id,'proceso_finalizado',TikTokConsulta::ahora());$c->lives()->where('estado','en_live')->update(['estado'=>'interrumpido','terminado_ms'=>TikTokConsulta::ahora()]);}unset($hijos[$id]);
                 }}
                 if(time()-$ultimo>=3){$ultimo=time();$cuentas=TikTokCuenta::where('monitorear',true)->orderBy('reintentar_ms')->orderBy('id')->get();$ids=$cuentas->pluck('id')->all();
                     foreach(array_keys($hijos)as$id)if(!in_array($id,$ids,true)){$hijos[$id]['p']->stop(3);$leer($id);unset($hijos[$id]);}
@@ -36,7 +37,7 @@ class TikTokMonitor extends Command {
             }
             return 0;
         }catch(\Throwable $e){$this->error('Capturador detenido: '.$e->getMessage());return 1;}
-        finally{foreach($hijos as$id=>$h){$h['p']->stop(3);try{$leer($id);}catch(\Throwable){}$h['c']->lives()->where('estado','en_live')->update(['estado'=>'interrumpido','terminado_ms'=>TikTokConsulta::ahora()]);}File::delete($dir.'/estado.json');flock($lock,LOCK_UN);fclose($lock);}
+        finally{foreach($hijos as$id=>$h){$h['p']->stop(3);try{$leer($id);}catch(\Throwable){}TikTokRegistro::cerrar($h['c']->id,'servicio_detenido',TikTokConsulta::ahora());$h['c']->lives()->where('estado','en_live')->update(['estado'=>'interrumpido','terminado_ms'=>TikTokConsulta::ahora()]);}File::delete($dir.'/estado.json');flock($lock,LOCK_UN);fclose($lock);}
     }
     private function lote(TikTokRegistro $registro,TikTokCuenta $cuenta,array $eventos): void {
         $n=$registro->registrar($cuenta,$eventos);

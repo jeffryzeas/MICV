@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """TikTokLive 7.0.1: eventos públicos hacia stdout NDJSON, sin credenciales de usuario."""
 import argparse
+import hashlib
 import asyncio
 import json
 import re
@@ -25,11 +26,23 @@ def comentario(evento, sala):
     usuario = getattr(evento, "user", None)
     comun = getattr(evento, "common", None)
     ts = int(getattr(comun, "create_time", 0) or 0)
+    texto = str(getattr(evento, "comment", None) or getattr(evento, "content", "") or "")
+    avatar = getattr(usuario, "avatar_thumb", None)
+    urls = getattr(avatar, "url_list", None) or []
+    unique_id = str(getattr(usuario, "unique_id", "") or getattr(usuario, "display_id", "") or "")
+    uid = str(getattr(usuario, "id_str", "") or getattr(usuario, "id", 0) or getattr(usuario, "user_id", "") or "")
     return dict(sala=str(sala), id=str(getattr(comun, "msg_id", 0) or uuid.uuid4()),
-                autor=str(getattr(usuario, "unique_id", "") or getattr(usuario, "user_id", "") or "sin_identificador")[:100],
+                autor=unique_id[:100] or uid[:80] or "sin_identificador",
                 nombre=str(getattr(usuario, "nickname", "") or "")[:150],
-                texto=str(getattr(evento, "comment", None) or getattr(evento, "content", "") or "")[:4000],
-                ocurrido_ms=(ts * 1000 if ts and ts < 10**12 else ts) or ahora_ms())
+                texto=texto[:4000],
+                ocurrido_ms=(ts * 1000 if ts and ts < 10**12 else ts) or ahora_ms(),
+                publico={"id_evento_fuente": "tiktok" if getattr(comun, "msg_id", 0) else "generado_por_adaptador", "fecha_declarada_original": str(ts) if ts else None, "fecha_evento_origen": "plataforma" if ts else "reloj_capturador", "id_usuario": uid[:80] or None, "usuario": unique_id[:100] or None,
+                         "avatar": next((str(u) for u in urls if isinstance(u, str) and len(u)<=2048), None),
+                         "bio": str(getattr(usuario, "bio_description", "") or "")[:500] or None,
+                         "idioma_comentario": str(getattr(evento, "content_language", "") or "")[:20] or None,
+                         "texto_recortado": len(texto)>4000, "sha256_texto_original": hashlib.sha256(texto.encode("utf-8")).hexdigest(),
+                         "fuente": "TikTokLive 7.0.1", "adaptador": "MiCV 2.0"})
+
 
 
 def perfil_publico(owner):

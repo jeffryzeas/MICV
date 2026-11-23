@@ -21,6 +21,20 @@ class AdapterTest(unittest.TestCase):
   out=io.StringIO()
   with redirect_stdout(out):m.enviar('comentario',texto='Línea 1\nLínea 2 😀')
   self.assertEqual(len(out.getvalue().splitlines()),1);self.assertEqual(json.loads(out.getvalue())['texto'],'Línea 1\nLínea 2 😀')
+ def test_public_ids_avatar_and_original_text_digest_are_preserved(self):
+  user=S(unique_id='persona',user_id=9999999999999999999,nickname='Nombre',avatar_thumb=S(url_list=['https://p16.tiktokcdn.com/foto.png']))
+  event=S(user=user,content='Hola 😀',common=S(msg_id=9999999999999999998,create_time=1730000000),content_language='es')
+  d=m.comentario(event,'123456');self.assertEqual(d['publico']['id_usuario'],'9999999999999999999');self.assertEqual(d['publico']['id_evento_fuente'],'tiktok');self.assertEqual(d['publico']['avatar'],'https://p16.tiktokcdn.com/foto.png');self.assertEqual(d['publico']['sha256_texto_original'],m.hashlib.sha256('Hola 😀'.encode()).hexdigest())
+ def test_missing_event_id_and_clipped_text_are_explicit(self):
+  d=m.comentario(S(user=None,common=None,content='a'*4100),'123456')
+  self.assertEqual(len(d['texto']),4000);self.assertTrue(d['publico']['texto_recortado']);self.assertEqual(d['publico']['id_evento_fuente'],'generado_por_adaptador');self.assertEqual(d['publico']['fecha_evento_origen'],'reloj_capturador')
+ def test_actual_sdk_701_proto_fields_for_public_user_id_and_avatar(self):
+  from TikTokLive.events import CommentEvent
+  from TikTokLive.proto import CommonMessageData,ImageModel
+  from TikTokLive.proto.custom_proto import ExtendedUser
+  user=ExtendedUser(id=7000000000000000001,display_id='usuario_real_proto',nickname='Nombre público',avatar_thumb=ImageModel(url_list=['https://p16.tiktokcdn.com/foto.png']))
+  event=CommentEvent(user=user,common=CommonMessageData(msg_id=7000000000000000002,create_time=1730000000),content='Comentario de prueba',content_language='es')
+  d=m.comentario(event,'7333333333333333333');self.assertEqual(d['autor'],'usuario_real_proto');self.assertEqual(d['publico']['id_usuario'],'7000000000000000001');self.assertEqual(d['id'],'7000000000000000002');self.assertEqual(d['publico']['avatar'],'https://p16.tiktokcdn.com/foto.png')
 class ConnectionTest(unittest.TestCase):
  def test_offline_is_waiting_and_not_restricted(self):
   from TikTokLive.client.errors import UserOfflineError

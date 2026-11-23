@@ -18,8 +18,10 @@ if ! python3 -m venv "$micv_venv"; then apt-get update; apt-get install -y pytho
 mkdir -p storage/app/private/tiktok
 chown -R "$micv_usuario:$micv_usuario" storage/app/private/tiktok
 chmod 700 storage/app/private/tiktok
+systemctl stop micv-tiktok micv-tiktok-pdf micv-tiktok-evidencias 2>/dev/null || true
 runuser -u "$micv_usuario" -- "$micv_php" artisan optimize:clear
 runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_23_000001_create_tiktok_monitor_tables.php
+runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_23_000002_add_tiktok_evidencia.php
 cat > /etc/systemd/system/micv-tiktok.service <<EOF
 [Unit]
 Description=Captura de comentarios publicos de TikTok - Mi CV
@@ -57,10 +59,27 @@ UMask=0077
 [Install]
 WantedBy=multi-user.target
 EOF
+cat > /etc/systemd/system/micv-tiktok-evidencias.service <<EOF
+[Unit]
+Description=Conservacion de fotos publicas de TikTok - Mi CV
+After=network.target
+[Service]
+Type=simple
+User=$micv_usuario
+WorkingDirectory=$micv_raiz
+ExecStart=$micv_php $micv_raiz/artisan queue:work tiktok-evidencias --queue=tiktok-evidencias --sleep=2 --tries=1 --timeout=45 --max-time=3600
+Restart=always
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=60
+UMask=0077
+[Install]
+WantedBy=multi-user.target
+EOF
 systemctl daemon-reload
-systemctl enable micv-tiktok micv-tiktok-pdf
-systemctl restart micv-tiktok micv-tiktok-pdf
-systemctl status micv-tiktok micv-tiktok-pdf --no-pager -l
+systemctl enable micv-tiktok micv-tiktok-pdf micv-tiktok-evidencias
+systemctl restart micv-tiktok micv-tiktok-pdf micv-tiktok-evidencias
+systemctl status micv-tiktok micv-tiktok-pdf micv-tiktok-evidencias --no-pager -l
 echo 'Módulo instalado. Abra TikTok · Lives y comentarios como administrador.'
 echo 'Registre un @usuario y active la captura pública. La primera detección puede tardar unos segundos.'
-echo 'Diagnóstico: journalctl -u micv-tiktok -u micv-tiktok-pdf -n 60 --no-pager'
+echo 'Diagnóstico: journalctl -u micv-tiktok -u micv-tiktok-pdf -u micv-tiktok-evidencias -n 60 --no-pager'

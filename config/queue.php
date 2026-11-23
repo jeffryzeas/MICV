@@ -30,6 +30,7 @@ return [
     */
 
     'connections' => [
+        'tiktok-evidencias'=>['driver'=>'database','connection'=>env('DB_QUEUE_CONNECTION'),'table'=>env('DB_QUEUE_TABLE','jobs'),'queue'=>'tiktok-evidencias','retry_after'=>90,'after_commit'=>true],
         'tiktok-exportaciones' => ['driver'=>'database','connection'=>env('DB_QUEUE_CONNECTION'),'table'=>env('DB_QUEUE_TABLE','jobs'),'queue'=>'tiktok-exportaciones','retry_after'=>610,'after_commit'=>true],
 
         'postulaciones' => [
@@ -103,6 +104,7 @@ return [
         'failover' => [
             'driver' => 'failover',
             'connections' => [
+        'tiktok-evidencias'=>['driver'=>'database','connection'=>env('DB_QUEUE_CONNECTION'),'table'=>env('DB_QUEUE_TABLE','jobs'),'queue'=>'tiktok-evidencias','retry_after'=>90,'after_commit'=>true],
                 'database',
                 'deferred',
             ],

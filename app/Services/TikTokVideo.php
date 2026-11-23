@@ -6,7 +6,7 @@ use GuzzleHttp\Psr7\{Uri,UriResolver};
 use Illuminate\Support\Facades\{Crypt,File,Http};
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-/** Reproducción de HLS público. Sin URL libre, credenciales o redirecciones remotas. */
+/** Reproducción de HLS público. Sin URL libre ni credenciales; redirecciones públicas validadas. */
 class TikTokVideo
 {
     public function urlValida(string $url): bool
@@ -56,29 +56,40 @@ class TikTokVideo
     private function contenido(string $url,?string $rango,int $maximo=16777216): array
     {
         abort_unless($this->urlValida($url)&&extension_loaded('curl'),502,'El servidor no admite este origen de video.');
-        $host=parse_url($url,PHP_URL_HOST);$ip=$this->direccion($host);$resolve=$host.':443:'.(str_contains($ip,':')?'['.$ip.']':$ip);
         $headers=['Accept'=>'*/*','User-Agent'=>'MiCV-PublicLive/1.0'];if($rango)$headers['Range']=$rango;
         try{
-            $r=Http::withHeaders($headers)->withOptions(['allow_redirects'=>false,'stream'=>true,'verify'=>true,'connect_timeout'=>5,'timeout'=>12,'curl'=>[CURLOPT_RESOLVE=>[$resolve],CURLOPT_PROXY=>'']])->get($url);
-            if(!in_array($r->status(),[200,206],true))abort(502,'TikTok no permitió reproducir esta señal pública.');
-            $body=$r->toPsrResponse()->getBody();$bytes='';
-            while(!$body->eof()){$bytes.=$body->read(65536);if(strlen($bytes)>$maximo)abort(502,'El recurso de video supera el tamaño permitido.');}
-            return [$bytes,strtolower(explode(';',$r->header('Content-Type'))[0]),$r->status(),$r->header('Content-Range')];
-        }catch(HttpException $e){throw $e;}catch(\Throwable){abort(502,'No se pudo leer la señal pública. Puede abrir el LIVE directamente en TikTok.');}
+            for($salto=0;$salto<=2;$salto++){
+                abort_unless($this->urlValida($url),502,'El origen de video no es compatible.');
+                $host=parse_url($url,PHP_URL_HOST);$ip=$this->direccion($host);$resolve=$host.':443:'.(str_contains($ip,':')?'['.$ip.']':$ip);
+                $r=Http::withHeaders($headers)->withOptions(['allow_redirects'=>false,'stream'=>true,'verify'=>true,'connect_timeout'=>5,'timeout'=>10,'curl'=>[CURLOPT_RESOLVE=>[$resolve],CURLOPT_PROXY=>'']])->get($url);
+                if(in_array($r->status(),[301,302,303,307,308],true)){
+                    abort_if($salto===2||!$r->header('Location'),502,'La señal redirige demasiadas veces.');
+                    $url=(string)UriResolver::resolve(new Uri($url),new Uri($r->header('Location')));continue;
+                }
+                if(!in_array($r->status(),[200,206],true))abort(502,'El servidor público rechazó el recurso (HTTP '.$r->status().').');
+                $body=$r->toPsrResponse()->getBody();$bytes='';
+                while(!$body->eof()){$bytes.=$body->read(65536);if(strlen($bytes)>$maximo)abort(502,'El recurso supera el tamaño permitido.');}
+                return [$bytes,strtolower(explode(';',$r->header('Content-Type'))[0]),$r->status(),$r->header('Content-Range'),$url];
+            }
+        }catch(HttpException $e){throw $e;}catch(\Throwable){abort(502,'No se pudo leer la señal pública. Revise la conexión del VPS.');}
+    }
+    public function descargarImagen(string $url): array {
+        [$bytes,$tipo]=$this->contenido($url,null,1048576);$info=@getimagesizefromstring($bytes);
+        abort_unless(in_array($tipo,['image/jpeg','image/png','image/webp'],true)&&$info!==false&&in_array($info['mime'],['image/jpeg','image/png','image/webp'],true)&&$info[0]>0&&$info[1]>0&&$info[0]*$info[1]<=16000000,502,'No hay una foto pública compatible.');
+        return [$bytes,$info['mime']];
     }
     public function avatar(TikTokCuenta $cuenta)
     {
         $url=$cuenta->perfil_publico['avatar']??null;abort_unless(is_string($url)&&$this->urlValida($url),404);
-        [$bytes,$tipo]=$this->contenido($url,null,1048576);
-        abort_unless(in_array($tipo,['image/jpeg','image/png','image/webp'],true)&&@getimagesizefromstring($bytes)!==false,502,'No hay una foto pública compatible.');
+        [$bytes,$tipo]=$this->descargarImagen($url);
         return response($bytes,200,['Content-Type'=>$tipo,'Cache-Control'=>'private, max-age=300','Referrer-Policy'=>'no-referrer']);
     }
     public function eliminar(array $ids): void {foreach($ids as$id)File::delete(config('tiktok.directorio').'/reproduccion/'.(int)$id.'.enc');}
     private function manifiesto(string $texto,string $base,TikTokCuenta $cuenta,TikTokLive $live): string
     {
         abort_if(strlen($texto)>262144||!str_starts_with(ltrim($texto), '#EXTM3U'),502,'La señal no contiene un manifiesto HLS válido.');
-        // No se intenta reproducir contenido cifrado o con licencias de acceso.
-        abort_if(preg_match('/#EXT-X-(?:SESSION-)?KEY:.*METHOD=(?!NONE(?:,|\s|$))/i',$texto),502,'Esta señal protegida debe abrirse en TikTok.');
+        // HLS AES-128 con clave pública es compatible; no se gestionan licencias DRM.
+        foreach(preg_split('/\r?\n/',$texto)as$linea)if(preg_match('/^#EXT-X-(?:SESSION-)?KEY:/',$linea)){abort_unless(preg_match('/METHOD=(?:NONE|AES-128)(?:,|$)/',$linea),502,'La señal requiere un método de acceso no compatible.');if(preg_match('/KEYFORMAT="([^"]+)"/',$linea,$m))abort_unless($m[1]==='identity',502,'Esta señal requiere una licencia externa.');}
         $reescribir=function(string $valor)use($base,$cuenta,$live){$url=(string)UriResolver::resolve(new Uri($base),new Uri($valor));return route('admin.tiktok.video.recurso',[$cuenta,$live,'t'=>$this->token($url,$live)]);};
         $lineas=preg_split('/\r?\n/',$texto);
         foreach($lineas as&$linea){$valor=trim($linea);if($valor==='' )continue;
@@ -97,7 +108,7 @@ class TikTokVideo
             abort_unless(is_array($d)&&($d['live']??null)===$live->id&&is_int($d['exp']??null)&&$d['exp']>=time()&&$d['exp']<=time()+1200&&is_string($d['url']??null),403);
             $url=$d['url'];
         }
-        [$bytes,$tipo,$status,$contentRange]=$this->contenido($url,$rango);
+        [$bytes,$tipo,$status,$contentRange,$url]=$this->contenido($url,$rango);
         $esManifiesto=$raiz||str_starts_with(ltrim($bytes),'#EXTM3U');
         if($esManifiesto){$bytes=$this->manifiesto($bytes,$url,$cuenta,$live);$tipo='application/vnd.apple.mpegurl';$status=200;}
         else abort_unless(in_array($tipo,['video/mp2t','video/mp4','audio/mp4','video/x-m4v','application/octet-stream'],true),502,'Formato de video no compatible.');
