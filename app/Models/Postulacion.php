@@ -27,6 +27,13 @@ class Postulacion extends Model
     public function user() { return $this->belongsTo(User::class); }
     public function cliente() { return $this->belongsTo(Cliente::class); }
     public function creador() { return $this->belongsTo(User::class, 'creado_por'); }
+    /** El texto sigue la misma copia revisada que el HTML; conserva los envíos anteriores. */
+    public function textoCorreo(): string
+    {
+        return str_contains((string) $this->correo_html, '<!-- micv-postulacion-formal-v2 -->')
+            ? \App\Services\Correo::aTexto($this->correo_html)
+            : (string) $this->mensaje;
+    }
     public function estadoLegible(): string { return self::ESTADOS[$this->estado] ?? $this->estado; }
     public function comprobarTiempo(): void
     {

@@ -9,6 +9,10 @@ from contextlib import redirect_stdout
 from types import SimpleNamespace as S
 spec=importlib.util.spec_from_file_location('capturar',Path(__file__).resolve().parents[2] / 'resources/tiktok/capturar.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 class AdapterTest(unittest.TestCase):
+ def test_owner_public_ids_preserve_large_integer_for_creator_matching(self):
+  p=m.perfil_publico({'id':9999999999999999999,'display_id':'titular_publico','nickname':'Nombre'})
+  self.assertEqual(p['id_usuario'],'9999999999999999999');self.assertEqual(p['usuario'],'titular_publico')
+  self.assertEqual(m.perfil_publico({})['id_usuario'],'');self.assertEqual(m.perfil_publico(None),{})
  def test_event_public_normalized(self):
   event=S(content='Hola <script>texto</script> 😀',user=S(unique_id='autor',nickname='Nombre'),common=S(msg_id=9999999999999999999,create_time=1730000000))
   d=m.comentario(event,1234567890123456789);self.assertEqual(d['sala'],'1234567890123456789');self.assertEqual(d['id'],'9999999999999999999');self.assertEqual(d['ocurrido_ms'],1730000000000);self.assertIn('😀',d['texto'])

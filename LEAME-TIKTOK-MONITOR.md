@@ -23,7 +23,7 @@ unzip -o Mi-CV-TikTok-Forense.zip
 sudo bash bin/instalar-tiktok.sh
 ```
 
-Después recargue con Ctrl+F5 y entre como administrador. El instalador detiene los trabajadores del módulo durante la actualización, limpia las cachés, aplica las dos migraciones de TikTok que falten y vuelve a arrancar los servicios. Conserva las cuentas y su activación previa; las nuevas quedan pausadas hasta que las active.
+Después recargue con Ctrl+F5 y entre como administrador. El instalador detiene los trabajadores del módulo durante la actualización, limpia las cachés, aplica las tres migraciones de TikTok que falten y vuelve a arrancar los servicios. Conserva las cuentas y su activación previa; las nuevas quedan pausadas hasta que las active.
 
 Servicios que arrancan con el VPS:
 
@@ -146,10 +146,10 @@ TikTokLive es no oficial y puede dejar de funcionar por cambios, bloqueos o lím
 
 ## Verificación de esta entrega
 
-- PHP: **163 pruebas y 1703 aserciones**. Incluye permisos, sesiones, fotos y archivos privados, hashes, IDs grandes, exportación por LIVE, datos anteriores, publicación importada, varias partes, eliminación y verificación que detecta alteraciones. Las pruebas de informes renderizan también su plantilla HTML.
-- Python: **23 pruebas**, con ID original/generado, hash del texto, recortes, tipos reales del protocolo TikTokLive 7.0.1, perfiles privados que comentan públicamente, conexión, restricciones, reintentos y metadatos.
+- PHP: **169 pruebas**. Incluye permisos, sesiones, fotos y archivos privados, hashes, IDs grandes, exportación por LIVE, datos anteriores, publicación importada, varias partes, eliminación y verificación que detecta alteraciones. Las pruebas de informes renderizan también su plantilla HTML.
+- Python: **24 pruebas**, con ID original/generado, hash del texto, recortes, tipos reales del protocolo TikTokLive 7.0.1, perfiles privados que comentan públicamente, conexión, restricciones, reintentos y metadatos.
 - Chromium: reproducción efectiva de un HLS local H.264/AAC y de otro con AES-128 y redirección validada; detener la vista conserva el monitoreo. Interfaz, fotos de prueba, actualización sin ejecutar HTML, confirmación abierta durante eventos, exportación en cola y descarga de PDF y paquete. Escritorio, móvil y modo oscuro revisados.
-- PDF de muestra A4 generado por Chromium con datos ficticios, fotos de prueba, cinco páginas y numeración. El paquete se extrajo y verificó con el script incluido.
+- PDF de muestra A4 generado por Chromium con datos ficticios, fotos de prueba, seis páginas y numeración. El paquete se extrajo y verificó con el script incluido.
 
 El Chromium administrado del entorno bloquea `file://`: la comprobación local carga **el mismo HTML y pie** en memoria. Producción usa el motor de Mi CV configurado con Browsershot. Los casos positivos de captura y reproducción se probaron con eventos simulados y señales locales; **no se ha confirmado un LIVE real desde su VPS ni se ha instalado esta actualización allí**.
 
@@ -158,3 +158,7 @@ El Chromium administrado del entorno bloquea `file://`: la comprobación local c
 - TikTokLive 7.0.1: https://pypi.org/project/TikTokLive/7.0.1/ · https://github.com/isaackogan/TikTokLive · licencia publicada: Modified AGPL-3.0.
 - HLS.js 1.7.4: https://github.com/video-dev/hls.js · incluido con su licencia Apache-2.0 en `public/vendor/hls-LICENSE.txt`.
 - El motor Chromium de PDF utiliza las dependencias existentes del proyecto.
+
+## Comentarios por perfil e invitados públicos
+
+La actualización presenta los comentarios debajo de cada perfil, incluidos los escritos del creador cuando se identifican, y permite registrar fuentes públicas de invitados con referencias separadas. Consulte **LEAME-CORREO-Y-COMENTARIOS.md** para el instalador conjunto, la conservación de copias históricas y el alcance de las salas compartidas.

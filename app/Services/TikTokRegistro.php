@@ -9,7 +9,7 @@ class TikTokRegistro {
     private function texto($v,int $limite): string{return mb_substr(str_replace("\0",'',is_scalar($v)?(string)$v:''),0,$limite);}
     private function perfil(array $perfil): array {
         $avatar=is_string($perfil['avatar']??null)?$perfil['avatar']:null;
-        return ['nombre'=>$this->texto($perfil['nombre']??'',150),'bio'=>$this->texto($perfil['bio']??'',500),'region'=>is_string($perfil['region']??null)&&preg_match('/^[A-Z]{2}$/D',$perfil['region'])?$perfil['region']:null,'avatar'=>$avatar&&app(TikTokVideo::class)->urlValida($avatar)?$avatar:null];
+        return ['id_usuario'=>$this->texto($perfil['id_usuario']??'',80),'usuario'=>$this->texto($perfil['usuario']??'',100),'nombre'=>$this->texto($perfil['nombre']??'',150),'bio'=>$this->texto($perfil['bio']??'',500),'region'=>is_string($perfil['region']??null)&&preg_match('/^[A-Z]{2}$/D',$perfil['region'])?$perfil['region']:null,'avatar'=>$avatar&&app(TikTokVideo::class)->urlValida($avatar)?$avatar:null];
     }
     public static function cerrar(int $cuentaId,string $motivo,int $ms): void {\Illuminate\Support\Facades\DB::table('tiktok_sesiones')->where('cuenta_id',$cuentaId)->whereNull('fin_ms')->update(['fin_ms'=>$ms,'motivo'=>$motivo]);}
     public function registrar(TikTokCuenta $c,array $eventos): int {

@@ -52,7 +52,9 @@ def perfil_publico(owner):
     if isinstance(avatar, dict):
         avatar = next(iter(avatar.get("url_list") or []), None)
     region = str(owner.get("region") or owner.get("country") or "").upper()
-    return {"nombre": str(owner.get("nickname") or "")[:150],
+    return {"id_usuario": str(owner.get("id_str") or owner.get("id") or owner.get("user_id") or "")[:80],
+            "usuario": str(owner.get("display_id") or owner.get("unique_id") or owner.get("uniqueId") or "")[:100],
+            "nombre": str(owner.get("nickname") or "")[:150],
             "bio": str(owner.get("signature") or owner.get("bio_description") or "")[:500],
             "avatar": avatar if isinstance(avatar, str) and len(avatar) <= 2048 else None,
             "region": region if re.fullmatch(r"[A-Z]{2}", region) else None}

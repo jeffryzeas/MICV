@@ -13,10 +13,10 @@ use Illuminate\Validation\ValidationException;
 class MonitorController extends Controller {
     private function admin(Request $r): void{abort_unless($r->user()?->esAdmin()&&$r->user()->activo,403);}
     private function privado($r){$r->headers->set('Cache-Control','private, no-store');return $r;}
-    public function index(Request $r,TikTokConsulta $consulta){$this->admin($r);$cuentas=TikTokCuenta::withCount(['lives','comentarios'])->orderBy('usuario')->paginate(20);$salud=$consulta->salud();return $this->privado(response()->view('admin.tiktok.index',compact('cuentas','salud')));}
+    public function index(Request $r,TikTokConsulta $consulta){$this->admin($r);$cuentas=TikTokCuenta::withCount(['lives','comentarios'])->orderBy('usuario')->paginate(20);$salud=$consulta->salud();$anfitriones=TikTokCuenta::whereNull('anfitrion_id')->orderBy('usuario')->get(['id','usuario']);return $this->privado(response()->view('admin.tiktok.index',compact('cuentas','salud','anfitriones')));}
     public function store(Request $r){
         $this->admin($r);if(is_string($r->input('usuario')))$r->merge(['usuario'=>mb_strtolower(ltrim(trim($r->input('usuario')),'@'))]);
-        $d=$r->validate(['usuario'=>['required','string','regex:/^[a-z0-9_.]{2,24}$/D','unique:tiktok_cuentas,usuario'],'nombre'=>'nullable|string|max:150','notas'=>'nullable|string|max:1000']);
+        $d=$r->validate(['usuario'=>['required','string','regex:/^[a-z0-9_.]{2,24}$/D','unique:tiktok_cuentas,usuario'],'nombre'=>'nullable|string|max:150','notas'=>'nullable|string|max:1000','anfitrion_id'=>['nullable','integer',\Illuminate\Validation\Rule::exists('tiktok_cuentas','id')->whereNull('anfitrion_id')]]);
         $c=TikTokCuenta::create($d);Actividad::registrar('tiktok_cuenta_crear','@'.$c->usuario);return redirect()->route('admin.tiktok.cuenta',$c)->with('mensaje','Cuenta registrada. Active la captura cuando quiera comenzar a guardar sus lives públicos.');
     }
     public function cuenta(Request $r,TikTokCuenta $cuenta,TikTokConsulta $consulta){

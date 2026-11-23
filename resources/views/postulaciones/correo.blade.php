@@ -1,7 +1,23 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ $p->asunto }}</title></head><body style="margin:0;padding:24px 12px;background:#f3f5f8;color:#263244;font-family:Arial,Helvetica,sans-serif">
-<div style="display:none;max-height:0;overflow:hidden">{{ $p->candidato }} · {{ $p->cargo ? 'Postulación a '.$p->cargo : 'Presentación de currículum' }} · CV adjunto en PDF.</div>
-<table role="presentation" style="width:100%;max-width:620px;margin:0 auto;border-spacing:0;background:#fff;border:1px solid #dde3eb;border-radius:8px"><tr><td style="padding:28px 30px 22px;border-top:4px solid #173f6b;border-bottom:1px solid #e7ebf0"><p style="font-size:12px;letter-spacing:1px;color:#66758a;margin:0 0 10px">POSTULACIÓN LABORAL</p><h1 style="font-size:23px;line-height:1.35;color:#183b62;margin:0 0 7px">{{ $p->candidato }}</h1><p style="font-size:14px;line-height:1.6;margin:0;color:#66758a">{{ $p->cargo ?: 'Oportunidades acordes con mi perfil' }}<br>{{ $p->empresa }}</p></td></tr>
-<tr><td style="padding:28px 30px;font-size:15px;line-height:1.8;word-break:break-word">{!! nl2br(e($p->mensaje)) !!}</td></tr>
-<tr><td style="padding:0 30px 28px"><table role="presentation" style="width:100%;border-spacing:0;background:#f5f7fa;border:1px solid #e3e8ef;border-radius:5px"><tr><td style="padding:15px;font-size:13px;line-height:1.6;color:#43536a"><strong style="color:#263b54">Currículum adjunto en PDF</strong><br><span style="word-break:break-all">{{ $p->cv_nombre }}</span></td></tr></table></td></tr>
-<tr><td style="padding:18px 30px;border-top:1px solid #e7ebf0;font-size:12px;color:#708097;line-height:1.6">Para contactar al remitente, responda a este correo:<br><a style="color:#173f6b" href="mailto:{{ $p->remitente }}">{{ $p->remitente }}</a></td></tr></table>
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ $p->asunto }}</title></head>
+<body style="margin:0;padding:0;background:#f3f5f7;color:#263445;">
+<!-- micv-postulacion-formal-v2 -->
+@php
+    $texto = str_replace(["\r\n", "\r"], "\n", trim((string) $p->mensaje));
+    $parrafos = preg_split('/\n[\t ]*\n+/', $texto, -1, PREG_SPLIT_NO_EMPTY);
+@endphp
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="padding:24px 12px;">
+<table role="presentation" align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width:660px;margin:0 auto;border-collapse:collapse;background:#ffffff;border:1px solid #e1e6eb;">
+<tr><td style="padding:32px 28px 20px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.75;text-align:left;overflow-wrap:anywhere;word-wrap:break-word;">
+@foreach($parrafos as $parrafo)
+<p style="margin:0 0 18px;">{!! nl2br(e($parrafo), false) !!}</p>
+@endforeach
+</td></tr>
+<tr><td style="padding:20px 28px 24px;border-top:1px solid #e6eaef;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.65;color:#687586;overflow-wrap:anywhere;">
+<p style="margin:0 0 8px;"><strong style="font-weight:600;color:#536172;">Aviso de privacidad</strong></p>
+<p style="margin:0 0 8px;">Este correo fue enviado a <strong>{{ $p->destinatario }}</strong>@if($p->empresa), como dirección de contacto de {{ $p->empresa }}@endif, para presentar una solicitud de empleo. El mensaje y el currículum adjunto contienen información personal destinada exclusivamente al proceso de selección.</p>
+<p style="margin:0;">Si usted no es el destinatario o recibió este correo por error, por favor elimine el mensaje y sus archivos adjuntos. Le solicitamos no compartir, copiar ni utilizar su contenido.</p>
+</td></tr></table>
+</td></tr></table>
 </body></html>

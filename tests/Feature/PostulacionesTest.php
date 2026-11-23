@@ -41,6 +41,44 @@ class PostulacionesTest extends TestCase
         $this->actingAs($u)->post(route('postulaciones.preparar'),$this->payload($c,$e,$g))->assertRedirect();
         return Postulacion::latest()->firstOrFail();
     }
+    public function test_correo_formal_empieza_con_saludos_y_conserva_destinatario_en_aviso_y_texto(): void
+    {
+        $ctx=$this->contexto();[$u,$c,$empresa,$gmail]=$ctx;
+        $redaccion=app(\App\Services\PostulacionRedaccion::class)->generar($c,$empresa);
+        $this->assertStringStartsWith('Saludos cordiales:', $redaccion['mensaje']);
+        $empresa->update(['contacto'=>'María López']);
+        $this->assertStringStartsWith('Saludos, María López:', app(\App\Services\PostulacionRedaccion::class)->generar($c,$empresa)['mensaje']);
+        $p=$this->preparar($ctx);$html=$p->correo_html;$texto=$p->textoCorreo();
+        $this->assertStringContainsString('Aviso de privacidad',$html);
+        $this->assertStringContainsString('Este correo fue enviado a empleos@example.test', $texto);
+        $this->assertStringContainsString('elimine el mensaje y sus archivos adjuntos',$texto);
+        $this->assertStringNotContainsString('<h1',$html);
+        $empresa->update(['correo'=>'cambiado@example.test']);$this->assertSame($html,$p->fresh()->correo_html);$this->assertSame($texto,$p->fresh()->textoCorreo());
+        $this->assertStringNotContainsString('cambiado@example.test',$texto);Queue::assertNothingPushed();
+    }
+    public function test_transporte_incluye_aviso_revisado_en_html_y_texto_sin_envio_real(): void
+    {
+        $ctx=$this->contexto();$p=$this->preparar($ctx);
+        $t=$this->createMock(\Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport::class);
+        $t->expects($this->once())->method('send')->willReturnCallback(function($email)use($p){
+            $this->assertSame($p->destinatario,$email->getTo()[0]->getAddress());
+            $this->assertSame($p->correo_html,$email->getHtmlBody());
+            $this->assertSame($p->textoCorreo(),$email->getTextBody());
+            $this->assertStringContainsString('Este correo fue enviado a empleos@example.test',$email->getTextBody());
+            $this->assertCount(1,$email->getAttachments());
+            return new \Symfony\Component\Mailer\SentMessage($email,\Symfony\Component\Mailer\Envelope::create($email));
+        });
+        $servicio=new class($t) extends GmailPostulaciones {
+            public function __construct(private \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport $simulado){}
+            protected function transporte(GmailCuenta $cuenta): \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport {return $this->simulado;}
+        };
+        $this->assertNotEmpty($servicio->enviar($p,$ctx[3]));
+    }
+    public function test_mensajes_historicos_conservan_su_copia_de_texto_sin_agregar_avisos_nuevos(): void
+    {
+        $p=new Postulacion(['mensaje'=>'Texto original revisado','correo_html'=>'<p>Texto original revisado</p>']);
+        $this->assertSame('Texto original revisado',$p->textoCorreo());
+    }
     public function test_gmail_se_cifra_no_se_muestra_ni_se_guarda_en_la_sesion(): void
     {
         $u=$this->user();$this->actingAs($u)->put(route('postulaciones.gmail.guardar',$u),['correo'=>'mi@gmail.com','nombre'=>'Mi nombre','gmail_clave'=>'abcd efgh ijkl mnop','activo'=>1])->assertSessionHasNoErrors()->assertRedirect();
@@ -78,9 +116,9 @@ class PostulacionesTest extends TestCase
     public function test_redaccion_con_cargo_y_sin_cargo_no_inventa_experiencia(): void
     {
         [$u,$c,$e]=$this->contexto();
-        $r=$this->actingAs($u)->postJson(route('postulaciones.redactar'),['cliente_id'=>$c->id,'empresa_id'=>$e->id,'cargo'=>'Cajera'])->assertOk()->assertJsonPath('asunto','Postulación a Cajera — Ana Pérez');
+        $r=$this->actingAs($u)->postJson(route('postulaciones.redactar'),['cliente_id'=>$c->id,'empresa_id'=>$e->id,'cargo'=>'Cajera'])->assertOk()->assertJsonPath('asunto','Solicitud de empleo: Cajera — Ana Pérez');
         $this->assertStringContainsString('Mi área de trabajo es Asistente administrativa.',$r['mensaje']);
-        $this->postJson(route('postulaciones.redactar'),['cliente_id'=>$c->id,'empresa_id'=>$e->id,'cargo'=>''])->assertOk()->assertJsonPath('asunto','Postulación laboral — Ana Pérez');
+        $this->postJson(route('postulaciones.redactar'),['cliente_id'=>$c->id,'empresa_id'=>$e->id,'cargo'=>''])->assertOk()->assertJsonPath('asunto','Solicitud de empleo — Ana Pérez');
         $otro=$this->user();$this->actingAs($otro)->postJson(route('postulaciones.redactar'),['cliente_id'=>$c->id,'empresa_id'=>$e->id])->assertForbidden();
     }
     public function test_preparar_conserva_pdf_mensaje_empresa_y_remitente_sin_enviar(): void

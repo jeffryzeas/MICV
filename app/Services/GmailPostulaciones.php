@@ -26,7 +26,7 @@ class GmailPostulaciones
     {
         $email = (new Email())->from(new Address($p->remitente, $p->remitente_nombre))
             ->replyTo(new Address($p->remitente, $p->remitente_nombre))
-            ->to($p->destinatario)->subject($p->asunto)->text($p->mensaje)
+            ->to($p->destinatario)->subject($p->asunto)->text($p->textoCorreo())
             ->html($p->correo_html)
             ->attachFromPath(Storage::disk('local')->path($p->cv_ruta), $p->cv_nombre, 'application/pdf');
         $domain = parse_url(config('app.url'), PHP_URL_HOST) ?: 'micv.local';

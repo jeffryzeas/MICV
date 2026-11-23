@@ -10,15 +10,16 @@ class PostulacionRedaccion
     {
         $cargo = trim($cargo ?? $empresa->cargo ?? '');
         $nombre = $c->nombreCompleto();
-        $saludo = $empresa->contacto ? 'A la atención de '.$empresa->contacto.':' : 'Estimado equipo de selección de '.$empresa->nombre.':';
-        $intro = $cargo !== '' ? 'Me gustaría postularme al puesto de '.$cargo.' en '.$empresa->nombre.'.' : 'Me gustaría ser considerado/a para las oportunidades laborales disponibles en '.$empresa->nombre.', de acuerdo con mi perfil.';
+        $contactoEmpresa = trim((string) $empresa->contacto);
+        $saludo = $contactoEmpresa !== '' ? 'Saludos, '.$contactoEmpresa.':' : 'Saludos cordiales:';
+        $intro = $cargo !== '' ? 'Les escribo para presentar mi candidatura al puesto de '.$cargo.' en '.$empresa->nombre.'.' : 'Les escribo para presentar mi currículum y expresar mi interés en las oportunidades laborales de '.$empresa->nombre.' que se ajusten a mi perfil.';
         $perfil = trim(preg_replace('/\s+/u', ' ', strip_tags($c->perfil_profesional ?? '')));
         $profesion = trim(strip_tags($c->profesion ?? ''));
         $presentacion = $perfil !== '' ? Str::limit($perfil, 550) : ($profesion !== '' ? 'Mi área de trabajo es '.$profesion.'.' : '');
         $contacto = array_filter([$nombre, $c->telefono ? 'Teléfono: '.$c->celulares() : null]);
         return [
-            'asunto'=>Str::limit(($cargo !== '' ? 'Postulación a '.$cargo : 'Postulación laboral').' — '.$nombre, 190, ''),
-            'mensaje'=>implode("\n\n", array_filter([$saludo, $intro, $presentacion, 'Adjunto mi CV en PDF para su valoración. Quedo a disposición para ampliar la información o participar en una entrevista.', 'Gracias por su tiempo y consideración.', "Atentamente,\n".implode("\n", $contacto)])),
+            'asunto'=>Str::limit(($cargo !== '' ? 'Solicitud de empleo: '.$cargo : 'Solicitud de empleo').' — '.$nombre, 190, ''),
+            'mensaje'=>implode("\n\n", array_filter([$saludo, $intro, $presentacion, 'Adjunto mi currículum en formato PDF para su valoración. Quedo a su disposición para ampliar cualquier información y coordinar una entrevista.', 'Agradezco su tiempo y la atención a mi solicitud.', "Atentamente,\n".implode("\n", $contacto)])),
         ];
     }
 }

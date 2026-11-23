@@ -26,6 +26,45 @@ class TikTokForenseTest extends TestCase {
   $png=base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aR1sAAAAASUVORK5CYII=');Http::fake(['*'=>Http::response($png,200,['Content-Type'=>'image/png'])]);$a=TikTokAdjunto::firstOrFail();(new GuardarTikTokAvatar($a->id))->handle(app(TikTokVideo::class));return$a->fresh();
  }
  private function pdf(): TikTokPdf {return $this->mock(TikTokPdf::class,fn($m)=>$m->shouldReceive('generar')->once()->withArgs(fn($d)=>$d['filas']->count()===2&&strlen($d['hashDatos'])===64)->andReturnUsing(function($d){$doc=(new TikTokPdf)->documento($d);$this->assertStringContainsString('Informe técnico',$doc['html']);$this->assertStringNotContainsString('SECRETO',$doc['html']);return '%PDF-1.4 ejemplo de informe';}));}
+ public function test_comentarios_de_cada_perfil_se_imprimen_debajo_y_el_creador_se_coteja_por_uid(): void {
+  $c=$this->capturar();$live=$c->lives()->first();$live->update(['perfil_inicio'=>['nombre'=>'Titular','id_usuario'=>'7000000000000000001','usuario'=>$c->usuario]]);
+  $ahora=TikTokConsulta::ahora();
+  app(TikTokRegistro::class)->registrar($c,[
+   $this->evento('comentario',['id'=>'creador1','autor'=>'alias_nuevo','nombre'=>'Creador de prueba','texto'=>'Mensaje escrito del creador','ocurrido_ms'=>$ahora,'publico'=>['id_usuario'=>'7000000000000000001','usuario'=>'alias_nuevo']]),
+   $this->evento('comentario',['id'=>'otro1','autor'=>$c->usuario,'nombre'=>'Otra cuenta','texto'=>'Un alias igual no prueba titularidad','ocurrido_ms'=>$ahora,'publico'=>['id_usuario'=>'7000000000000000002','usuario'=>$c->usuario]])
+  ]);
+  $this->post(route('admin.tiktok.exportar-live',[$c,$live]));$e=TikTokExportacion::first();
+  $pdf=$this->mock(TikTokPdf::class,fn($mock)=>$mock->shouldReceive('generar')->once()->andReturnUsing(function($d){
+   $this->assertCount(3,$d['autores']);$this->assertTrue($d['autores'][0]['es_creador']);$this->assertSame('7000000000000000001',$d['autores'][0]['id']);
+   $this->assertCount(1,array_filter($d['autores'],fn($a)=>$a['es_creador']));
+   $html=(new TikTokPdf)->documento($d)['html'];$dom=new \DOMDocument();@$dom->loadHTML('<?xml encoding="UTF-8">'.$html);$xp=new \DOMXPath($dom);
+   $grupos=$xp->query('//section[@class="participant"]');$this->assertCount(3,$grupos);$this->assertStringContainsString('Mensaje escrito del creador',$grupos->item(0)->textContent);
+   foreach($d['autores'] as $i=>$autor){$grupo=$grupos->item($i);$this->assertSame($autor['comentarios'],$xp->query('.//article[@class="entry"]',$grupo)->length);foreach($autor['mensajes'] as $msg)$this->assertStringContainsString($msg['registro']['texto'],$grupo->textContent);}
+   return '%PDF-1.4 ejemplo';
+  }));
+  (new ExportarTikTok($e->id))->handle(app(TikTokConsulta::class),$pdf);$this->assertSame('listo',$e->fresh()->estado);
+ }
+ public function test_creador_legacy_por_usuario_se_declara_sin_cotejo_de_id(): void {
+  $c=$this->capturar(1);$m=$c->comentarios()->first();$m->update(['autor'=>strtoupper($c->usuario),'datos_publicos'=>['usuario'=>strtoupper($c->usuario)],'hash_registro'=>null]);
+  $this->post(route('admin.tiktok.exportar-live',[$c,$c->lives()->first()]));$e=TikTokExportacion::first();
+  $pdf=$this->mock(TikTokPdf::class,fn($mock)=>$mock->shouldReceive('generar')->once()->andReturnUsing(function($d){$this->assertTrue($d['autores'][0]['es_creador']);$this->assertStringContainsString('sin cotejo de ID',$d['autores'][0]['criterio_creador']);return '%PDF-1.4 ejemplo';}));
+  (new ExportarTikTok($e->id))->handle(app(TikTokConsulta::class),$pdf);$this->assertSame('listo',$e->fresh()->estado);
+ }
+ public function test_invitado_conserva_su_sala_y_fuente_sin_atribuir_los_comentarios_al_anfitrion(): void {
+  $host=TikTokCuenta::create(['usuario'=>'anfitrion_privado','monitorear'=>false,'estado'=>'restringido']);
+  $this->get(route('admin.tiktok.index',['anfitrion_id'=>$host->id]))->assertOk()->assertSee('Referencia de sala compartida');
+  $this->post(route('admin.tiktok.guardar'),['usuario'=>'invitado_publico','anfitrion_id'=>$host->id])->assertRedirect();$c=TikTokCuenta::where('usuario','invitado_publico')->firstOrFail();
+  $this->assertSame($host->id,$c->anfitrion_id);$this->assertFalse($c->monitorear);
+  $this->post(route('admin.tiktok.captura',$c),['monitorear'=>1])->assertRedirect();$c->refresh();
+  app(TikTokRegistro::class)->registrar($c,[$this->evento('inicio'),$this->evento('comentario',['id'=>'guest-comment','autor'=>'visitante','texto'=>'Comentario de la sala pública'])]);
+  $this->assertSame(0,$host->comentarios()->count());$this->assertSame('restringido',$host->fresh()->estado);$this->assertSame(1,$c->comentarios()->count());
+  $this->get(route('admin.tiktok.cuenta',$host))->assertOk()->assertSee('@invitado_publico');
+  $this->post(route('admin.tiktok.exportar-live',[$c,$c->lives()->first()]));$e=TikTokExportacion::first();
+  $pdf=$this->mock(TikTokPdf::class,fn($mock)=>$mock->shouldReceive('generar')->once()->andReturnUsing(function($d){$this->assertSame('invitado_publico',$d['referenciaSala']['cuenta_observada']);$this->assertSame('anfitrion_privado',$d['referenciaSala']['anfitrion_declarado']);$html=(new TikTokPdf)->documento($d)['html'];$this->assertStringContainsString('Esta relación no fue verificada por TikTok',$html);$this->assertStringContainsString('Comentario de la sala pública',$html);return '%PDF-1.4 ejemplo';}));
+  (new ExportarTikTok($e->id))->handle(app(TikTokConsulta::class),$pdf);$this->assertSame('listo',$e->fresh()->estado);
+  $this->post(route('admin.tiktok.guardar'),['usuario'=>'otro_invitado','anfitrion_id'=>$c->id])->assertSessionHasErrors('anfitrion_id');
+  $host->delete();$this->assertNull($c->fresh()->anfitrion_id);$this->assertSame(1,$c->comentarios()->count());
+ }
  public function test_deduplica_fotos_y_preserva_ids_grandes_y_hash_del_registro(): void {
   $c=$this->capturar();Queue::assertPushed(GuardarTikTokAvatar::class,1);$this->assertSame(1,TikTokAdjunto::count());$this->assertSame(2,TikTokComentario::count());
   foreach(TikTokComentario::all()as$m){$this->assertSame('9999999999999999999',$m->autor_id);$this->assertSame($m->hash_registro,hash('sha256',TikTokIntegridad::json(TikTokIntegridad::original($m))));$this->assertStringNotContainsString('SECRETO',json_encode($m->datos_publicos));}
