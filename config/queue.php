@@ -30,6 +30,7 @@ return [
     */
 
     'connections' => [
+        'tiktok-exportaciones' => ['driver'=>'database','connection'=>env('DB_QUEUE_CONNECTION'),'table'=>env('DB_QUEUE_TABLE','jobs'),'queue'=>'tiktok-exportaciones','retry_after'=>610,'after_commit'=>true],
 
         'postulaciones' => [
             'driver' => 'database',

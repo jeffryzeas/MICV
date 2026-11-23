@@ -1,0 +1,80 @@
+<?php
+namespace Tests\Feature;
+use App\Models\{User,TikTokCuenta,TikTokLive,TikTokComentario,TikTokPublicacion,TikTokExportacion};
+use App\Services\{TikTokConsulta,TikTokRegistro,TikTokPdf,TikTokProceso};
+use App\Jobs\ExportarTikTok;
+use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\{Queue,Storage};
+use Illuminate\Support\Str;
+use Symfony\Component\Process\Process;
+use Tests\TestCase;
+
+class TikTokMonitorTest extends TestCase {
+    use RefreshDatabase;
+    protected function setUp(): void{parent::setUp();Storage::fake('local');Queue::fake([ExportarTikTok::class]);config(['tiktok.directorio'=>Storage::disk('local')->path('estado'),'tiktok.python'=>'/usr/bin/python3']);$this->withoutMiddleware([\App\Http\Middleware\CorreoVerificado::class,\App\Http\Middleware\AceptaTerminos::class]);}
+    private function usuario(string $rol='admin'): User{$s=Str::random(8);return User::create(['usuario'=>$s,'name'=>'Prueba '.$s,'email'=>$s.'@example.test','password'=>'Prueba123456','rol'=>$rol,'activo'=>true]);}
+    private function cuenta(): TikTokCuenta{return TikTokCuenta::create(['usuario'=>'demo_'.Str::lower(Str::random(8)),'monitorear'=>true,'estado'=>'pendiente']);}
+    private function evento(string $tipo,array $d=[]): array{return ['v'=>1,'tipo'=>$tipo,'capturado_ms'=>TikTokConsulta::ahora(),'sala'=>'7000000000000000001']+$d;}
+    private function capturar(TikTokCuenta $c,int $n=2): TikTokLive{$eventos=[$this->evento('inicio',['titulo'=>'Live público de prueba','perfil'=>['nombre'=>'Cuenta de prueba','bio'=>'Descripción pública']])];for($i=1;$i<=$n;$i++)$eventos[]=$this->evento('comentario',['id'=>(string)$i,'autor'=>'persona','nombre'=>'Persona','texto'=>'Comentario '.$i,'ocurrido_ms'=>TikTokConsulta::ahora()]);app(TikTokRegistro::class)->registrar($c,$eventos);return $c->lives()->firstOrFail();}
+    public function test_solo_admin_accede_a_todas_las_rutas_y_menu(): void {
+        $c=$this->cuenta();$this->get(route('admin.tiktok.index'))->assertRedirect();
+        foreach(['cliente','cyber']as$rol){$u=$this->usuario($rol);$u->rol==='cyber' && $u->update(['cyber_id'=>\App\Models\Cyber::create(['codigo'=>'TT'.Str::random(6),'nombre'=>'Negocio activo','activo'=>true])->id]);$this->actingAs($u);foreach(['index'=>[],'cuenta'=>[$c],'eventos'=>[$c]]as$r=>$p)$this->get(route('admin.tiktok.'.$r,$p))->assertForbidden();$this->post(route('admin.tiktok.captura',$c),['monitorear'=>1])->assertForbidden();$this->post(route('admin.tiktok.exportar',$c))->assertForbidden();$this->assertFalse(collect(\App\Support\Menu::para($u))->contains('id','tiktok'));}
+        $this->actingAs($this->usuario())->get(route('admin.tiktok.index'))->assertOk()->assertSee('TikTok · Lives y comentarios');
+    }
+    public function test_registro_normaliza_usuario_no_activa_solo_y_rechaza_urls(): void {
+        $this->actingAs($this->usuario())->post(route('admin.tiktok.guardar'),['usuario'=>' @Mi_Cuenta '])->assertRedirect();$c=TikTokCuenta::firstOrFail();$this->assertSame('mi_cuenta',$c->usuario);$this->assertFalse($c->monitorear);
+        $this->post(route('admin.tiktok.guardar'),['usuario'=>'https://127.0.0.1/secreto'])->assertSessionHasErrors('usuario');$this->post(route('admin.tiktok.guardar'),['usuario'=>['x']])->assertSessionHasErrors('usuario');$this->assertSame(1,TikTokCuenta::count());
+    }
+    public function test_activar_y_pausar_conserva_comentarios_y_cierra_captura(): void {
+        $c=$this->cuenta();$live=$this->capturar($c);$this->actingAs($this->usuario())->post(route('admin.tiktok.captura',$c),['monitorear'=>0])->assertRedirect();$this->assertFalse($c->fresh()->monitorear);$this->assertSame('interrumpido',$live->fresh()->estado);$this->assertSame(2,TikTokComentario::count());
+        app(TikTokRegistro::class)->registrar($c,[$this->evento('estado',['estado'=>'sin_live'])]);$this->assertSame('inactivo',$c->fresh()->estado);
+        $this->post(route('admin.tiktok.captura',$c),['monitorear'=>1])->assertRedirect();$this->assertTrue($c->fresh()->monitorear);
+    }
+    public function test_ingesta_deduplica_y_separa_salas_y_origen(): void {
+        $c=$this->cuenta();$live=$this->capturar($c);$this->capturar($c);$this->assertSame(2,$live->fresh()->comentarios);$this->assertSame(2,TikTokComentario::count());
+        app(TikTokRegistro::class)->registrar($c,[$this->evento('inicio')+[],array_replace($this->evento('inicio'),['sala'=>'7000000000000000002']),array_replace($this->evento('comentario',['id'=>'1','autor'=>'otra','texto'=>'Otra sala']),['sala'=>'7000000000000000002'])]);$this->assertSame(2,$c->lives()->count());$this->assertSame(3,TikTokComentario::count());$this->assertSame('interrumpido',$live->fresh()->estado);$this->assertSame('live_publico',TikTokComentario::first()->origen);
+    }
+    public function test_restricciones_pausan_no_guardan_perfil_privado_ni_nuevos_lives(): void {
+        $c=$this->cuenta();app(TikTokRegistro::class)->registrar($c,[$this->evento('estado',['estado'=>'restringido','detalle'=>'Contenido no público']),$this->evento('inicio',['perfil'=>['nombre'=>'NO GUARDAR']])]);$this->assertFalse($c->fresh()->monitorear);$this->assertSame('restringido',$c->fresh()->estado);$this->assertNull($c->fresh()->perfil_publico);$this->assertSame(0,TikTokLive::count());
+    }
+    public function test_filtros_respetan_dia_en_costa_rica_e_id_de_otra_cuenta(): void {
+        $c=$this->cuenta();$live=$this->capturar($c,0);$base=TikTokConsulta::ahora()-600000;$m=TikTokComentario::create(['cuenta_id'=>$c->id,'live_id'=>$live->id,'clave'=>hash('sha256','medianoche'),'autor'=>'uno','texto'=>'Día local','origen'=>'live_publico','ocurrido_ms'=>CarbonImmutable::parse('2026-11-23T05:59:59Z')->getTimestampMs(),'capturado_ms'=>$base]);
+        TikTokComentario::create(['cuenta_id'=>$c->id,'live_id'=>$live->id,'clave'=>hash('sha256','otro-dia'),'autor'=>'dos','texto'=>'Día siguiente','origen'=>'live_publico','ocurrido_ms'=>CarbonImmutable::parse('2026-11-23T06:00:00Z')->getTimestampMs(),'capturado_ms'=>$base]);
+        $this->actingAs($this->usuario())->getJson(route('admin.tiktok.eventos',[$c,'desde'=>'2026-11-22','hasta'=>'2026-11-22']))->assertOk()->assertJsonCount(1,'comentarios')->assertJsonPath('comentarios.0.texto','Día local')->assertJsonPath('comentarios.0.fecha','22/11/2026 23:59:59');
+        $otro=$this->cuenta();$this->get(route('admin.tiktok.cuenta',[$otro,'live_id'=>$live->id]))->assertNotFound();$this->getJson(route('admin.tiktok.eventos',[$c,'desde'=>'2026-11-23','hasta'=>'2026-11-22']))->assertUnprocessable();
+    }
+    public function test_eventos_cursor_no_repite_y_textos_se_escapan_en_la_vista(): void {
+        $c=$this->cuenta();$live=$this->capturar($c);$id=TikTokComentario::max('id');app(TikTokRegistro::class)->registrar($c,[$this->evento('comentario',['id'=>'3','autor'=>'tercero','texto'=>'<script>alert(1)</script>'])]);$hoy=TikTokConsulta::fecha(TikTokConsulta::ahora(),'Y-m-d');
+        $this->actingAs($this->usuario())->getJson(route('admin.tiktok.eventos',[$c,'cursor'=>$id,'desde'=>$hoy,'hasta'=>$hoy]))->assertOk()->assertJsonCount(1,'comentarios')->assertJsonPath('comentarios.0.autor','tercero');
+        $this->get(route('admin.tiktok.cuenta',$c))->assertOk()->assertSee('&lt;script&gt;',false)->assertDontSee('<script>alert(1)</script>',false)->assertHeader('Cache-Control','no-store, private');
+    }
+    public function test_publicaciones_solo_aceptan_urls_canonicas_de_esa_cuenta(): void {
+        $c=$this->cuenta();$this->actingAs($this->usuario());foreach(['http://127.0.0.1/a','https://evil.test/@'.$c->usuario.'/video/123456','https://www.tiktok.com/@otra/video/123456']as$url)$this->post(route('admin.tiktok.publicacion',$c),['url'=>$url])->assertSessionHasErrors('url');
+        $this->post(route('admin.tiktok.publicacion',$c),['url'=>$c->perfilUrl().'/video/123456789'])->assertRedirect();$this->assertSame('registro_manual',TikTokPublicacion::first()->origen);
+    }
+    public function test_importacion_json_es_atomica_deduplicada_y_de_origen_distinto(): void {
+        $c=$this->cuenta();$p=TikTokPublicacion::create(['cuenta_id'=>$c->id,'video_id'=>'123456789']);$this->actingAs($this->usuario());$url=route('admin.tiktok.importar',[$c,$p]);$rows=[['id'=>'abc','autor'=>'autor','nombre'=>'Persona','texto'=>'Comentario de publicación','fecha'=>'2026-01-01T12:00:00Z']];
+        for($i=0;$i<2;$i++)$this->post($url,['archivo'=>UploadedFile::fake()->createWithContent('datos.json',json_encode($rows)),'confirmo'=>1])->assertSessionHasNoErrors()->assertRedirect();$this->assertSame(1,TikTokComentario::count());$this->assertNull(TikTokComentario::first()->live_id);$this->assertSame('importacion_autorizada',TikTokComentario::first()->origen);
+        $rows[0]['id']='nuevo';$rows[]=['id'=>'malo'];$this->post($url,['archivo'=>UploadedFile::fake()->createWithContent('datos.json',json_encode($rows)),'confirmo'=>1])->assertSessionHasErrors('archivo');$this->assertSame(1,TikTokComentario::count());
+    }
+    public function test_exportacion_congela_el_conjunto_y_es_privada(): void {
+        $c=$this->cuenta();$this->capturar($c);$u=$this->usuario();$this->actingAs($u)->post(route('admin.tiktok.exportar',$c))->assertRedirect();Queue::assertPushed(ExportarTikTok::class,1);$e=TikTokExportacion::firstOrFail();$this->assertSame(2,$e->total);
+        app(TikTokRegistro::class)->registrar($c,[$this->evento('comentario',['id'=>'3','autor'=>'nuevo','texto'=>'Después de solicitar exportación'])]);
+        $pdf=$this->mock(TikTokPdf::class,fn($m)=>$m->shouldReceive('generar')->once()->withArgs(fn($d)=>$d['filas']->count()===2)->andReturn('%PDF-1.4 informe'));
+        $job=new ExportarTikTok($e->id);$job->handle(app(TikTokConsulta::class),$pdf);$job->handle(app(TikTokConsulta::class),$pdf);$this->assertSame('listo',$e->fresh()->estado);$this->assertSame(2,$e->fresh()->procesados);
+        $this->get(route('admin.tiktok.descargar',$e))->assertOk();$this->actingAs($this->usuario())->get(route('admin.tiktok.descargar',$e))->assertNotFound();$this->actingAs($this->usuario('cliente'))->get(route('admin.tiktok.descargar',$e))->assertForbidden();
+    }
+    public function test_exportacion_grande_genera_zip_y_revocacion_impide_procesar(): void {
+        $c=$this->cuenta();$live=$this->capturar($c,0);$base=[];for($i=0;$i<1001;$i++)$base[]=['cuenta_id'=>$c->id,'live_id'=>$live->id,'clave'=>hash('sha256','fila'.$i),'autor'=>'persona','texto'=>'Fila '.$i,'origen'=>'live_publico','ocurrido_ms'=>TikTokConsulta::ahora(),'capturado_ms'=>TikTokConsulta::ahora()];TikTokComentario::insert($base);
+        $u=$this->usuario();$this->actingAs($u)->post(route('admin.tiktok.exportar',$c));$e=TikTokExportacion::firstOrFail();$pdf=$this->mock(TikTokPdf::class,fn($m)=>$m->shouldReceive('generar')->twice()->andReturn('%PDF-1.4 informe'));
+        (new ExportarTikTok($e->id))->handle(app(TikTokConsulta::class),$pdf);$e->refresh();$this->assertSame(1001,$e->procesados);$this->assertStringEndsWith('.zip',$e->archivo);$z=new \ZipArchive();$this->assertTrue($z->open(Storage::disk('local')->path($e->archivo)));$this->assertSame(2,$z->numFiles);$z->close();
+        $this->post(route('admin.tiktok.exportar',$c));$nuevo=TikTokExportacion::latest()->whereKeyNot($e->id)->firstOrFail();$u->update(['rol'=>'cliente']);(new ExportarTikTok($nuevo->id))->handle(app(TikTokConsulta::class),$pdf);$this->assertSame('error',$nuevo->fresh()->estado);
+    }
+    public function test_servicio_cli_consume_un_hijo_local_y_publica_salud_sin_api_abierta(): void {
+        $c=$this->cuenta();$dir=Storage::disk('local')->path('estado');mkdir($dir,0700,true);$script=$dir.'/fake.py';$eventos=[$this->evento('inicio',['titulo'=>'Prueba local']),$this->evento('comentario',['id'=>'fake-1','autor'=>'prueba','texto'=>'Evento simulado'])];file_put_contents($script,'import json'."\n".'for line in '.json_encode(array_map(fn($e)=>json_encode($e),$eventos)).': print(line,flush=True)');
+        $this->app->instance(TikTokProceso::class,new class($script)extends TikTokProceso{public function __construct(private string $s){}public function crear(string $usuario): Process{$p=new Process(['/usr/bin/python3',$this->s]);$p->setTimeout(null);return$p;}});
+        $this->artisan('micv:tiktok-monitor',['--duracion'=>1])->assertSuccessful();$this->assertSame(1,TikTokComentario::count());$this->assertFalse(app(TikTokConsulta::class)->salud()['activo']);$this->assertSame('interrumpido',$c->lives()->first()->estado);
+    }
+}

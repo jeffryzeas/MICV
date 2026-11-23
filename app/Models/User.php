@@ -62,6 +62,7 @@ class User extends Authenticatable
     protected static function booted(): void
     {
         static::deleting(function (self $u) {
+            if (Schema::hasTable('tiktok_exportaciones')) TikTokExportacion::where('user_id',$u->id)->eachById(fn($e)=>$e->delete());
             if (Schema::hasTable('postulaciones')) {
                 Postulacion::where(fn($q) => $q->where('user_id',$u->id)->orWhereHas('cliente',fn($c)=>$c->where('user_id',$u->id)))->eachById(fn($p)=>$p->delete());
             }

@@ -37,8 +37,11 @@
 
 <title>{{ $titulo }} · {{ $nombreSistema }}</title>
 <link rel="stylesheet" href="{{ asset('css/tema.css') }}?v={{ @filemtime(public_path('css/tema.css')) }}">
-@if(in_array($activo, ['usuarios', 'clientes', 'correos', 'correo', 'documentos', 'postulaciones'], true) || str_starts_with($activo,'postulaciones-'))
+@if(in_array($activo, ['usuarios', 'clientes', 'correos', 'correo', 'documentos', 'postulaciones', 'tiktok'], true) || str_starts_with($activo,'postulaciones-'))
 <link rel="stylesheet" href="{{ asset('css/gestion.css') }}?v={{ filemtime(public_path('css/gestion.css')) }}">
+@endif
+@if($activo === 'tiktok')
+<link rel="stylesheet" href="{{ asset('css/tiktok.css') }}?v={{ filemtime(public_path('css/tiktok.css')) }}">
 @endif
 @if(str_starts_with($activo, 'postulaciones'))
 <link rel="stylesheet" href="{{ asset('css/postulaciones.css') }}?v={{ filemtime(public_path('css/postulaciones.css')) }}">

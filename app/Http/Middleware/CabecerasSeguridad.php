@@ -49,7 +49,7 @@ class CabecerasSeguridad
                     "font-src 'self' data:",
                     "media-src 'self' blob:",
                     "connect-src 'self' data: blob: https://www.google.com",
-                    "frame-src 'self' blob: https://www.google.com https://www.recaptcha.net",
+                    "frame-src 'self' blob: https://www.google.com https://www.recaptcha.net" . ($request->routeIs('admin.tiktok.cuenta') ? " https://www.tiktok.com" : ""),
                     "frame-ancestors 'self'",
                     "object-src 'none'",
                     "base-uri 'self'",

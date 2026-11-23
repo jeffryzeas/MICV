@@ -182,6 +182,7 @@ Route::middleware(["auth", "activo", "verificado", "terminos"])->group(
         );
 
         require __DIR__.'/postulaciones.php';
+        require __DIR__.'/tiktok.php';
 
         Route::get('municipios-nicaragua',[\App\Http\Controllers\MunicipioNicaraguaController::class,'index'])->name('municipios.index')->middleware('rol:admin');
         Route::prefix('contabilidad')->name('contabilidad.')->middleware('rol:admin,cyber')->group(function(){

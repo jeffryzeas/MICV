@@ -213,6 +213,7 @@ class Menu
 
         if ($u->esAdmin()) {
             $items = array_merge($items, [
+                ['id'=>'tiktok','url'=>route('admin.tiktok.index'),'icon'=>'radio','label'=>'TikTok · Lives y comentarios'],
                 ['id'=>'supervision','url'=>route('admin.chat.supervision'),'icon'=>'shield-check','label'=>'Supervisión de mensajes'],
                 [
                     "id" => "cybers",
