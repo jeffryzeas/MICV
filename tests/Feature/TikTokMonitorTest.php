@@ -36,8 +36,20 @@ class TikTokMonitorTest extends TestCase {
         $c=$this->cuenta();$live=$this->capturar($c);$this->capturar($c);$this->assertSame(2,$live->fresh()->comentarios);$this->assertSame(2,TikTokComentario::count());
         app(TikTokRegistro::class)->registrar($c,[$this->evento('inicio')+[],array_replace($this->evento('inicio'),['sala'=>'7000000000000000002']),array_replace($this->evento('comentario',['id'=>'1','autor'=>'otra','texto'=>'Otra sala']),['sala'=>'7000000000000000002'])]);$this->assertSame(2,$c->lives()->count());$this->assertSame(3,TikTokComentario::count());$this->assertSame('interrumpido',$live->fresh()->estado);$this->assertSame('live_publico',TikTokComentario::first()->origen);
     }
-    public function test_restricciones_pausan_no_guardan_perfil_privado_ni_nuevos_lives(): void {
-        $c=$this->cuenta();app(TikTokRegistro::class)->registrar($c,[$this->evento('estado',['estado'=>'restringido','detalle'=>'Contenido no público']),$this->evento('inicio',['perfil'=>['nombre'=>'NO GUARDAR']])]);$this->assertFalse($c->fresh()->monitorear);$this->assertSame('restringido',$c->fresh()->estado);$this->assertNull($c->fresh()->perfil_publico);$this->assertSame(0,TikTokLive::count());
+    public function test_acceso_al_live_pendiente_reintenta_y_admite_perfil_publico_sin_inventar_una_captura(): void {
+        $c=$this->cuenta();$r=app(TikTokRegistro::class);$r->registrar($c,[$this->evento('estado',['estado'=>'restringido','detalle'=>'Diagnóstico anterior','espera_segundos'=>60]),$this->evento('perfil',['perfil'=>['nombre'=>'Perfil público disponible']]),$this->evento('inicio',['perfil'=>['nombre'=>'NO CONECTADO']])]);
+        $this->assertTrue($c->fresh()->monitorear);$this->assertSame('acceso_pendiente',$c->estado);$this->assertSame('Perfil público disponible',$c->perfil_publico['nombre']);$this->assertSame(0,TikTokLive::count());$this->assertGreaterThan(TikTokConsulta::ahora()+290000,$c->reintentar_ms);
+        $this->actingAs($this->usuario())->getJson(route('admin.tiktok.eventos',$c))->assertOk()->assertJsonPath('etiqueta','Esperando acceso al LIVE')->assertJsonPath('monitorear',true);
+        // Un nuevo intento confirmado por el capturador puede comenzar sin reactivar a mano.
+        $r->registrar($c,[$this->evento('estado',['estado'=>'conectando']),$this->evento('inicio',['perfil'=>['nombre'=>'Perfil público disponible']]),$this->evento('comentario',['id'=>'nuevo','autor'=>'participante','texto'=>'Mensaje público recibido'])]);
+        $this->assertTrue($c->fresh()->monitorear);$this->assertSame('en_live',$c->estado);$this->assertSame(1,TikTokComentario::count());
+    }
+    public function test_actualizacion_recupera_solo_pausas_automaticas_anteriores_y_respeta_esperas(): void {
+        $vieja=$this->cuenta();$espera=TikTokConsulta::ahora()+600000;$vieja->update(['estado'=>'restringido','monitorear'=>false,'reintentar_ms'=>$espera]);
+        $manual=$this->cuenta();$manual->update(['estado'=>'inactivo','monitorear'=>false]);$nueva=$this->cuenta();$nueva->update(['estado'=>'inactivo','monitorear'=>false]);
+        $m=require database_path('migrations/2026_11_23_000005_reprogramar_tiktok_acceso.php');$m->up();$m->up();
+        $this->assertTrue($vieja->fresh()->monitorear);$this->assertSame('acceso_pendiente',$vieja->fresh()->estado);$this->assertSame($espera,$vieja->fresh()->reintentar_ms);$this->assertFalse($manual->fresh()->monitorear);$this->assertFalse($nueva->fresh()->monitorear);
+        $vieja->refresh()->update(['estado'=>'inactivo','monitorear'=>false]);$m->up();$this->assertFalse($vieja->fresh()->monitorear);
     }
     public function test_filtros_respetan_dia_en_costa_rica_e_id_de_otra_cuenta(): void {
         $c=$this->cuenta();$live=$this->capturar($c,0);$base=TikTokConsulta::ahora()-600000;$m=TikTokComentario::create(['cuenta_id'=>$c->id,'live_id'=>$live->id,'clave'=>hash('sha256','medianoche'),'autor'=>'uno','texto'=>'Día local','origen'=>'live_publico','ocurrido_ms'=>CarbonImmutable::parse('2026-11-23T05:59:59Z')->getTimestampMs(),'capturado_ms'=>$base]);

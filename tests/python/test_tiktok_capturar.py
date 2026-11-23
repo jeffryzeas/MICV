@@ -48,9 +48,9 @@ class ConnectionTest(unittest.TestCase):
   from TikTokLive.client.errors import UserNotFoundError
   d=m.clasificar_error(UserNotFoundError('demo'))
   self.assertEqual(d['estado'],'error');self.assertEqual(d['codigo'],'cuenta_no_disponible')
- def test_confirmed_restriction_stays_restricted(self):
+ def test_live_access_problem_keeps_monitoring_and_does_not_classify_the_profile_as_private(self):
   from TikTokLive.client.errors import AgeRestrictedError
-  self.assertEqual(m.clasificar_error(AgeRestrictedError())['estado'],'restringido')
+  d=m.clasificar_error(AgeRestrictedError());self.assertEqual(d['estado'],'acceso_pendiente');self.assertEqual(d['espera_segundos'],300);self.assertIn('no indica que el perfil sea privado',d['detalle']);self.assertIn('activado',d['detalle'])
  def test_blocked_request_is_not_misrepresented_as_a_private_profile(self):
   import httpx
   e=httpx.HTTPStatusError('remote secret',request=httpx.Request('GET','https://example.test/?token=SECRET'),response=httpx.Response(403))
@@ -94,18 +94,21 @@ class ConnectionTest(unittest.TestCase):
     async def connect(self,**kwargs):listo.set();await asyncio.sleep(.05);return 'finished'
    await m.conectar_con_limite(Client(),listo,.01)
   asyncio.run(run())
- def test_sdk_connection_failure_emits_retry_state_instead_of_restricting(self):
+ def test_unresolved_room_keeps_monitoring_without_claiming_the_user_is_not_a_guest(self):
   from TikTokLive.client.errors import UserNotFoundError
+  from unittest.mock import AsyncMock
+  import httpx
   class Client:
-   def __init__(self,**kwargs):pass
+   def __init__(self,**kwargs):self.web=S(get=AsyncMock(return_value=httpx.Response(200,text='<html></html>',request=httpx.Request('GET','https://www.tiktok.com/@demo'))),close=AsyncMock())
    def on(self,event):return lambda callback:callback
    async def connect(self,**kwargs):raise UserNotFoundError('demo')
    async def disconnect(self,**kwargs):pass
   out=io.StringIO()
-  with patch('TikTokLive.TikTokLiveClient',Client),redirect_stdout(out):asyncio.run(m.ejecutar('demo'))
+  with patch('TikTokLive.TikTokLiveClient',Client),patch('TikTokLive.client.web.routes.fetch_room_id_api.FetchRoomIdAPIRoute.fetch_user_room_data',new=AsyncMock(side_effect=UserNotFoundError('demo'))),redirect_stdout(out):asyncio.run(m.ejecutar('demo'))
   records=[json.loads(x)for x in out.getvalue().splitlines()]
-  self.assertEqual([x for x in records if x['tipo']=='estado'][-1]['estado'],'error')
-  self.assertTrue(any(x.get('codigo')=='cuenta_no_disponible'for x in records))
+  self.assertEqual([x for x in records if x['tipo']=='estado'][-1]['estado'],'no_determinado')
+  self.assertTrue(any(x.get('codigo')=='sala_no_publicada'for x in records))
+
 class PublicLiveTest(unittest.TestCase):
  def test_public_events_are_captured_even_if_a_profile_is_private(self):
   from TikTokLive.events import ConnectEvent,CommentEvent,LiveEndEvent
@@ -138,6 +141,129 @@ class PublicLiveTest(unittest.TestCase):
    data={'data':{'user':{'roomId':'123456','nickname':'Cuenta pública'}}}
    with patch('TikTokLive.client.web.routes.fetch_room_id_api.FetchRoomIdAPIRoute.fetch_user_room_data',new=AsyncMock(return_value=data)),redirect_stdout(io.StringIO()):await m.conectar_con_comprobacion(Client(),listo,'demo')
    self.assertEqual(len(calls),2);self.assertEqual(calls[1]['room_id'],123456);self.assertTrue(calls[1]['fetch_live_check'])
+  asyncio.run(run())
+ def test_automatic_associated_room_captures_comments_and_secondary_hls_without_selecting_host(self):
+  from TikTokLive.events import ConnectEvent,CommentEvent,LiveEndEvent
+  from TikTokLive.client.errors import UserOfflineError
+  from unittest.mock import AsyncMock
+  import httpx
+  user={'uniqueId':'demo','id':'7000000000000000001','nickname':'Perfil objetivo','roomId':'7777777777777777777','privateAccount':True}
+  html='<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">'+json.dumps({'__DEFAULT_SCOPE__':{'webapp.user-detail':{'userInfo':{'user':user}}}})+'</script>'
+  async def get(**kwargs):
+   if kwargs['url'].endswith('/api/live/detail/'):
+    return httpx.Response(200,json={'LiveRoomInfo':{'status':2,'liveUrl':'https://pull.tiktokcdn.com/demo/live.m3u8'}},request=httpx.Request('GET',kwargs['url']))
+   return httpx.Response(200,text=html,request=httpx.Request('GET',kwargs['url']))
+  class Client:
+   def __init__(self,**kwargs):
+    self.handlers={};self.calls=0;self.room_id=7777777777777777777;self.room_info={'owner':{'display_id':'titular_sala','id':7000000000000000002,'nickname':'Titular'},'title':'Sala asociada'};self.web=S(get=AsyncMock(side_effect=get),close=AsyncMock())
+   def on(self,event):
+    def register(cb):self.handlers[event]=cb;return cb
+    return register
+   async def connect(client,**kwargs):
+    client.calls+=1
+    if client.calls==1:raise UserOfflineError()
+    self.assertEqual(kwargs['room_id'],7777777777777777777);self.assertTrue(kwargs['fetch_live_check']);self.assertTrue(kwargs['fetch_room_info'])
+    await client.handlers[ConnectEvent](S(room_id=client.room_id))
+    await client.handlers[CommentEvent](S(content='Comentario público de una cuenta privada',user=S(display_id='comentarista',id=7000000000000000003,nickname='Persona',private_account=True),common=S(msg_id=8000000000000000001,create_time=1730000000)))
+    await asyncio.sleep(.02)
+    await client.handlers[LiveEndEvent](None)
+   async def disconnect(self,**kwargs):pass
+  out=io.StringIO()
+  with patch('TikTokLive.TikTokLiveClient',Client),patch('TikTokLive.client.web.routes.fetch_room_id_api.FetchRoomIdAPIRoute.fetch_user_room_data',new=AsyncMock(return_value={'data':{'user':{'uniqueId':'demo','roomId':'0'}}})),redirect_stdout(out):asyncio.run(m.ejecutar('demo'))
+  rows=[json.loads(x)for x in out.getvalue().splitlines()];inicio=next(r for r in rows if r['tipo']=='inicio')
+  self.assertEqual(inicio['deteccion']['fuente_sala'],'perfil_publico');self.assertEqual(inicio['perfil_objetivo']['usuario'],'demo');self.assertEqual(inicio['perfil']['usuario'],'titular_sala')
+  self.assertEqual([r['texto']for r in rows if r['tipo']=='comentario'],['Comentario público de una cuenta privada']);self.assertEqual(next(r['video_hls']for r in rows if r['tipo']=='video'),'https://pull.tiktokcdn.com/demo/live.m3u8')
+ def test_profile_association_fallback_uses_only_target_room_and_preserves_live_check(self):
+  from TikTokLive.client.errors import UserOfflineError
+  from unittest.mock import AsyncMock
+  import httpx
+  async def run():
+   listo=asyncio.Event();calls=[]
+   user={'uniqueId':'demo','roomId':'7777777777777777777','id':'9999999999999999999'}
+   html='<script type="application/json" id="__UNIVERSAL_DATA_FOR_REHYDRATION__">'+json.dumps({'__DEFAULT_SCOPE__':{'webapp.user-detail':{'userInfo':{'user':user}}}})+'</script>'
+   class Client:
+    web=S(get=AsyncMock(return_value=httpx.Response(200,text=html,request=httpx.Request('GET','https://www.tiktok.com/@demo'))))
+    async def connect(self,**kwargs):
+     calls.append(kwargs)
+     if len(calls)==1:raise UserOfflineError()
+     listo.set()
+   client=Client()
+   with patch('TikTokLive.client.web.routes.fetch_room_id_api.FetchRoomIdAPIRoute.fetch_user_room_data',new=AsyncMock(return_value={'data':{'user':{'uniqueId':'demo','roomId':'0','status':4}}})),redirect_stdout(io.StringIO()):await m.conectar_con_comprobacion(client,listo,'demo')
+   self.assertEqual(calls[1]['room_id'],7777777777777777777);self.assertTrue(calls[1]['fetch_live_check']);self.assertEqual(client._micv_fuente_sala,'perfil_publico');self.assertEqual(client._micv_perfil_objetivo['id_usuario'],'9999999999999999999')
+  asyncio.run(run())
+ def test_profile_ignores_other_users_and_preserves_exact_ids(self):
+  other={'uniqueId':'otro','roomId':'7777777777777777777'}
+  html='<script id="SIGI_STATE" type="application/json">'+json.dumps({'UserModule':{'users':{'otro':other}}})+'</script>'
+  self.assertIsNone(m.usuario_de_perfil_html(html,'demo'))
+  self.assertIsNone(m.sala_de_perfil(other,'demo'))
+  for value in [True,1.2345678901234567e18,'0','abc','https://127.0.0.1','1234',None]:self.assertIsNone(m.sala_de_perfil({'roomId':value},'demo'))
+  self.assertEqual(m.sala_de_perfil({'uniqueId':'DEMO','roomId':9999999999999999999},'demo'),'9999999999999999999')
+ def test_public_api_and_profile_without_association_report_unknown(self):
+  from TikTokLive.client.errors import UserOfflineError
+  from unittest.mock import AsyncMock
+  import httpx
+  async def run():
+   class Client:
+    web=S(get=AsyncMock(return_value=httpx.Response(200,text='<html></html>',request=httpx.Request('GET','https://www.tiktok.com/@demo'))))
+    async def connect(self,**kwargs):raise UserOfflineError()
+   with patch('TikTokLive.client.web.routes.fetch_room_id_api.FetchRoomIdAPIRoute.fetch_user_room_data',new=AsyncMock(return_value={'data':{'user':{'uniqueId':'demo','roomId':'0','status':4}}})),redirect_stdout(io.StringIO()),self.assertRaises(m.SalaNoDeterminada):await m.conectar_con_comprobacion(Client(),asyncio.Event(),'demo')
+  asyncio.run(run());d=m.clasificar_error(m.SalaNoDeterminada());self.assertEqual(d['estado'],'no_determinado');self.assertIn('invitado',d['detalle']);self.assertIn('activado',d['detalle'])
+ def test_access_restrictions_are_not_retried_through_other_sources(self):
+  from TikTokLive.client.errors import AgeRestrictedError
+  from unittest.mock import AsyncMock
+  async def run():
+   client=S(connect=AsyncMock(side_effect=AgeRestrictedError()),web=S(get=AsyncMock()))
+   with self.assertRaises(AgeRestrictedError):await m.conectar_con_comprobacion(client,asyncio.Event(),'demo')
+   client.web.get.assert_not_awaited()
+  asyncio.run(run())
+ def test_rate_limit_during_discovery_does_not_trigger_another_profile_request(self):
+  from TikTokLive.client.errors import UserOfflineError
+  from unittest.mock import AsyncMock
+  import httpx
+  async def run():
+   client=S(connect=AsyncMock(side_effect=UserOfflineError()),web=S(get=AsyncMock()))
+   error=httpx.HTTPStatusError('not logged',request=httpx.Request('GET','https://www.tiktok.com/'),response=httpx.Response(429))
+   with patch('TikTokLive.client.web.routes.fetch_room_id_api.FetchRoomIdAPIRoute.fetch_user_room_data',new=AsyncMock(side_effect=error)),redirect_stdout(io.StringIO()),self.assertRaises(httpx.HTTPStatusError):await m.conectar_con_comprobacion(client,asyncio.Event(),'demo')
+   client.web.get.assert_not_awaited()
+  asyncio.run(run())
+ def test_guest_hls_from_public_detail_is_validated_and_primary_hls_avoids_extra_request(self):
+  from unittest.mock import AsyncMock
+  import httpx
+  async def run():
+   url='https://pull.tiktokcdn.com/live/test.m3u8'
+   web=S(get=AsyncMock(return_value=httpx.Response(200,json={'LiveRoomInfo':{'status':2,'liveUrl':url}},request=httpx.Request('GET','https://www.tiktok.com/api/live/detail/'))))
+   client=S(web=web)
+   self.assertEqual(await m.senal_publica(client,{},7777777777777777777),url)
+   self.assertEqual(web.get.call_args.kwargs['extra_params']['roomID'],'7777777777777777777')
+   web.get.reset_mock();self.assertEqual(await m.senal_publica(client,{'stream_url':{'hls_pull_url':url}},7777777777777777777),url);web.get.assert_not_awaited()
+   for d in [{'status':4,'liveUrl':url},{'status':2,'liveUrl':'https://127.0.0.1/test.m3u8'},{'status':2,'liveUrl':url,'prompts':[]}]:
+    web.get.return_value=httpx.Response(200,json={'LiveRoomInfo':d},request=httpx.Request('GET','https://www.tiktok.com/api/live/detail/'));self.assertIsNone(await m.senal_publica(client,{},7777777777777777777))
+  asyncio.run(run())
+ def test_empty_room_metadata_does_not_permanently_classify_a_public_room_as_restricted(self):
+  from unittest.mock import AsyncMock
+  import httpx
+  async def run():
+   for data in [{'data':{}},{'data':{'status':2}},{'status_code':500,'data':{}},{'data':[]}]:
+    web=S(params={'room_id':'7777777777777777777'},get=AsyncMock(return_value=httpx.Response(200,json=data,request=httpx.Request('GET','https://webcast.tiktok.com/room/info/'))))
+    with self.assertRaises(m.InformacionSalaNoDisponible):await m.InfoSalaPublica(web)()
+  asyncio.run(run());d=m.clasificar_error(m.InformacionSalaNoDisponible());self.assertEqual(d['estado'],'error');self.assertEqual(d['espera_segundos'],300);self.assertEqual(d['codigo'],'metadatos_no_disponibles')
+ def test_explicit_room_prompts_keep_access_restrictions_and_never_fetch_another_source(self):
+  from TikTokLive.client.errors import AgeRestrictedError
+  from unittest.mock import AsyncMock
+  import httpx
+  async def run():
+   web=S(params={'room_id':'7777777777777777777'},get=AsyncMock(return_value=httpx.Response(200,json={'status_code':4003110,'data':{'prompts':'Login required'}},request=httpx.Request('GET','https://webcast.tiktok.com/room/info/'))))
+   with self.assertRaises(AgeRestrictedError):await m.InfoSalaPublica(web)()
+   self.assertEqual(web.get.await_count,1)
+  asyncio.run(run())
+ def test_verified_room_metadata_uses_the_same_public_sdk_endpoint(self):
+  from unittest.mock import AsyncMock
+  import httpx
+  from TikTokLive.client.web.web_settings import WebDefaults
+  async def run():
+   info={'status':2,'title':'Sala pública','owner':{'display_id':'titular'}}
+   web=S(params={'room_id':'7777777777777777777'},get=AsyncMock(return_value=httpx.Response(200,json={'status_code':0,'data':info},request=httpx.Request('GET','https://webcast.tiktok.com/room/info/'))))
+   self.assertEqual(await m.InfoSalaPublica(web)(),info);self.assertEqual(web.get.call_args.kwargs['url'],WebDefaults.tiktok_webcast_url+'/room/info/');self.assertEqual(web.get.call_args.kwargs['extra_params']['room_id'],'7777777777777777777')
   asyncio.run(run())
  def test_hls_only_accepts_public_tiktok_cdn_hosts(self):
   good='https://pull-hls-test.tiktokcdn.com/live/index.m3u8?token=example'

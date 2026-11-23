@@ -23,6 +23,8 @@ runuser -u "$micv_usuario" -- "$micv_php" artisan optimize:clear
 runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_23_000001_create_tiktok_monitor_tables.php
 runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_23_000002_add_tiktok_evidencia.php
 runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_23_000003_add_tiktok_invitados.php
+runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_23_000004_add_tiktok_deteccion.php
+runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_23_000005_reprogramar_tiktok_acceso.php
 cat > /etc/systemd/system/micv-tiktok.service <<EOF
 [Unit]
 Description=Captura de comentarios publicos de TikTok - Mi CV

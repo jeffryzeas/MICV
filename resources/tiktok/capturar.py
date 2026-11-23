@@ -9,6 +9,7 @@ import signal
 import sys
 import time
 import uuid
+from html.parser import HTMLParser
 from urllib.parse import urlparse
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -88,6 +89,125 @@ def video_publico(info):
     return None
 
 
+class SalaNoDeterminada(Exception):
+    """No existe una asociación pública suficiente para localizar la sala."""
+
+
+class InformacionSalaNoDisponible(Exception):
+    """Respuesta sin metadatos suficientes; no equivale a una restricción confirmada."""
+
+
+class InfoSalaPublica:
+    """Mismo endpoint del SDK, separando prompts de una respuesta vacía."""
+    def __init__(self, web):
+        self.web = web
+
+    async def __call__(self, room_id=None, unique_id=None):
+        from TikTokLive.client.errors import AgeRestrictedError, UserOfflineError
+        from TikTokLive.client.web.web_settings import WebDefaults
+        if room_id and unique_id:
+            raise ValueError("Indique una sola referencia de sala")
+        if unique_id:
+            if not re.fullmatch(r"[a-zA-Z0-9_.]{2,24}", unique_id):
+                raise ValueError("Usuario inválido")
+            ruta, params = "/room/info_by_user/", {"unique_id": unique_id}
+        else:
+            sala = str(room_id or self.web.params.get("room_id") or "")
+            if not re.fullmatch(r"[1-9][0-9]{4,39}", sala):
+                raise ValueError("Sala inválida")
+            ruta, params = "/room/info/", {"room_id": sala}
+        respuesta = await asyncio.wait_for(self.web.get(url=WebDefaults.tiktok_webcast_url + ruta, extra_params=params), 15)
+        respuesta.raise_for_status()
+        data = respuesta.json()
+        if not isinstance(data, dict):
+            raise InformacionSalaNoDisponible()
+        info = data.get("data")
+        if isinstance(info, dict) and "prompts" in info:
+            raise AgeRestrictedError()
+        if data.get("status_code", 0) != 0 or not isinstance(info, dict) or len(info) <= 1:
+            raise InformacionSalaNoDisponible()
+        if info.get("status") == 4:
+            raise UserOfflineError()
+        return info
+
+
+class EstadoPublicoHTML(HTMLParser):
+    """Lee únicamente JSON de estado; no ejecuta scripts ni sigue enlaces."""
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self.activo = False
+        self.partes = []
+        self.estados = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "script" and dict(attrs).get("id") in ("SIGI_STATE", "__UNIVERSAL_DATA_FOR_REHYDRATION__"):
+            self.activo = True
+            self.partes = []
+
+    def handle_data(self, data):
+        if self.activo:
+            self.partes.append(data)
+
+    def handle_endtag(self, tag):
+        if tag == "script" and self.activo:
+            self.activo = False
+            try:
+                self.estados.append(json.loads("".join(self.partes)))
+            except (ValueError, TypeError):
+                pass
+
+
+def usuario_de_perfil_html(html, usuario):
+    parser = EstadoPublicoHTML()
+    parser.feed(html)
+    for estado in parser.estados:
+        if not isinstance(estado, dict):
+            continue
+        scope = estado.get("__DEFAULT_SCOPE__") or {}
+        detalle = scope.get("webapp.user-detail") or {}
+        candidatos = [(detalle.get("userInfo") or {}).get("user")]
+        modulo = estado.get("UserModule") or {}
+        users = modulo.get("users") or {}
+        if isinstance(users, dict):
+            candidatos.extend(users.values())
+        for perfil in candidatos:
+            if isinstance(perfil, dict) and str(perfil.get("uniqueId") or "").lower() == usuario.lower():
+                return perfil
+    return None
+
+
+def sala_de_perfil(perfil, usuario):
+    if not isinstance(perfil, dict):
+        return None
+    alias = str(perfil.get("uniqueId") or perfil.get("unique_id") or "")
+    if alias and alias.lower() != usuario.lower():
+        return None
+    valor = perfil.get("roomId")
+    # No convertir floats: perdería precisión en IDs de 19 dígitos.
+    if type(valor) not in (str, int):
+        return None
+    sala = str(valor)
+    return sala if re.fullmatch(r"[1-9][0-9]{4,39}", sala) else None
+
+
+async def senal_publica(client, info, sala):
+    """La consulta secundaria pública puede entregar HLS para invitados."""
+    url = video_publico(info)
+    if url:
+        return url
+    respuesta = await asyncio.wait_for(client.web.get(
+        url="https://www.tiktok.com/api/live/detail/",
+        extra_params={"aid": "1988", "roomID": str(sala)}), 15)
+    respuesta.raise_for_status()
+    data = respuesta.json()
+    if data.get("statusCode", 0) != 0:
+        return None
+    detalle = data.get("LiveRoomInfo") or {}
+    if not isinstance(detalle, dict) or detalle.get("status") != 2 or "prompts" in detalle:
+        return None
+    return video_publico({"stream_url": {"hls_pull_url": detalle.get("liveUrl")}})
+
+
 def espera_indicada(respuesta):
     """Respeta la espera del proveedor sin almacenar cabeceras ni URLs."""
     espera = 300
@@ -117,12 +237,18 @@ def clasificar_error(exc):
     http = http if isinstance(http, int) and 100 <= http <= 599 else None
     estado, codigo, espera = "error", "conexion_desconocida", None
     detalle = "No se pudo conectar con TikTok. El monitoreo sigue activado y se reintentará automáticamente."
-    if isinstance(exc, AgeRestrictedError):
-        estado, codigo = "restringido", "acceso_restringido"
-        detalle = "El capturador informa una restricción o no pudo verificar el acceso público a la sala. La captura se pausó."
+    if isinstance(exc, SalaNoDeterminada):
+        estado, codigo = "no_determinado", "sala_no_publicada"
+        detalle = "TikTok no publicó una sala activa asociada a este @usuario. Puede estar como invitado sin que esa relación sea pública. El monitoreo sigue activado y volverá a comprobarlo."
+    elif isinstance(exc, InformacionSalaNoDisponible):
+        codigo, espera = "metadatos_no_disponibles", 300
+        detalle = "Se localizó una sala, pero TikTok no entregó metadatos públicos verificables. El monitoreo sigue activado y volverá a comprobarlo; no se clasifica como una restricción confirmada."
+    elif isinstance(exc, AgeRestrictedError):
+        estado, codigo, espera = "acceso_pendiente", "acceso_live_pendiente", 300
+        detalle = "TikTok no habilitó el acceso a este LIVE para el capturador. Esto no indica que el perfil sea privado. El monitoreo sigue activado y volverá a comprobarlo."
     elif isinstance(exc, UserOfflineError):
         estado, codigo = "sin_live", "sin_live"
-        detalle = "Esperando un LIVE público. El monitoreo sigue activado y comenzará a capturar cuando lo detecte."
+        detalle = "No se detectó una sala pública activa. Esto no descarta que participe como invitado en otra sala. El monitoreo sigue activado y volverá a comprobarlo."
     elif isinstance(exc, SignatureRateLimitError) or http == 429:
         estado, codigo, espera = "limitado", "limite_peticiones", espera_indicada(respuesta)
         detalle = "TikTok o el proveedor de firma limitaron las peticiones. El monitoreo sigue activado y respetará la espera indicada."
@@ -181,22 +307,60 @@ async def conectar_con_limite(client, listo, segundos=60, **opciones):
 
 
 async def conectar_con_comprobacion(client, listo, usuario):
-    from TikTokLive.client.errors import UserOfflineError
+    from TikTokLive.client.errors import UserOfflineError, UserNotFoundError
+    from TikTokLive.client.web.routes.fetch_room_id_live_html import FailedParseRoomIdError
     from TikTokLive.client.web.routes.fetch_room_id_api import FetchRoomIdAPIRoute
+    recuperables = (UserOfflineError, UserNotFoundError, FailedParseRoomIdError)
+    client._micv_fuente_sala = "sdk"
+    client._micv_perfil_objetivo = None
     try:
         await conectar_con_limite(client, listo)
-    except UserOfflineError:
-        # Un HTML viejo puede indicar offline antes de que el SDK consulte la API.
-        # Se contrasta una vez con la API pública; no se omite la comprobación LIVE.
-        enviar("diagnostico", codigo="verificando_sala", clase="ConsultaPublica", http=None)
+        return
+    except recuperables:
+        if listo.is_set():
+            raise
+    enviar("diagnostico", codigo="verificando_sala", clase="ConsultaPublica", http=None)
+    intentadas = set()
+
+    async def intentar(perfil, fuente):
+        sala = sala_de_perfil(perfil, usuario)
+        if not sala or sala in intentadas:
+            return False
+        intentadas.add(sala)
+        client._micv_fuente_sala = fuente
+        client._micv_perfil_objetivo = perfil_publico(perfil)
+        try:
+            # Se conserva la comprobación de LIVE y de acceso del SDK.
+            await conectar_con_limite(client, listo, room_id=int(sala), fetch_live_check=True)
+            return True
+        except UserOfflineError:
+            if listo.is_set():
+                raise
+            return False
+
+    try:
         data = await asyncio.wait_for(FetchRoomIdAPIRoute.fetch_user_room_data(web=client.web, unique_id=usuario), 15)
-        owner = data.get("data", {}).get("user", {})
-        if owner:
-            enviar("perfil", perfil=perfil_publico(owner))
-        sala = int(FetchRoomIdAPIRoute.parse_room_id(data) or 0)
-        if sala <= 0:
-            raise UserOfflineError()
-        await conectar_con_limite(client, listo, room_id=sala, fetch_live_check=True)
+        perfil = (data.get("data") or {}).get("user")
+        if isinstance(perfil, dict):
+            alias = str(perfil.get("uniqueId") or usuario)
+            if alias.lower() == usuario.lower():
+                enviar("perfil", perfil=perfil_publico(perfil))
+                if await intentar(perfil, "api_usuario"):
+                    return
+    except (UserNotFoundError, FailedParseRoomIdError, KeyError, json.JSONDecodeError):
+        if listo.is_set():
+            raise
+    # Solo el perfil del usuario solicitado: nunca recomendaciones u otras cuentas.
+    respuesta = await asyncio.wait_for(client.web.get(url=f"https://www.tiktok.com/@{usuario}", base_params=False), 15)
+    respuesta.raise_for_status()
+    if len(respuesta.content) > 2 * 1024 * 1024:
+        raise ValueError("Estado público demasiado grande")
+    perfil = usuario_de_perfil_html(respuesta.text, usuario)
+    if perfil:
+        enviar("perfil", perfil=perfil_publico(perfil))
+        if await intentar(perfil, "perfil_publico"):
+            return
+    raise SalaNoDeterminada()
 
 
 async def ejecutar(usuario):
@@ -213,21 +377,39 @@ async def ejecutar(usuario):
     listo = asyncio.Event()
     tarea = None
     tarea_video = None
+    tarea_senal = None
     try:
         client = TikTokLiveClient(unique_id=usuario)
+        if getattr(client, "web", None):
+            client.web.fetch_room_info = InfoSalaPublica(client.web)
 
         @client.on(ConnectEvent)
         async def inicio(event):
-            nonlocal autorizado, finalizado
+            nonlocal autorizado, finalizado, tarea_senal
             info = client.room_info or {}
             perfil = info.get("owner") or {}
             listo.set()
             # La privacidad del perfil no determina la visibilidad del LIVE.
             # Solo se aceptan eventos que TikTok entregue a esta conexión sin login.
             autorizado = True
-            enviar("inicio", sala=str(event.room_id), titulo=str(info.get("title") or "Live público")[:255],
+            titular = perfil_publico(perfil)
+            objetivo = getattr(client, "_micv_perfil_objetivo", None)
+            if titular.get("usuario", "").lower() == usuario.lower():
+                objetivo = titular
+            enviar("inicio", sala=str(event.room_id), perfil_objetivo=objetivo or {},
+                   deteccion={"cuenta_consultada": usuario, "fuente_sala": getattr(client, "_micv_fuente_sala", "sdk")}, titulo=str(info.get("title") or "Live público")[:255],
                    perfil=perfil_publico(perfil),
                    video_hls=video_publico(info))
+            if not video_publico(info):
+                async def completar_senal():
+                    try:
+                        url = await senal_publica(client, info, event.room_id)
+                        if autorizado and not finalizado and str(client.room_id) == str(event.room_id) and url:
+                            enviar("video", sala=str(event.room_id), video_hls=url)
+                    except Exception as exc:
+                        d = clasificar_error(exc)
+                        enviar("diagnostico", codigo="senal_publica", clase=d["clase"], http=d["http"])
+                tarea_senal = asyncio.create_task(completar_senal())
 
         @client.on(CommentEvent)
         async def chat(event):
@@ -267,12 +449,14 @@ async def ejecutar(usuario):
                     continue
                 try:
                     info = await asyncio.wait_for(client.web.fetch_room_info(), 15)
-                    enviar("video", sala=str(client.room_id), video_hls=video_publico(info))
-                    enviar("perfil", perfil=perfil_publico(info.get("owner") or {}))
+                    enviar("video", sala=str(client.room_id), video_hls=await senal_publica(client, info, client.room_id))
+                    perfil = perfil_publico(info.get("owner") or {})
+                    if perfil.get("usuario", "").lower() == usuario.lower():
+                        enviar("perfil", perfil=perfil)
                 except Exception as exc:
                     datos = clasificar_error(exc)
                     enviar("diagnostico", codigo="video_metadatos", clase=datos["clase"], http=datos["http"])
-                    if datos['estado'] == 'restringido':
+                    if datos['estado'] == 'acceso_pendiente':
                         enviar("video", sala=str(client.room_id), video_hls=None)
                     await asyncio.sleep(max(0, datos.get("espera_segundos", 300) - 300))
 
@@ -292,6 +476,9 @@ async def ejecutar(usuario):
         finalizado = True
         informar_error(exc)
     finally:
+        if tarea_senal:
+            tarea_senal.cancel()
+            await asyncio.gather(tarea_senal, return_exceptions=True)
         if tarea:
             tarea.cancel()
             await asyncio.gather(tarea, return_exceptions=True)
@@ -300,7 +487,9 @@ async def ejecutar(usuario):
             await asyncio.gather(tarea_video, return_exceptions=True)
         if client:
             try:
-                await client.disconnect(close_client=True)
+                await client.disconnect()
+                if getattr(client, "web", None):
+                    await client.web.close()
             except Exception:
                 pass
 

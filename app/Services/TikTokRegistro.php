@@ -24,28 +24,30 @@ class TikTokRegistro {
                 $tipo=$e['tipo']??'';
                 if($tipo==='estado'){
                     if(!$c->monitorear)continue;
-                    $estado=$e['estado']??'';
+                    $estado=$e['estado']??'';if($estado==='restringido')$estado='acceso_pendiente';
                     if(!array_key_exists($estado,TikTokCuenta::ESTADOS))continue;
                     $datos=['estado'=>$estado,'latido_ms'=>TikTokConsulta::ahora(),'detalle'=>$this->texto($e['detalle']??'',300)];
-                    if($estado==='restringido')$datos['monitorear']=false;
+                    if($estado==='acceso_pendiente'){$datos['detalle']='TikTok no habilitó el acceso a este LIVE para el capturador. Esto no indica que el perfil sea privado. El monitoreo sigue activado y volverá a comprobarlo.';$datos['reintentar_ms']=max($c->reintentar_ms??0,TikTokConsulta::ahora()+300000);}
                     $espera=filter_var($e['espera_segundos']??null,FILTER_VALIDATE_INT);
-                    if($espera!==false&&$espera>=60)$datos['reintentar_ms']=max($c->reintentar_ms??0,TikTokConsulta::ahora()+min(86400,$espera)*1000);
-                    $c->update($datos);if(in_array($estado,['error','sin_live','restringido','limitado'],true))self::cerrar($c->id,$estado,$ms);continue;
+                    if($espera!==false&&$espera>=60)$datos['reintentar_ms']=max($datos['reintentar_ms']??0,$c->reintentar_ms??0,TikTokConsulta::ahora()+min(86400,$espera)*1000);
+                    $c->update($datos);if(in_array($estado,['error','sin_live','no_determinado','restringido','acceso_pendiente','limitado'],true))self::cerrar($c->id,$estado,$ms);continue;
                 }
-                if($tipo==='perfil'){if($c->monitorear&&$c->estado!=='restringido'&&is_array($e['perfil']??null))$c->update(['perfil_publico'=>$this->perfil($e['perfil'])]);continue;}
+                if($tipo==='perfil'){if($c->monitorear&&is_array($e['perfil']??null))$c->update(['perfil_publico'=>$this->perfil($e['perfil'])]);continue;}
                 if($tipo==='latido'){DB::table('tiktok_sesiones')->where('cuenta_id',$c->id)->whereNull('fin_ms')->update(['ultimo_ms'=>$ms]);$c->update(['latido_ms'=>TikTokConsulta::ahora()]);continue;}
                 $sala=$this->texto($e['sala']??'',40);if(!preg_match('/^\d{5,40}$/D',$sala))continue;
                 if($tipo==='inicio'){
-                    if(!$c->monitorear)continue;
+                    if(!$c->monitorear||in_array($c->estado,['restringido','acceso_pendiente'],true))continue;
                     $c->lives()->where('estado','en_live')->where('sala','!=',$sala)->update(['estado'=>'interrumpido','terminado_ms'=>$ms]);
                     $live=TikTokLive::firstOrCreate(['cuenta_id'=>$c->id,'sala'=>$sala],['titulo'=>$this->texto($e['titulo']??'',255),'iniciado_ms'=>$ms,'ultimo_ms'=>$ms,'estado'=>'en_live','comentarios'=>0]);
                     $salas[$sala]=$live;self::cerrar($c->id,'reconexion',$ms);$sesion=(string)\Illuminate\Support\Str::uuid();DB::table('tiktok_sesiones')->insert(['id'=>$sesion,'cuenta_id'=>$c->id,'live_id'=>$live->id,'inicio_ms'=>$ms,'ultimo_ms'=>$ms]);$sesiones[$live->id]=$sesion;
                     app(TikTokVideo::class)->registrar($live,is_string($e['video_hls']??null)?$e['video_hls']:null);
                     $live->update(['estado'=>'en_live','terminado_ms'=>null,'ultimo_ms'=>$ms]+(!$live->perfil_inicio?['perfil_inicio'=>$this->perfil(is_array($e['perfil']??null)?$e['perfil']:[])]:[]));
-                    $perfil=is_array($e['perfil']??null)?$e['perfil']:[];
-                    $c->update(['estado'=>'en_live','latido_ms'=>TikTokConsulta::ahora(),'detalle'=>null,'perfil_publico'=>$this->perfil($perfil)]);continue;
+                    $d=is_array($e['deteccion']??null)?$e['deteccion']:[];
+                    if(!$live->deteccion_inicio&&($d['cuenta_consultada']??null)===$c->usuario&&in_array($d['fuente_sala']??null,['sdk','api_usuario','perfil_publico'],true))$live->update(['deteccion_inicio'=>['cuenta_consultada'=>$c->usuario,'fuente_sala'=>$d['fuente_sala'],'observado_ms'=>$ms]]);
+                    $perfil=array_key_exists('perfil_objetivo',$e)?$e['perfil_objetivo']:($e['perfil']??[]);
+                    $c->update(['estado'=>'en_live','latido_ms'=>TikTokConsulta::ahora(),'detalle'=>null]+(is_array($perfil)&&$perfil?['perfil_publico'=>$this->perfil($perfil)]:[]));continue;
                 }
-                $live=$salas[$sala]??$c->lives()->where('sala',$sala)->first();if(!$live||$c->estado==='restringido')continue;$salas[$sala]=$live;
+                $live=$salas[$sala]??$c->lives()->where('sala',$sala)->first();if(!$live||in_array($c->estado,['restringido','acceso_pendiente'],true))continue;$salas[$sala]=$live;
                 if($tipo==='video'){if($c->monitorear&&$live->estado==='en_live')app(TikTokVideo::class)->registrar($live,is_string($e['video_hls']??null)?$e['video_hls']:null);continue;}
                 if($tipo==='fin'){self::cerrar($c->id,'fin_live',$ms);$live->update(['estado'=>'terminado','terminado_ms'=>$ms,'ultimo_ms'=>$ms]);if($c->monitorear)$c->update(['estado'=>'sin_live','detalle'=>'La transmisión terminó. Se comprobará nuevamente más adelante.']);continue;}
                 if($tipo==='espectadores'){$n=filter_var($e['cantidad']??null,FILTER_VALIDATE_INT);if($n!==false&&$n>=0&&$n<=100000000)$live->update(['max_espectadores'=>max($live->max_espectadores??0,$n),'ultimo_ms'=>$ms]);continue;}

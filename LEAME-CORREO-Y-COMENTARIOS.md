@@ -27,16 +27,24 @@ Los comentarios escritos del creador aparecen primero cuando pueden relacionarse
 
 Los comentarios públicos recibidos se conservan aunque el comentarista tenga perfil privado. Solo se incluyen fotos y datos públicos efectivamente entregados. No se accede al contenido privado de las cuentas. Los informes listos permanecen inmutables; solicite un informe nuevo para obtener esta presentación. El paquete de evidencia mantiene manifiesto, registros y verificación sin conexión.
 
-## Salas compartidas con invitados
+## Detección automática, sin seleccionar anfitrión o invitado
 
-En la ficha de una cuenta, pulse **Agregar invitado público**. Registre el @usuario exacto del invitado y conserve la referencia de sala compartida preseleccionada. Abra su ficha y active su captura. Puede dejar activadas varias fuentes; el monitoreo sigue funcionando al cerrar sesión mientras el servicio del VPS esté activo.
+Registre solo el @usuario y active su captura. Se intenta la conexión habitual con TikTokLive; si no localiza una sala, se consulta la API pública del usuario y después su perfil público, incluidos los estados SIGI_STATE y __UNIVERSAL_DATA_FOR_REHYDRATION__. Solo se aceptan IDs asociados al usuario solicitado: no se buscan salas por recomendaciones ni se exploran cuentas ajenas. No necesita indicar el nombre del anfitrión.
 
-Cada cuenta conserva su propia sala, historial, reproductor e informes. Los enlaces entre anfitrión e invitados son referencias declaradas por el administrador, no una relación confirmada por TikTok. El PDF y el paquete identifican la cuenta observada y esa referencia. Eliminar el monitoreo del anfitrión desvincula las referencias sin borrar el historial del invitado.
+Si existe una sala asociada, se verifica el LIVE con el SDK y se conecta como cualquier otra captura pública. La sala, la fuente de detección y el titular entregado por TikTok se conservan en el informe. El perfil monitoreado y el titular de la sala se guardan por separado; una asociación de sala no demuestra por sí sola que el usuario sea invitado o que esté hablando en ese momento.
 
-Solo se conecta a un LIVE público accesible de la cuenta registrada. No cambia de fuente automáticamente para eludir una restricción ni habilita el LIVE privado del anfitrión. Los comentarios de distintos invitados pueden pertenecer a chats diferentes: observar a uno no garantiza recibir todos los mensajes ni todo lo ocurrido en la sala compartida.
+Si la consulta principal de una sala conectada no incluye HLS, se consulta el detalle público de esa misma sala. Solo se acepta una respuesta activa y una URL HTTPS de las CDN permitidas. Esta consulta de video no bloquea la recepción de comentarios. Se conservan las comprobaciones de acceso: no se omiten restricciones, no se añaden cookies de sesión y no se accede a contenido privado.
+
+El adaptador distingue las respuestas vacías de metadatos de los avisos explícitos `prompts` de TikTok. Una respuesta vacía queda como incidencia con reintento; un aviso explícito de acceso al LIVE no disponible se muestra como «Esperando acceso al LIVE», mantiene el monitoreo activado y programa una nueva comprobación en al menos cinco minutos, respetando una espera mayor del proveedor. Ambos casos detienen el intento actual sin saltar comprobaciones ni buscar otro método de acceso. El estado describe el acceso del capturador al LIVE, no la privacidad del perfil.
+
+Al instalar esta versión se recuperan las cuentas que quedaron en el antiguo estado automático «restringido». Las pausas manuales (estado «inactivo») y las cuentas nuevas que todavía no se activaron se conservan. Las esperas futuras existentes no se acortan.
+
+Cuando TikTok no publica una asociación suficiente, el estado es **No se pudo determinar la sala**, con reintentos automáticos y sin desactivar el monitoreo. No significa que el usuario no pueda estar participando como invitado en otra sala. Un perfil visible o un ID histórico no garantizan acceso a un LIVE activo. La opción manual de anfitrión/invitado fue retirada; las referencias guardadas con la versión anterior se conservan en informes históricos.
+
+El sistema guarda los comentarios públicos recibidos, incluso cuando el comentarista tiene perfil privado, pero no garantiza recibir todos los eventos, el chat de otra sala ni todo lo ocurrido en una transmisión compartida. El monitoreo activo continúa al cerrar sesión mientras el servicio del VPS esté funcionando.
 
 ## Verificación
 
-Pruebas de Laravel: correo formal, copias históricas, aviso en HTML y texto MIME con transporte simulado, adjunto, comentarios debajo de cada perfil, creador por UID y coincidencia de usuario, referencia del invitado y separación de historiales. Capturador Python con TikTokLive 7.0.1: identificadores grandes, normalización, perfiles privados que comentan públicamente y restricciones.
+Pruebas de Laravel: correo formal, copias históricas, aviso en HTML y texto MIME con transporte simulado, adjunto, comentarios debajo de cada perfil, creador por UID y coincidencia de usuario, detección de sala, separación entre perfil consultado y titular, referencias históricas y conservación de historiales. Capturador Python con TikTokLive 7.0.1: identificadores grandes, normalización, perfiles privados que comentan públicamente y restricciones.
 
-Revisión en Chromium: correo y formulario de invitado en escritorio y móvil, sin desbordamiento. PDF A4 de demostración con datos ficticios generado y su paquete verificado con `python3 verificar.py`. No se enviaron correos reales. No se ha instalado esta actualización en su VPS ni se ha confirmado un LIVE real desde él.
+Revisión en Chromium: correo y registro de cuenta sin selección de invitado en escritorio y móvil, sin desbordamiento. PDF A4 de demostración con datos ficticios generado y su paquete verificado con `python3 verificar.py`. No se enviaron correos reales. No se ha instalado esta actualización en su VPS ni se ha confirmado un LIVE real desde él.

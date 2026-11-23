@@ -42,7 +42,9 @@ class TikTokInforme
   if(!$m->live||$m->origen!=='live_publico')return null;
   $dueno=$m->live->perfil_inicio??[];$uid=(string)($dueno['id_usuario']??'');
   if($uid!==''&&$m->autor_id)return hash_equals($uid,(string)$m->autor_id)?'ID público del titular registrado al iniciar el LIVE':null;
-  $alias=$m->datos_publicos['usuario']??$m->autor;
+  $alias=$m->datos_publicos['usuario']??$m->autor;$titular=(string)($dueno['usuario']??'');
+  if($titular!=='')return $alias!==''&&strcasecmp(ltrim($alias,'@'),$titular)===0?'Usuario público coincidente con el titular registrado de la sala; sin cotejo de ID':null;
+  if($m->live->deteccion_inicio)return null;
   return $alias!==''&&strcasecmp(ltrim($alias,'@'),$usuario)===0?'Usuario público coincidente con la cuenta monitoreada; sin cotejo de ID':null;
  }
 
@@ -57,7 +59,7 @@ class TikTokInforme
   $fp=fopen($disk->path($this->dir.'/datos.ndjson'),'wb');if(!$fp)throw new \RuntimeException('No se pudo abrir el snapshot.');chmod($disk->path($this->dir.'/datos.ndjson'),0600);$hash=hash_init('sha256');$meta=$e->metadatos??[];$referenciaSala=['cuenta_observada'=>$e->cuenta->usuario,'anfitrion_declarado'=>$e->cuenta->anfitrion?->usuario,'relacion_verificada'=>false];$sesiones=!empty($e->filtros['live_id'])?\Illuminate\Support\Facades\DB::table('tiktok_sesiones')->where('live_id',$e->filtros['live_id'])->orderBy('inicio_ms')->get()->map(fn($s)=>(array)$s)->all():[];
   try{$q->chunk(200,function($filas)use($fp,$hash,&$info,&$autores,$e,$meta,$referenciaSala){foreach($filas as$m){$registro=TikTokIntegridad::original($m);$ok=$m->hash_registro?hash_equals($m->hash_registro,hash('sha256',TikTokIntegridad::json($registro))):null;
     $info[$ok===null?'sin_sello_original':($ok?'sellados':'hash_no_coincide')]++;
-    $foto=$this->foto($m->avatar);$dato=['id'=>$m->id,'contexto'=>$referenciaSala+['criterio_creador'=>$this->criterioCreador($m,$e->cuenta->usuario),'sala'=>$m->live?->sala,'live_id'=>$m->live_id,'publicacion_id'=>$m->publicacion_id,'video_id'=>$m->publicacion?->video_id,'publicacion_url'=>$m->publicacion?->url()],'registro'=>$registro,'hash_captura'=>$m->hash_registro,'hash_captura_coincide'=>$ok,'foto'=>$foto];$linea=TikTokIntegridad::json($dato)."\n";if(fwrite($fp,$linea)!==strlen($linea))throw new \RuntimeException('El snapshot no se pudo escribir.');hash_update($hash,$linea);
+    $foto=$this->foto($m->avatar);$dato=['id'=>$m->id,'contexto'=>$referenciaSala+['deteccion_inicio'=>$m->live?->deteccion_inicio,'criterio_creador'=>$this->criterioCreador($m,$e->cuenta->usuario),'sala'=>$m->live?->sala,'live_id'=>$m->live_id,'publicacion_id'=>$m->publicacion_id,'video_id'=>$m->publicacion?->video_id,'publicacion_url'=>$m->publicacion?->url()],'registro'=>$registro,'hash_captura'=>$m->hash_registro,'hash_captura_coincide'=>$ok,'foto'=>$foto];$linea=TikTokIntegridad::json($dato)."\n";if(fwrite($fp,$linea)!==strlen($linea))throw new \RuntimeException('El snapshot no se pudo escribir.');hash_update($hash,$linea);
     $info['comentarios']++;$autores[$m->autor_id?'id:'.$m->autor_id:'usuario:'.$m->autor]=true;
     $info['primero_ms']=min($info['primero_ms']??$m->ocurrido_ms,$m->ocurrido_ms);$info['ultimo_ms']=max($info['ultimo_ms']??0,$m->ocurrido_ms);
     $info['primera_captura_ms']=min($info['primera_captura_ms']??$m->capturado_ms,$m->capturado_ms);$info['ultima_captura_ms']=max($info['ultima_captura_ms']??0,$m->capturado_ms);

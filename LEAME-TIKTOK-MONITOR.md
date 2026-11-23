@@ -23,7 +23,7 @@ unzip -o Mi-CV-TikTok-Forense.zip
 sudo bash bin/instalar-tiktok.sh
 ```
 
-Después recargue con Ctrl+F5 y entre como administrador. El instalador detiene los trabajadores del módulo durante la actualización, limpia las cachés, aplica las tres migraciones de TikTok que falten y vuelve a arrancar los servicios. Conserva las cuentas y su activación previa; las nuevas quedan pausadas hasta que las active.
+Después recargue con Ctrl+F5 y entre como administrador. El instalador detiene los trabajadores del módulo durante la actualización, limpia las cachés, aplica las cinco migraciones de TikTok que falten y vuelve a arrancar los servicios. Conserva las cuentas y las pausas manuales; recupera el monitoreo que se desactivó por el antiguo estado automático «restringido». Las nuevas quedan pausadas hasta que las active.
 
 Servicios que arrancan con el VPS:
 
@@ -58,9 +58,9 @@ sudo systemctl restart micv-tiktok micv-tiktok-evidencias micv-tiktok-pdf
 
 ## Capturar y ver el LIVE
 
-Registre el @usuario exacto que transmite y active su monitoreo. Puede cerrar sesión: la captura continúa en el VPS. Una cuenta activada sin LIVE sigue comprobándose, por defecto cada 30 segundos, y comienza al detectar una sala pública con un cupo disponible. Hay tres conexiones simultáneas por defecto; las demás cuentas esperan. Ante límites del proveedor o rechazos se respeta una espera mayor, de al menos 300 segundos y hasta 24 horas cuando corresponde.
+Registre el @usuario exacto que desea observar y active su monitoreo, sin elegir anfitrión o invitado. Puede cerrar sesión: la captura continúa en el VPS. Una cuenta activada sin LIVE sigue comprobándose, por defecto cada 30 segundos, y comienza al detectar una sala pública con un cupo disponible. Hay tres conexiones simultáneas por defecto; las demás cuentas esperan. Ante límites del proveedor o rechazos se respeta una espera mayor, de al menos 300 segundos y hasta 24 horas cuando corresponde.
 
-Los estados distinguen servicio activo, monitoreo programado y conexión a una sala. «Activado» no significa que ya haya un LIVE conectado. Si el SDK devuelve `UserOfflineError`, se contrasta una vez con la API pública; si obtiene una sala, se vuelve a comprobar su estado antes de conectar. No se omiten controles de acceso.
+Los estados distinguen servicio activo, monitoreo programado y conexión a una sala. «Activado» no significa que ya haya un LIVE conectado. Si el SDK no localiza una sala, se contrasta con la API del usuario y su perfil público; si obtiene una asociación, se vuelve a comprobar su estado antes de conectar. Si TikTok no entrega una asociación suficiente, se muestra «No se pudo determinar la sala», sin afirmar que no participe como invitado. No se omiten controles de acceso.
 
 Un participante con perfil privado puede escribir un comentario público: ese comentario se guarda si TikTok lo entrega, sin consultar sus publicaciones privadas. Se procesa también el primer lote entregado al conectar y se deduplican los mensajes por cuenta, sala e ID disponible. Si no hay ID de plataforma, el adaptador genera uno y lo identifica como tal.
 
@@ -146,8 +146,8 @@ TikTokLive es no oficial y puede dejar de funcionar por cambios, bloqueos o lím
 
 ## Verificación de esta entrega
 
-- PHP: **169 pruebas**. Incluye permisos, sesiones, fotos y archivos privados, hashes, IDs grandes, exportación por LIVE, datos anteriores, publicación importada, varias partes, eliminación y verificación que detecta alteraciones. Las pruebas de informes renderizan también su plantilla HTML.
-- Python: **24 pruebas**, con ID original/generado, hash del texto, recortes, tipos reales del protocolo TikTokLive 7.0.1, perfiles privados que comentan públicamente, conexión, restricciones, reintentos y metadatos.
+- PHP: **172 pruebas**. Incluye permisos, sesiones, fotos y archivos privados, hashes, IDs grandes, exportación por LIVE, datos anteriores, publicación importada, varias partes, eliminación y verificación que detecta alteraciones. Las pruebas de informes renderizan también su plantilla HTML.
+- Python: **34 pruebas**, con ID original/generado, hash del texto, recortes, tipos reales del protocolo TikTokLive 7.0.1, perfiles privados que comentan públicamente, conexión, restricciones, reintentos y metadatos.
 - Chromium: reproducción efectiva de un HLS local H.264/AAC y de otro con AES-128 y redirección validada; detener la vista conserva el monitoreo. Interfaz, fotos de prueba, actualización sin ejecutar HTML, confirmación abierta durante eventos, exportación en cola y descarga de PDF y paquete. Escritorio, móvil y modo oscuro revisados.
 - PDF de muestra A4 generado por Chromium con datos ficticios, fotos de prueba, seis páginas y numeración. El paquete se extrajo y verificó con el script incluido.
 
@@ -159,6 +159,10 @@ El Chromium administrado del entorno bloquea `file://`: la comprobación local c
 - HLS.js 1.7.4: https://github.com/video-dev/hls.js · incluido con su licencia Apache-2.0 en `public/vendor/hls-LICENSE.txt`.
 - El motor Chromium de PDF utiliza las dependencias existentes del proyecto.
 
-## Comentarios por perfil e invitados públicos
+## Comentarios por perfil y detección automática
 
-La actualización presenta los comentarios debajo de cada perfil, incluidos los escritos del creador cuando se identifican, y permite registrar fuentes públicas de invitados con referencias separadas. Consulte **LEAME-CORREO-Y-COMENTARIOS.md** para el instalador conjunto, la conservación de copias históricas y el alcance de las salas compartidas.
+La actualización presenta los comentarios debajo de cada perfil, incluidos los escritos del creador cuando se identifican. Se registra únicamente el @usuario; el capturador busca automáticamente las asociaciones de sala que TikTok publica sin elegir anfitrión o invitado. Si esa asociación no está disponible, el estado indica «No se pudo determinar la sala» y reintenta; no garantiza localizar invitados ni obtener un chat de otra sala. Consulte **LEAME-CORREO-Y-COMENTARIOS.md** para el instalador conjunto y los detalles de las fuentes públicas, el HLS secundario y las copias históricas.
+
+## Acceso al LIVE y privacidad del perfil
+
+Un aviso de acceso de TikTok ya no deja la cuenta desactivada permanentemente ni se presenta como perfil privado. El estado es «Esperando acceso al LIVE», con monitoreo activado y comprobaciones separadas por al menos cinco minutos, o más si el proveedor lo indica. Mientras no haya acceso verificable no se inicia una captura. Las pausas manuales siguen bajo control del administrador.
