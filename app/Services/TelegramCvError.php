@@ -29,6 +29,8 @@ class TelegramCvError extends \RuntimeException
             'telegram_temporal' => 'Telegram no completó la solicitud de acceso. Espere un minuto y vuelva a intentarlo.',
             'python' => 'El servidor no pudo ejecutar el cliente de Telegram. Revise la instalación de Python y Telethon.',
             'php_proceso' => 'PHP tiene desactivada la ejecución de procesos. La administración debe habilitar proc_open para este módulo.',
+            'qr_caducado'=>'La vinculación QR caducó. Genere un nuevo QR.',
+            'qr_cancelado'=>'La vinculación QR fue cancelada.',
             default => 'No se obtuvo una confirmación del servicio de Telegram. Revise la conexión del servidor.',
         };
     }

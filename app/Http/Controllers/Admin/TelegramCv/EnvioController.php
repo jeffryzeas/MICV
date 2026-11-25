@@ -24,7 +24,8 @@ class EnvioController extends Controller
 {
     private function cuenta(Request $r): Cuenta
     {
-        abort_unless($r->user()?->activo && $r->user()->esAdmin(), 403);
+        $u = $r->user();
+        abort_unless($u?->activo && ($u->esAdmin() || $u->esCliente() || $u->tienePermiso('cv')), 403);
 
         return Cuenta::para($r->user());
     }
@@ -32,7 +33,7 @@ class EnvioController extends Controller
     private function envio(Request $r, string $id): Envio
     {
         $c = $this->cuenta($r);
-        $e = Envio::where('telegram_cuenta_id', $c->id)->where('user_id', $r->user()->id)->findOrFail($id);
+        $e = Envio::query()->when(! $r->user()->esAdmin(), fn ($q) => $q->where('user_id', $r->user()->id))->findOrFail($id);
         $e->comprobarTiempo();
 
         return $e;
@@ -41,14 +42,14 @@ class EnvioController extends Controller
     private function lista(Cuenta $c): void
     {
         if (! $c->lista()) {
-            throw ValidationException::withMessages(['cuenta' => 'Conecte su cuenta personal de Telegram antes de continuar.']);
+            throw ValidationException::withMessages(['cuenta' => 'Telegram del sistema todavía no está disponible. La administración debe conectar la cuenta.']);
         }
     }
 
     public function index(Request $r)
     {
         $c = $this->cuenta($r);
-        $envios = Envio::where('user_id', $r->user()->id)->latest()->paginate(20);
+        $envios = Envio::when(! $r->user()->esAdmin(), fn ($q) => $q->where('user_id', $r->user()->id))->latest()->paginate(20);
         foreach ($envios as $e) {
             $e->comprobarTiempo();
         }
@@ -61,13 +62,17 @@ class EnvioController extends Controller
         $cuenta = $this->cuenta($r);
         $clientes = Cliente::visiblesPara($r->user())->where('activo', true)->orderBy('primer_nombre')->get();
 
-        return response()->view('telegram-cv.crear', compact('cuenta', 'clientes'))->header('Cache-Control', 'private, no-store');
+        return response()->view($r->user()->esAdmin() ? 'telegram-cv.crear' : 'telegram-cv.mi-envio', compact('cuenta', 'clientes'))->header('Cache-Control', 'private, no-store');
     }
 
     public function preparar(Request $r, TelegramCvCliente $telegram, PostulacionPdf $pdf)
     {
         $c = $this->cuenta($r);
         $this->lista($c);
+        if (! $r->user()->esAdmin()) {
+            $persona = Cliente::visiblesPara($r->user())->where('activo', true)->findOrFail($r->input('cliente_id', $r->user()->cliente?->id));
+            $r->merge(['cliente_id' => $persona->id, 'tipo' => 'cv', 'contacto' => mb_substr('CV de '.$persona->nombreCompleto(), 0, 80), 'mensaje' => 'Saludos cordiales. Le compartimos el currículum de '.mb_substr($persona->nombreCompleto(), 0, 200).'.', 'diseno' => $r->input('diseno', Configuracion::actual()->cv()['diseno_defecto']), 'idioma' => $r->input('idioma', 'es')]);
+        }
         $d = $r->validate(['telefono' => ['required', 'string', 'regex:/^\+[1-9][0-9]{7,14}$/D'], 'contacto' => 'required|string|max:80', 'tipo' => 'required|in:mensaje,cv', 'mensaje' => 'required|string|max:4096', 'cliente_id' => 'nullable|required_if:tipo,cv|integer', 'diseno' => ['nullable', 'required_if:tipo,cv', Rule::in(array_keys(CvDatos::DISENOS))], 'paleta' => ['nullable', Rule::in(array_keys(Configuracion::PALETAS_PRO))], 'idioma' => 'nullable|required_if:tipo,cv|in:es,en', 'foto' => 'nullable|boolean', 'confirmar_contacto' => 'accepted']);
         if (intdiv(strlen(mb_convert_encoding($d['mensaje'], 'UTF-16LE', 'UTF-8')), 2) > ($d['tipo'] === 'cv' ? 1024 : 4096)) {
             throw ValidationException::withMessages(['mensaje' => $d['tipo'] === 'cv' ? 'El texto que acompaña al PDF admite hasta 1024 caracteres de Telegram; algunos símbolos cuentan como dos.' : 'El mensaje supera el límite de Telegram.']);

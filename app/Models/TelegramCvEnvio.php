@@ -42,6 +42,11 @@ class TelegramCvEnvio extends Model
         return $this->belongsTo(Cliente::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function comprobarTiempo(): void
     {
         if ($this->estado === 'enviando' && $this->iniciado_en?->lt(now()->subMinutes(5))) {

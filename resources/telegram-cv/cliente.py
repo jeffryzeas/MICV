@@ -31,7 +31,8 @@ async def propia(client, data):
     me = await client.get_me()
     if not me or getattr(me, "bot", False) or getattr(me, "deleted", False):
         raise Fallo("cuenta")
-    if str(getattr(me, "phone", "")).lstrip("+") != numero(data["telefono"])[1:]:
+    numero('+'+str(getattr(me,"phone","")).lstrip('+'))
+    if not (data.get('modo_login')=='qr' and data.get('accion')=='clave') and str(getattr(me, "phone", "")).lstrip("+") != numero(data["telefono"])[1:]:
         raise Fallo("cuenta")
     if data.get("cuenta_id") and str(me.id) != str(data["cuenta_id"]):
         raise Fallo("cuenta")
@@ -70,7 +71,7 @@ async def operacion(client, d):
 
     me = await propia(client, d)
     if accion in ("verificar", "clave"):
-        return {"estado": "conectada", "id": str(me.id), "nombre": nombre(me), "usuario": getattr(me, "username", None) or ""}
+        return {"estado": "conectada", "id": str(me.id), "nombre": nombre(me), "usuario": getattr(me, "username", None) or "",'telefono':'+'+str(me.phone).lstrip('+')}
     if accion == "resolver":
         phone = numero(d.get("destino"))
         etiqueta = str(d.get("contacto", ""))[:80].strip()

@@ -30,6 +30,7 @@ return [
     */
 
     'connections' => [
+        'telegram-cv-login'=>['driver'=>'database','connection'=>env('DB_QUEUE_CONNECTION'),'table'=>env('DB_QUEUE_TABLE','jobs'),'queue'=>'telegram-cv-login','retry_after'=>390,'after_commit'=>true],
         'telegram-cv'=>['driver'=>'database','connection'=>env('DB_QUEUE_CONNECTION'),'table'=>env('DB_QUEUE_TABLE','jobs'),'queue'=>'telegram-cv','retry_after'=>310,'after_commit'=>true],
         'tiktok-evidencias'=>['driver'=>'database','connection'=>env('DB_QUEUE_CONNECTION'),'table'=>env('DB_QUEUE_TABLE','jobs'),'queue'=>'tiktok-evidencias','retry_after'=>90,'after_commit'=>true],
         'tiktok-exportaciones' => ['driver'=>'database','connection'=>env('DB_QUEUE_CONNECTION'),'table'=>env('DB_QUEUE_TABLE','jobs'),'queue'=>'tiktok-exportaciones','retry_after'=>610,'after_commit'=>true],

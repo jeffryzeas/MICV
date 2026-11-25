@@ -52,6 +52,9 @@
                         <x-icono name="send" class="size-4" /> {{ $esUsuario ? 'A mi correo' : 'Al correo' }}
                     </button>
                 </div>
+                @if(auth()->user()?->esAdmin() || auth()->user()?->esCliente())
+                <button type="button" onclick="jzCv('telegram')" class="inline-flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold px-3 py-2.5 rounded-lg"><x-icono name="send" class="size-4"/>A Telegram</button>
+                @endif
                 @unless($correoDestino)<p class="text-[11px] text-gray-400">Para enviarlo por correo, agregue el correo de la persona en sus datos.</p>@endunless
             </div>
         </div>
@@ -90,8 +93,8 @@
 
     // Al exportar se pregunta (igual que la foto) el idioma del CV.
     window.jzCv = function (accion) {
-        const titulos = { descargar: 'Descargar el CV', word: 'CV en Word (editable)', ver: 'Ver el CV', correo: @json($esUsuario ? 'Enviar el CV a mi correo' : 'Enviar el CV por correo') };
-        const botones = { descargar: 'Descargar', word: 'Descargar Word', ver: 'Ver PDF', correo: 'Enviar' };
+        const titulos = { telegram:'Enviar el CV por Telegram', descargar: 'Descargar el CV', word: 'CV en Word (editable)', ver: 'Ver el CV', correo: @json($esUsuario ? 'Enviar el CV a mi correo' : 'Enviar el CV por correo') };
+        const botones = { telegram:'Indicar número de destino', descargar: 'Descargar', word: 'Descargar Word', ver: 'Ver PDF', correo: 'Enviar' };
         const idiomaActual = sel('idioma', 'es');
         const opcion = (n, v, txt, on) => '<label class="jz-op"><input type="radio" name="' + n + '" value="' + v + '"' + (on ? ' checked' : '') + '><span>' + txt + '</span></label>';
         let html = '<div class="text-left space-y-3">';
@@ -107,6 +110,7 @@
         }).then(async function (r) {
             if (!r.isConfirmed) return;
             const o = opciones(r.value.foto, r.value.idioma);
+            if (accion === 'telegram') { window.location = @json(route('admin.telegram-cv.crear')) + qs(Object.assign(o, {cliente_id: @json($cliente->id)})); return; }
             if (accion === 'descargar') { window.location = caja.dataset.pdf + qs(Object.assign(o, { descargar: 1 })); return; }
             if (accion === 'word') { window.location = caja.dataset.word + qs({ diseno: o.diseno, foto: o.foto, idioma: o.idioma, paleta: o.paleta }); return; }
             if (accion === 'ver') { window.open(caja.dataset.pdf + qs(o), '_blank'); return; }

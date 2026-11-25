@@ -38,7 +38,8 @@ class EnviarTelegramCv implements ShouldQueue
             if (! $e || $e->estado !== 'en_cola') {
                 return null;
             }$c = TelegramCvCuenta::whereKey($e->telegram_cuenta_id)->lockForUpdate()->first();
-            if (! $c?->lista() || ! $c->user?->activo || ! $c->user->esAdmin() || (int) $c->user_id !== (int) $e->user_id || $c->revision !== $e->cuenta_revision || $c->telegram_id !== $e->remitente_id) {
+            $actor = $e->user;
+            if (! $c?->sistema || ! $c->lista() || ! $actor?->activo || ! ($actor->esAdmin() || $actor->esCliente() || $actor->tienePermiso('cv')) || $c->revision !== $e->cuenta_revision || $c->telegram_id !== $e->remitente_id) {
                 $e->update(['estado' => 'fallido', 'detalle' => 'La cuenta cambió o dejó de estar disponible. Prepare un nuevo borrador.']);
 
                 return null;
@@ -48,7 +49,7 @@ class EnviarTelegramCv implements ShouldQueue
 
                 return null;
             }
-            if ($e->tipo === 'cv' && (! $e->cliente?->activo || ! $e->cliente->esVisiblePara($c->user))) {
+            if ((! $actor->esAdmin() && $e->tipo !== 'cv') || ($e->tipo === 'cv' && (! $e->cliente?->activo || ! $e->cliente->esVisiblePara($actor)))) {
                 $e->update(['estado' => 'fallido', 'detalle' => 'El CV ya no está disponible para esta cuenta.']);
 
                 return null;

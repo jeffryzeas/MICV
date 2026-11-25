@@ -74,15 +74,17 @@ class TelegramCvTest extends TestCase
         return Envio::firstOrFail();
     }
 
-    public function test_solo_admin_activo_y_cada_administrador_ve_su_cuenta_e_historial(): void
+    public function test_administradores_comparten_cuenta_del_sistema_y_cliente_no_ve_configuracion_ni_historial_ajeno(): void
     {
         $e = $this->preparar();
         $otro = $this->usuario();
-        $this->actingAs($otro)->get(route('admin.telegram-cv.ver', $e))->assertNotFound();
+        $this->actingAs($otro)->get(route('admin.telegram-cv.ver', $e))->assertOk();
+        $this->assertSame(Cuenta::para($this->u)->id, Cuenta::para($otro)->id);
+        $this->get(route('admin.telegram-cv.index'))->assertOk()->assertSee('Empresa real');
+        $this->actingAs($this->usuario('cliente'))->get(route('admin.telegram-cv.cuenta'))->assertForbidden();
+        $this->get(route('admin.telegram-cv.ver', $e))->assertNotFound();
         $this->get(route('admin.telegram-cv.pdf', $e))->assertNotFound();
         $this->post(route('admin.telegram-cv.confirmar', $e), ['confirmar' => 1])->assertNotFound();
-        $this->get(route('admin.telegram-cv.index'))->assertOk()->assertDontSee('Empresa real');
-        $this->actingAs($this->usuario('cliente'))->get(route('admin.telegram-cv.cuenta'))->assertForbidden();
         Queue::assertNothingPushed();
     }
 

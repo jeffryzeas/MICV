@@ -1,3 +1,5 @@
+> Esta documentación describe la versión anterior por administrador. La actualización actual utiliza una sola cuenta del sistema y vinculación por QR: consulte **LEAME-TELEGRAM-SISTEMA-QR.md**.
+
 # Mi CV · Enviar CV y mensajes desde su número de Telegram
 
 Módulo Laravel exclusivo de administradores activos. Utiliza la aplicación de desarrollador de Telegram (`api_id` y `api_hash`) y su cuenta personal mediante MTProto/Telethon. Cada administrador conecta su propia cuenta y solo accede a su conexión e historial. El bot de comentarios de TikTok mantiene su configuración independiente.

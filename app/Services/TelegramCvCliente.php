@@ -40,7 +40,7 @@ class TelegramCvCliente
             if ($actual->no_antes_de?->isFuture()) {
                 throw new TelegramCvError('limite', max(1, (int) now()->diffInSeconds($actual->no_antes_de)));
             }
-            $entrada = ['v' => 1, 'accion' => $accion, 'api_id' => $actual->api_id, 'api_hash' => $actual->api_hash, 'sesion' => $actual->sesion, 'telefono' => $actual->telefono, 'codigo_hash' => $actual->codigo_hash, 'cuenta_id' => $actual->telegram_id] + $datos;
+            $entrada = ['v' => 1, 'accion' => $accion, 'api_id' => $actual->api_id, 'api_hash' => $actual->api_hash, 'sesion' => $actual->sesion, 'telefono' => $actual->telefono, 'codigo_hash' => $actual->codigo_hash, 'cuenta_id' => $actual->telegram_id,'modo_login'=>$actual->codigo_hash==='qr'?'qr':'codigo'] + $datos;
             $r = $this->proceso($entrada, $accion === 'enviar' ? 230 : 45);
             // Solo campos de estado conocidos; ninguna descripción de excepción del proveedor llega al log.
             if (! is_array($r) || ($r['v'] ?? null) !== 1) {
@@ -60,7 +60,7 @@ class TelegramCvCliente
                     $this->actualizar($actual, ['estado' => 'desconectada', 'sesion' => null, 'codigo_hash' => null, 'conectada_en' => null]);
                 }
                 // Nunca registrar excepción original, stdin, teléfono, sesión o credenciales.
-                Log::warning('Telegram personal: operación sin confirmar', ['codigo' => $codigo, 'diagnostico' => $diagnostico]);
+                Log::warning('Telegram del sistema: operación sin confirmar', ['codigo' => $codigo, 'diagnostico' => $diagnostico]);
                 throw new TelegramCvError($codigo, $espera, $diagnostico);
             }
             $cambios = [];

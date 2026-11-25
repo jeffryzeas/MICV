@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\TelegramCv;
 
 use App\Http\Controllers\Controller;
 use App\Models\Actividad;
+use App\Models\TelegramCvAcceso;
 use App\Models\TelegramCvCuenta as Cuenta;
 use App\Models\TelegramCvEnvio as Envio;
 use App\Services\TelegramCvCliente;
@@ -36,12 +37,17 @@ class CuentaController extends Controller
     {
         $cuenta = $this->cuenta($r);
 
-        return response()->view('telegram-cv.cuenta', compact('cuenta'))->header('Cache-Control', 'private, no-store');
+        $qr = TelegramCvAcceso::where('telegram_cuenta_id', $cuenta->id)->latest()->first();
+
+        return response()->view('telegram-cv.cuenta', compact('cuenta', 'qr'))->header('Cache-Control', 'private, no-store');
     }
 
     public function codigo(Request $r, TelegramCvCliente $cliente)
     {
         $c = $this->cuenta($r);
+        if (TelegramCvAcceso::where('telegram_cuenta_id', $c->id)->whereIn('estado', ['en_cola', 'generando', 'esperando'])->where('expira_en', '>', now())->exists()) {
+            throw ValidationException::withMessages(['cuenta' => 'Cancele la vinculación QR antes de solicitar un código.']);
+        }
         $d = $r->validate(['tg_api_id' => 'required|integer|min:1|max:2147483647', 'tg_api_hash' => 'nullable|string|regex:/^[a-fA-F0-9]{32}$/D', 'tg_telefono' => ['required', 'string', 'regex:/^\+[1-9][0-9]{7,14}$/D'], 'confirmar' => 'accepted']);
         if ($c->lista()) {
             throw ValidationException::withMessages(['cuenta' => 'Desconecte la cuenta actual antes de conectar otro número.']);
@@ -98,11 +104,17 @@ class CuentaController extends Controller
             if (($o['estado'] ?? null) !== 'conectada' || ! preg_match('/^[1-9][0-9]{0,23}$/D', (string) ($o['id'] ?? '')) || empty($o['sesion'])) {
                 throw new TelegramCvError;
             }
-            $this->guardar($c, ['estado' => 'conectada', 'telegram_id' => (string) $o['id'], 'nombre' => mb_substr((string) ($o['nombre'] ?? ''), 0, 200), 'usuario' => mb_substr((string) ($o['usuario'] ?? ''), 0, 64), 'codigo_hash' => null, 'codigo_en' => null, 'conectada_en' => now(), 'ultimo_error' => null]);
+            $datos = ['estado' => 'conectada', 'telegram_id' => (string) $o['id'], 'nombre' => mb_substr((string) ($o['nombre'] ?? ''), 0, 200), 'usuario' => mb_substr((string) ($o['usuario'] ?? ''), 0, 64), 'codigo_hash' => null, 'codigo_en' => null, 'conectada_en' => now(), 'ultimo_error' => null];
+            if ($c->codigo_hash === 'qr') {
+                if (! preg_match('/^\+[1-9][0-9]{7,14}$/D', (string) ($o['telefono'] ?? ''))) {
+                    throw new TelegramCvError('cuenta');
+                }$datos['telefono'] = $o['telefono'];
+            }
+            $this->guardar($c, $datos);
         } catch (TelegramCvError $e) {
             return back()->withErrors(['cuenta' => $e->getMessage()]);
         }
-        Actividad::registrar('telegram_cv_conectar', 'Cuenta personal de Telegram conectada por usuario #'.$r->user()->id);
+        Actividad::registrar('telegram_cv_conectar', 'Telegram del sistema conectado por administrador #'.$r->user()->id);
 
         return back()->with('mensaje', 'Cuenta conectada. Puede preparar mensajes y CV para un destinatario concreto.');
     }
@@ -123,6 +135,7 @@ class CuentaController extends Controller
             $a = Cuenta::whereKey($c->id)->lockForUpdate()->firstOrFail();
             $a->update(['estado' => 'desconectada', 'api_hash' => null, 'sesion' => null, 'codigo_hash' => null, 'telegram_id' => null, 'nombre' => null, 'usuario' => null, 'codigo_en' => null, 'conectada_en' => null, 'revision' => (string) Str::uuid(), 'ultimo_error' => null]);
             Envio::where('telegram_cuenta_id', $a->id)->whereIn('estado', ['borrador', 'en_cola'])->update(['estado' => 'fallido', 'detalle' => 'La cuenta fue desconectada. No se enviará este borrador.']);
+            TelegramCvAcceso::where('telegram_cuenta_id', $a->id)->whereIn('estado', ['en_cola', 'generando', 'esperando', 'clave'])->update(['estado' => 'cancelada', 'qr_url' => null, 'qr_expira_en' => null]);
         });
 
         return back()->with('mensaje', $remota ? 'Sesión de Telegram cerrada y credenciales locales retiradas.' : 'Credenciales locales retiradas. Si había una sesión activa, ciérrela también desde Telegram → Ajustes → Dispositivos.');

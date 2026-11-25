@@ -15,12 +15,17 @@ class TelegramCvCuenta extends Model
 
     protected function casts(): array
     {
-        return ['api_id' => 'integer', 'api_hash' => 'encrypted', 'sesion' => 'encrypted', 'codigo_hash' => 'encrypted', 'codigo_en' => 'datetime', 'conectada_en' => 'datetime', 'no_antes_de' => 'datetime'];
+        return ['sistema' => 'boolean', 'api_id' => 'integer', 'api_hash' => 'encrypted', 'sesion' => 'encrypted', 'codigo_hash' => 'encrypted', 'codigo_en' => 'datetime', 'conectada_en' => 'datetime', 'no_antes_de' => 'datetime'];
     }
 
     public static function para(User $u): self
     {
-        return self::firstOrCreate(['user_id' => $u->id], ['revision' => (string) Str::uuid()]);
+        return self::sistema();
+    }
+
+    public static function sistema(): self
+    {
+        return self::firstOrCreate(['sistema' => true], ['user_id' => null, 'revision' => (string) Str::uuid()]);
     }
 
     public function lista(): bool
