@@ -41,6 +41,47 @@ class TelegramCvClienteTest extends TestCase
         };
     }
 
+    public function test_proceso_informa_python_ausente_sin_exponer_entrada(): void
+    {
+        config(['telegram_cv.python' => Storage::disk('local')->path('python-inexistente')]);
+        $s = new class extends TelegramCvCliente
+        {
+            public function probar(): array
+            {
+                return parent::proceso(['api_hash' => 'SECRETO-PROCESO', 'sesion' => 'SESION-PRIVADA'], 1);
+            }
+        };
+        try {
+            $s->probar();
+            $this->fail();
+        } catch (TelegramCvError $e) {
+            $this->assertSame('PYTHON_NO_DISPONIBLE', $e->diagnostico);
+            $this->assertStringNotContainsString('SECRETO-PROCESO', $e->getMessage());
+            $this->assertStringNotContainsString('SESION-PRIVADA', $e->getMessage());
+        }
+    }
+
+    public function test_diagnostico_desconocido_no_filtra_descripcion_y_conexion_se_distingue(): void
+    {
+        $s = $this->servicio(fn () => ['v' => 1, 'ok' => false, 'error' => 'conexion', 'diagnostico' => 'CONEXION', 'descripcion' => 'SECRETO-REMOTO']);
+        try {
+            $s->operar($this->c, 'codigo');
+            $this->fail();
+        } catch (TelegramCvError $e) {
+            $this->assertSame('conexion', $e->motivo);
+            $this->assertSame('CONEXION', $e->diagnostico);
+            $this->assertStringNotContainsString('SECRETO-REMOTO', $e->getMessage());
+        }
+        $s = $this->servicio(fn () => ['v' => 1, 'ok' => false, 'error' => 'servicio', 'diagnostico' => 'SECRETO-NO-PERMITIDO']);
+        try {
+            $s->operar($this->c, 'codigo');
+            $this->fail();
+        } catch (TelegramCvError $e) {
+            $this->assertSame('', $e->diagnostico);
+            $this->assertStringNotContainsString('SECRETO-NO-PERMITIDO', $e->getMessage());
+        }
+    }
+
     public function test_credenciales_solo_van_a_entrada_y_sesion_retornada_se_cifra(): void
     {
         $s = $this->servicio(function ($d, $t) {

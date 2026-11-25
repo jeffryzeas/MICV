@@ -144,7 +144,21 @@ def clasificar(e):
         return "sesion", 0
     if n in ("UserPrivacyRestrictedError", "UserIsBlockedError", "YouBlockedUserError", "ChatWriteForbiddenError", "PeerIdInvalidError", "UserNotMutualContactError", "PremiumAccountRequiredError"):
         return "privacidad", 0
+    if isinstance(e, (ConnectionError, TimeoutError, OSError)):
+        return "conexion", 0
+    if n in ("PhoneMigrateError", "NetworkMigrateError", "UserMigrateError", "ServerError", "RpcCallFailError", "TimedOutError", "AuthRestartError"):
+        return "telegram_temporal", 0
     return "servicio", 0
+
+def diagnostico(e):
+    n = type(e).__name__
+    if isinstance(e, (ConnectionError, TimeoutError, OSError)):
+        return "CONEXION"
+    if n in ("PhoneMigrateError", "NetworkMigrateError", "UserMigrateError"):
+        return "CENTRO_DATOS"
+    if n in ("ServerError", "RpcCallFailError", "TimedOutError", "AuthRestartError"):
+        return "TELEGRAM_TEMPORAL"
+    return "ADAPTADOR_INTERNO" if n in ("ValueError", "TypeError", "AttributeError", "RuntimeError") else "SIN_CLASIFICAR"
 
 async def ejecutar(d, factory=TelegramClient):
     client = None
@@ -152,13 +166,15 @@ async def ejecutar(d, factory=TelegramClient):
         if d.get("v") != 1 or not isinstance(d.get("api_id"), int) or not 0 < d["api_id"] <= 2147483647 or not re.fullmatch(r"[a-fA-F0-9]{32}", str(d.get("api_hash", ""))):
             raise Fallo("credenciales")
         session = StringSession(d.get("sesion") or "")
-        client = factory(session, d["api_id"], d["api_hash"], device_model="Mi CV", system_version="Linux", app_version="1.0", lang_code="es", system_lang_code="es", timeout=12, connection_retries=1, request_retries=0, auto_reconnect=False, flood_sleep_threshold=0, receive_updates=False)
+        # La autenticación necesita continuar tras PHONE_MIGRATE/NETWORK_MIGRATE.
+        # Los envíos conservan cero reintentos automáticos ante un resultado incierto.
+        client = factory(session, d["api_id"], d["api_hash"], device_model="Mi CV", system_version="Linux", app_version="1.0", lang_code="es", system_lang_code="es", timeout=12, connection_retries=1, request_retries=(0 if d.get("accion") == "enviar" else 2), raise_last_call_error=True, auto_reconnect=False, flood_sleep_threshold=0, receive_updates=False)
         await client.connect()
         result = await operacion(client, d)
         return {"v": 1, "ok": True, "sesion": client.session.save() if client.session else "", **result}
     except Exception as e:
         codigo, espera = clasificar(e)
-        return {"v": 1, "ok": False, "error": codigo, "espera": espera}
+        return {"v": 1, "ok": False, "error": codigo, "espera": espera, "diagnostico": diagnostico(e)}
     finally:
         if client:
             try:

@@ -198,6 +198,24 @@ class TelegramCvTest extends TestCase
         $this->assertNull($e->fresh()->mensaje_id);
     }
 
+    public function test_error_de_conexion_durante_envio_se_conserva_como_incierto(): void
+    {
+        $e = $this->preparar('mensaje');
+        $e->update(['estado' => 'en_cola']);
+        $m = new class extends TelegramCvCliente
+        {
+            public function operar(Cuenta $c, string $a, array $d = []): array
+            {
+                throw new TelegramCvError('conexion', 0, 'CONEXION');
+            }
+        };
+        $j = new EnviarTelegramCv($e->id);
+        $j->handle($m);
+        $j->handle($m);
+        $this->assertSame('incierto', $e->fresh()->estado);
+        $this->assertNull($e->fresh()->mensaje_id);
+    }
+
     public function test_cifrado_y_campos_sensibles_no_aparecen_en_html_json_ni_old_input(): void
     {
         $c = $this->conectar();

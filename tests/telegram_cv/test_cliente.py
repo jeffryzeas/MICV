@@ -6,6 +6,9 @@ from types import SimpleNamespace
 import tempfile
 import unittest
 from telethon import errors, types, functions
+from telethon import TelegramClient
+from telethon.sessions import StringSession
+from unittest.mock import AsyncMock
 
 spec = importlib.util.spec_from_file_location("telegram_cv", Path(__file__).resolve().parents[2] / "resources/telegram-cv/cliente.py")
 tg = importlib.util.module_from_spec(spec)
@@ -116,5 +119,44 @@ class TelegramCvTest(unittest.TestCase):
         result = asyncio.run(tg.ejecutar({"v": 1, "api_id": 0, "api_hash": "SECRETO"}))
         self.assertNotIn("SECRETO", str(result))
         self.assertFalse(result["ok"])
+
+    def test_sdk_real_redirecciona_solicitud_de_codigo_al_dc_correcto(self):
+        async def caso(retries):
+            client = TelegramClient(StringSession(),12345,"a"*32,request_retries=retries,raise_last_call_error=True,receive_updates=False)
+            client.is_user_authorized = AsyncMock(return_value=False)
+            client._switch_dc = AsyncMock()
+            class Sender:
+                calls = 0
+                def send(self, request, ordered=False):
+                    self.calls += 1
+                    f = asyncio.get_running_loop().create_future()
+                    if self.calls == 1:
+                        f.set_exception(errors.PhoneMigrateError(request=request,capture=2))
+                    else:
+                        f.set_result(types.auth.SentCode(type=types.auth.SentCodeTypeApp(length=5),phone_code_hash="HASH-DC-CORRECTO",timeout=60))
+                    return f
+            sender = Sender();client._sender = sender
+            if retries == 0:
+                with self.assertRaises(errors.PhoneMigrateError):
+                    await client.send_code_request("+50688887777")
+                self.assertEqual(sender.calls,1)
+            else:
+                r = await client.send_code_request("+50688887777")
+                self.assertEqual(r.phone_code_hash,"HASH-DC-CORRECTO")
+                self.assertEqual(sender.calls,2)
+            client._switch_dc.assert_awaited_once_with(2)
+        asyncio.run(caso(0));asyncio.run(caso(2))
+
+    def test_opciones_reintentan_login_pero_no_envios_y_diagnostico_no_filtra_secretos(self):
+        for action,retries in [("codigo",2),("enviar",0)]:
+            def factory(session, api_id, api_hash, **kwargs):
+                self.assertEqual(kwargs["request_retries"],retries)
+                self.assertTrue(kwargs["raise_last_call_error"])
+                raise ConnectionError("URL SESION-SECRETA api_hash PRIVADO")
+            out = asyncio.run(tg.ejecutar({"v":1,"api_id":12345,"api_hash":"a"*32,"accion":action},factory=factory))
+            self.assertEqual(out["error"],"conexion")
+            self.assertEqual(out["diagnostico"],"CONEXION")
+            self.assertNotIn("PRIVADO",str(out))
+            self.assertNotIn("SESION-SECRETA",str(out))
 
 if __name__ == "__main__": unittest.main()

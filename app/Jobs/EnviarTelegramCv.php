@@ -83,7 +83,7 @@ class EnviarTelegramCv implements ShouldQueue
                 throw new TelegramCvError;
             }$e->update(['estado' => 'enviado', 'mensaje_id' => (string) $r['mensaje_id'], 'enviado_en' => now(), 'detalle' => 'Telegram aceptó el envío. No se ha confirmado su lectura.']);
         } catch (TelegramCvError $error) {
-            $e->update(['estado' => in_array($error->motivo, ['servicio', 'ocupada'], true) ? 'incierto' : 'fallido', 'detalle' => $error->getMessage()]);
+            $e->update(['estado' => in_array($error->motivo, ['servicio', 'ocupada', 'conexion'], true) ? 'incierto' : 'fallido', 'detalle' => $error->getMessage()]);
         } catch (\Throwable) {
             $e->update(['estado' => 'incierto', 'detalle' => 'No se pudo confirmar el resultado. Revise la conversación en Telegram antes de preparar otro envío.']);
         }
