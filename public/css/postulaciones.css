@@ -26,11 +26,11 @@
 .post-delivery>p{font-size:13px;margin-top:8px;overflow-wrap:anywhere}
 .post-confirm{display:flex;gap:24px;align-items:center;justify-content:space-between;margin-bottom:20px;padding:20px}
 .post-confirm .btn{flex-shrink:0}
-.post-review-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.post-review-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,1fr);gap:20px;align-items:start}
 .post-review-grid .gestion-description>div{grid-template-columns:90px minmax(0,1fr)}
 .post-review-grid dd{overflow-wrap:anywhere}
 .post-email-preview,.post-pdf-preview{border:1px solid var(--gestion-border);border-radius:4px;width:100%;display:block;background:white}
-.post-email-preview{height:620px;margin-top:24px}
+.post-email-preview{height:620px;margin-top:24px;border:0;border-radius:0}
 .post-pdf-preview{height:690px;margin-top:20px}
 .post-cv-download{margin-top:16px}
 .post-plain-text{margin-top:16px;font-size:13px}
