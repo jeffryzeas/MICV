@@ -22,7 +22,7 @@ class MonitorController extends Controller {
     public function cuenta(Request $r,TikTokCuenta $cuenta,TikTokConsulta $consulta){
         $this->admin($r);$f=$consulta->filtros($r,$cuenta);$q=$consulta->query($cuenta,$f);$total=(clone$q)->count();$cursor=(clone$q)->max('id')??0;
         $comentarios=$q->with('avatar')->orderBy('ocurrido_ms')->orderBy('id')->paginate(100)->withQueryString();$lives=$consulta->lives($cuenta,$r)->paginate(15,['*'],'lives_page')->withQueryString();$publicaciones=$cuenta->publicaciones()->latest()->get();
-        $exportaciones=TikTokExportacion::where('cuenta_id',$cuenta->id)->where('user_id',$r->user()->id)->latest()->limit(10)->get();$salud=$consulta->salud();$liveActual=$cuenta->lives()->where('estado','en_live')->latest('iniciado_ms')->first();$video=app(TikTokVideo::class)->estado($cuenta,$liveActual);$perfil=$consulta->perfil($cuenta);$resumen=$consulta->resumen($cuenta);$liveInforme=!empty($f['publicacion_id'])?null:(!empty($f['live_id'])?$cuenta->lives()->find($f['live_id']):$liveActual);
+        app(\App\Services\TikTokRetencion::class)->limpiar();$exportaciones=TikTokExportacion::where('cuenta_id',$cuenta->id)->where('user_id',$r->user()->id)->latest()->limit(10)->get();$salud=$consulta->salud();$liveActual=$cuenta->lives()->where('estado','en_live')->latest('iniciado_ms')->first();$video=app(TikTokVideo::class)->estado($cuenta,$liveActual);$perfil=$consulta->perfil($cuenta);$resumen=$consulta->resumen($cuenta);$liveInforme=!empty($f['publicacion_id'])?null:(!empty($f['live_id'])?$cuenta->lives()->find($f['live_id']):$liveActual);
         return $this->privado(response()->view('admin.tiktok.cuenta',compact('cuenta','f','comentarios','lives','publicaciones','exportaciones','total','cursor','salud','video','perfil','resumen','liveActual','liveInforme')));
     }
     public function salaPublica(Request $r,TikTokCuenta $cuenta){
@@ -110,15 +110,16 @@ class MonitorController extends Controller {
     }
     public function exportacion(Request $r,TikTokExportacion $exportacion){
         $this->admin($r);abort_unless($exportacion->user_id===$r->user()->id,404);
+        app(\App\Services\TikTokRetencion::class)->caducar($exportacion);
         if($exportacion->estado==='procesando'&&$exportacion->updated_at->lt(now()->subMinutes(12)))$exportacion->update(['estado'=>'error','error'=>'La exportación se interrumpió. Revise micv-tiktok-pdf.']);
-        return $this->privado(response()->json(['estado'=>$exportacion->estado,'procesados'=>$exportacion->procesados,'total'=>$exportacion->total,'error'=>$exportacion->error,'descarga'=>$exportacion->estado==='listo'?route('admin.tiktok.descargar',$exportacion):null,'paquete'=>$exportacion->estado==='listo'&&$exportacion->paquete?route('admin.tiktok.paquete',$exportacion):null,'fase'=>$exportacion->metadatos['fase']??$exportacion->estado,'formato'=>str_ends_with($exportacion->archivo??'','.zip')?'zip':'pdf','sha256'=>$exportacion->sha256_datos,'espera'=>$exportacion->estado==='en_cola'&&$exportacion->created_at->lt(now()->subMinutes(2))]));
+        return $this->privado(response()->json(['restante_segundos'=>$exportacion->restante(),'estado'=>$exportacion->estado,'procesados'=>$exportacion->procesados,'total'=>$exportacion->total,'error'=>$exportacion->error,'descarga'=>$exportacion->estado==='listo'?route('admin.tiktok.descargar',$exportacion):null,'paquete'=>$exportacion->estado==='listo'&&$exportacion->paquete?route('admin.tiktok.paquete',$exportacion):null,'fase'=>$exportacion->metadatos['fase']??$exportacion->estado,'formato'=>str_ends_with($exportacion->archivo??'','.zip')?'zip':'pdf','sha256'=>$exportacion->sha256_datos,'espera'=>$exportacion->estado==='en_cola'&&$exportacion->created_at->lt(now()->subMinutes(2))]));
     }
     public function paquete(Request $r,TikTokExportacion $exportacion){
-        $this->admin($r);abort_unless($exportacion->user_id===$r->user()->id&&$exportacion->estado==='listo'&&$exportacion->paquete&&Storage::disk('local')->exists($exportacion->paquete),404);
+        $this->admin($r);abort_unless($exportacion->user_id===$r->user()->id,404);app(\App\Services\TikTokRetencion::class)->caducar($exportacion);if($exportacion->vencida())return $this->privado(response()->view('admin.tiktok.caducado',['cuenta'=>$exportacion->cuenta],410));abort_unless($exportacion->estado==='listo'&&$exportacion->paquete&&Storage::disk('local')->exists($exportacion->paquete),404);
         return $this->privado(Storage::disk('local')->download($exportacion->paquete,'Evidencia-'.$exportacion->id.'.zip'));
     }
     public function descargar(Request $r,TikTokExportacion $exportacion){
-        $this->admin($r);abort_unless($exportacion->user_id===$r->user()->id&&$exportacion->estado==='listo'&&Storage::disk('local')->exists($exportacion->archivo),404);
+        $this->admin($r);abort_unless($exportacion->user_id===$r->user()->id,404);app(\App\Services\TikTokRetencion::class)->caducar($exportacion);if($exportacion->vencida())return $this->privado(response()->view('admin.tiktok.caducado',['cuenta'=>$exportacion->cuenta],410));abort_unless($exportacion->estado==='listo'&&Storage::disk('local')->exists($exportacion->archivo),404);
         $ext=str_ends_with($exportacion->archivo,'.zip')?'zip':'pdf';return $this->privado(Storage::disk('local')->download($exportacion->archivo,'TikTok-'.$exportacion->cuenta->usuario.'-'.$exportacion->filtros['desde'].'.'.$ext));
     }
 }

@@ -3,11 +3,17 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\TikTok\MonitorController as T;
 Route::prefix('admin/tiktok')->name('admin.tiktok.')->middleware('rol:admin')->group(function(){
     Route::get('/',[T::class,'index'])->name('index');
+    Route::get('telegram',[\App\Http\Controllers\Admin\TikTok\TelegramController::class,'index'])->name('telegram.index');
+    Route::post('telegram',[\App\Http\Controllers\Admin\TikTok\TelegramController::class,'guardar'])->name('telegram.guardar')->middleware('throttle:guardar');
+    Route::post('telegram/verificar',[\App\Http\Controllers\Admin\TikTok\TelegramController::class,'verificar'])->name('telegram.verificar')->middleware('throttle:10,1');
+    Route::post('telegram/activar',[\App\Http\Controllers\Admin\TikTok\TelegramController::class,'activar'])->name('telegram.activar')->middleware('throttle:guardar');
     Route::post('cuentas',[T::class,'store'])->name('guardar')->middleware('throttle:guardar');
     Route::delete('cuentas/{cuenta}',[T::class,'eliminar'])->name('eliminar')->middleware('throttle:guardar');
     Route::get('adjuntos/{adjunto}',[T::class,'adjunto'])->name('adjunto')->whereUuid('adjunto')->middleware('throttle:1200,1');
     Route::post('cuentas/{cuenta}/lives/{live}/exportar',[T::class,'exportarLive'])->name('exportar-live')->middleware('throttle:10,1');
     Route::get('cuentas/{cuenta}/avatar',[T::class,'avatar'])->name('avatar')->middleware('throttle:60,1');
+    Route::get('cuentas/{cuenta}/auditoria',[\App\Http\Controllers\Admin\TikTok\AuditoriaController::class,'index'])->name('auditoria');
+    Route::get('cuentas/{cuenta}/registros/{comentario}',[\App\Http\Controllers\Admin\TikTok\AuditoriaController::class,'registro'])->name('registro');
     Route::get('cuentas/{cuenta}',[T::class,'cuenta'])->name('cuenta');
     Route::post('cuentas/{cuenta}/sala-publica',[T::class,'salaPublica'])->name('sala-publica')->middleware('throttle:guardar');
     Route::post('cuentas/{cuenta}/captura',[T::class,'toggle'])->name('captura')->middleware('throttle:guardar');

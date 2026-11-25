@@ -15,21 +15,23 @@ Actualización para el proyecto Laravel instalado. El ZIP mantiene las carpetas 
 
 ## Instalar o actualizar en el VPS
 
-Haga una copia del código y de la base de datos. Suba `Mi-CV-TikTok-Forense.zip` a `/var/www/micv/` y ejecute:
+Haga una copia del código y de la base de datos. Suba `Mi-CV-Auditoria-Telegram-Informes-Temporales.zip` a `/var/www/micv/` y ejecute:
 
 ```bash
 cd /var/www/micv
-unzip -o Mi-CV-TikTok-Forense.zip
+unzip -o Mi-CV-Auditoria-Telegram-Informes-Temporales.zip
 sudo bash bin/instalar-tiktok.sh
 ```
 
-Después recargue con Ctrl+F5 y entre como administrador. El instalador detiene los trabajadores del módulo durante la actualización, limpia las cachés, aplica las siete migraciones de TikTok que falten y vuelve a arrancar los servicios. Conserva las cuentas y las pausas manuales; recupera el monitoreo que se desactivó por el antiguo estado automático «restringido». Las nuevas quedan pausadas hasta que las active.
+Después recargue con Ctrl+F5 y entre como administrador. El instalador detiene los trabajadores del módulo durante la actualización, limpia las cachés, aplica las nueve migraciones de TikTok que falten y vuelve a arrancar los servicios. Conserva las cuentas y las pausas manuales; recupera el monitoreo que se desactivó por el antiguo estado automático «restringido». Las nuevas quedan pausadas hasta que las active.
 
 Servicios que arrancan con el VPS:
 
 - `micv-tiktok`: conexión y captura, independiente del navegador y de la sesión web.
 - `micv-tiktok-evidencias`: descarga y conservación de fotos públicas en segundo plano.
 - `micv-tiktok-pdf`: preparación del snapshot, archivos y PDF.
+- `micv-tiktok-telegram`: salida de comentarios al único chat privado autorizado.
+- `micv-tiktok-limpieza.timer`: eliminación de informes caducados cada 15 segundos.
 
 No modifica los servicios de correo o de video promocional. Reiniciar al actualizar produce una interrupción breve; no hay recuperación garantizada de eventos perdidos.
 
@@ -53,7 +55,7 @@ Ejemplo de zona para Nicaragua: `America/Managua`. La región indicada por TikTo
 
 ```bash
 sudo -u www-data php artisan config:clear
-sudo systemctl restart micv-tiktok micv-tiktok-evidencias micv-tiktok-pdf
+sudo systemctl restart micv-tiktok micv-tiktok-evidencias micv-tiktok-pdf micv-tiktok-telegram micv-tiktok-limpieza.timer
 ```
 
 ## Capturar y ver el LIVE
@@ -81,7 +83,7 @@ Los comentarios anteriores a esta actualización no adquieren retroactivamente I
 1. Abra la cuenta monitoreada.
 2. En **Historial de lives**, busque la sala y pulse **Exportar PDF**. Se incluirán todos los comentarios guardados de ese LIVE hasta el corte de la solicitud.
 3. Para una selección concreta, use los filtros y **Informes y evidencia → Informe de la selección actual**. Puede añadir referencia y observaciones.
-4. La cola fija un snapshot y genera los documentos en segundo plano. En **Informes y evidencia** aparecerán los botones **Descargar PDF** y **Paquete de evidencia**.
+4. La cola fija un snapshot y genera los documentos en segundo plano. En **Informes temporales** aparecerán los botones **Descargar PDF** y **Paquete de evidencia**, disponibles cinco minutos desde que termina la generación. Después caducan y sus archivos se eliminan; las capturas originales permanecen.
 5. Un informe con más de 200 comentarios se divide en partes para limitar el consumo de Chromium; los PDF se descargan juntos en un ZIP. El paquete de evidencia reúne todas las partes y los archivos.
 
 Si está consultando un LIVE del historial, el botón superior exporta ese LIVE seleccionado, aunque exista otra sala en directo. Sin un LIVE seleccionado, se refiere al actual.
@@ -120,7 +122,7 @@ Los hashes detectan diferencias respecto del manifiesto conservado; **no certifi
 Tablas principales: cuentas, lives, comentarios, publicaciones, exportaciones, adjuntos y sesiones. Los archivos quedan bajo `storage/app/private/tiktok/`:
 
 - `avatares/`: originales y representaciones privadas de participantes.
-- `exportaciones/`: snapshot, PDF, manifiesto y paquetes.
+- `exportaciones/`: copias temporales del snapshot, PDF, manifiesto y paquetes. Se eliminan al caducar.
 - `reproduccion/`: metadatos cifrados temporales de la señal pública.
 
 No publique ni enlace esos directorios con `storage:link`. Las rutas de imagen y video requieren administración. Cada informe y su paquete solo los descarga el administrador que los solicitó. Eliminar un monitoreo borra sus datos y archivos locales; no modifica la cuenta original de TikTok. Durante una pausa pueden terminar de guardarse mensajes que ya estaban en tránsito.
@@ -130,8 +132,8 @@ La reproducción valida HTTPS, dominios de CDN, direcciones DNS públicas, desti
 ## Diagnóstico
 
 ```bash
-systemctl status micv-tiktok micv-tiktok-evidencias micv-tiktok-pdf --no-pager -l
-journalctl -u micv-tiktok -u micv-tiktok-evidencias -u micv-tiktok-pdf -n 80 --no-pager
+systemctl status micv-tiktok micv-tiktok-evidencias micv-tiktok-pdf micv-tiktok-telegram micv-tiktok-limpieza.timer --no-pager -l
+journalctl -u micv-tiktok -u micv-tiktok-evidencias -u micv-tiktok-pdf -u micv-tiktok-telegram -u micv-tiktok-limpieza -n 80 --no-pager
 sudo -u www-data php artisan migrate:status
 sudo -u www-data storage/app/tiktok-venv/bin/python -c 'from TikTokLive import TikTokLiveClient; print("TikTokLive disponible")'
 ```
@@ -146,7 +148,7 @@ TikTokLive es no oficial y puede dejar de funcionar por cambios, bloqueos o lím
 
 ## Verificación de esta entrega
 
-- PHP: **183 pruebas**. Incluye permisos, sesiones, fotos y archivos privados, hashes, IDs grandes, exportación por LIVE, datos anteriores, publicación importada, varias partes, eliminación y verificación que detecta alteraciones. Las pruebas de informes renderizan también su plantilla HTML.
+- PHP: **205 pruebas**. Incluye permisos, sesiones, fotos y archivos privados, hashes, IDs grandes, exportación por LIVE, datos anteriores, publicación importada, varias partes, eliminación y verificación que detecta alteraciones. Las pruebas de informes renderizan también su plantilla HTML.
 - Python: **37 pruebas**, con ID original/generado, hash del texto, recortes, tipos reales del protocolo TikTokLive 7.0.1, perfiles privados que comentan públicamente, conexión, restricciones, reintentos y metadatos.
 - Chromium: reproducción efectiva de un HLS local H.264/AAC y de otro con AES-128 y redirección validada; detener la vista conserva el monitoreo. Interfaz, fotos de prueba, actualización sin ejecutar HTML, confirmación abierta durante eventos, exportación en cola y descarga de PDF y paquete. Escritorio, móvil y modo oscuro revisados.
 - PDF de muestra A4 generado por Chromium con datos ficticios, fotos de prueba, seis páginas y numeración. El paquete se extrajo y verificó con el script incluido.
@@ -176,3 +178,7 @@ La ficha permite indicar el @usuario de una sala pública conocida y seguir su c
 En **Solo comentarios de salas públicas**, escriba hasta 20 usuarios, uno por línea o separados por comas, espacios o punto y coma. El sistema normaliza los @ y elimina duplicados. Cada fuente tiene su estado, sala y próximo reintento. Una fuente sin LIVE o con un fallo no cierra las demás. Se conserva la fuente individual que ya estaba guardada antes de esta actualización.
 
 El límite global sigue siendo TIKTOK_SIMULTANEOS (3 por defecto, máximo 10). Las fuentes adicionales esperan un cupo; una conexión activa no se corta para rotarlas. Los mensajes se deduplican por perfil, sala e ID del evento, incluso si dos fuentes conducen a la misma sala. Retirar una fuente no borra comentarios ni informes y solo cierra sus conexiones; una sala compartida permanece activa si otra fuente sigue conectada. La pausa del perfil detiene todas sus fuentes.
+
+## Auditoría, Telegram e informes temporales
+
+Consulte **LEAME-AUDITORIA-TELEGRAM.md** para el nuevo espacio de auditoría, la caducidad de cinco minutos y el bot restringido al chat privado `8476238020` de @jeffryzeasni. Las capturas originales no caducan con los informes.

@@ -9,7 +9,7 @@ cd /var/www/micv
 sudo bash bin/actualizar-correo-comentarios.sh
 ```
 
-El instalador configura/reinicia el trabajador de postulaciones y los tres trabajadores de TikTok, limpia las cachés y aplica las migraciones pendientes de ambos módulos. Reutiliza el motor Chromium y las dependencias PHP/Node del proyecto instalado; instala el entorno del capturador como indica LEAME-TIKTOK-MONITOR.md. Recargue el navegador con Ctrl+F5.
+El instalador configura/reinicia el trabajador de postulaciones y los cuatro trabajadores de TikTok y su temporizador de limpieza, limpia las cachés y aplica las migraciones pendientes de ambos módulos. Reutiliza el motor Chromium y las dependencias PHP/Node del proyecto instalado; instala el entorno del capturador como indica LEAME-TIKTOK-MONITOR.md. Recargue el navegador con Ctrl+F5.
 
 ## Correos a empresas
 
@@ -25,7 +25,7 @@ Cada perfil aparece seguido de sus comentarios escritos, con texto, fecha local 
 
 Los comentarios escritos del creador aparecen primero cuando pueden relacionarse con el titular de la sala. Se coteja el ID público registrado al iniciar el LIVE cuando ambos IDs existen. Si falta el ID del titular, puede usarse la coincidencia de usuario público, indicada expresamente como coincidencia sin cotejo de ID. Un ID distinto no se clasifica como creador aunque coincida el alias. No se transcribe la voz ni se inventan comentarios que no llegaron.
 
-Los comentarios públicos recibidos se conservan aunque el comentarista tenga perfil privado. Solo se incluyen fotos y datos públicos efectivamente entregados. No se accede al contenido privado de las cuentas. Los informes listos permanecen inmutables; solicite un informe nuevo para obtener esta presentación. El paquete de evidencia mantiene manifiesto, registros y verificación sin conexión.
+Los comentarios públicos recibidos se conservan aunque el comentarista tenga perfil privado. Solo se incluyen fotos y datos públicos efectivamente entregados. No se accede al contenido privado de las cuentas. Los archivos generados no cambian durante su disponibilidad y caducan cinco minutos después de finalizar la generación. El paquete de evidencia incluye manifiesto, registros y verificación sin conexión. Las capturas y fotos originales permanecen; puede consultarlas en Auditoría o generar otro informe. Las copias ya descargadas quedan en el dispositivo del destinatario.
 
 ## Detección automática, sin seleccionar anfitrión o invitado
 
@@ -51,10 +51,12 @@ El proceso solicita el servicio público de chat mediante TikTokLive, con la com
 
 El panel muestra **Chat de la sala en directo** únicamente tras la conexión efectiva y dedica el espacio a los comentarios. El nombre del perfil monitoreado se conserva separado de la cuenta de acceso al chat. Los mensajes recibidos se archivan en su historial con sala e identificador originales y fuente de chat en cada registro; los PDF y paquetes incluyen esa procedencia. La participación del perfil en esa sala es una referencia del administrador, no una presencia confirmada automáticamente. No se afirma que sean comentarios exclusivos de esa persona ni que dos salas compartan todo su chat.
 
-Cada fuente tiene su proceso, estado y espera independientes. Guardar la lista conserva las fuentes existentes y sus esperas; solo se retiran las que ya no figuran. El historial y los informes se conservan. Si dos fuentes llegan a la misma sala, el mismo evento se guarda una vez y la sala no se cierra hasta terminar su última conexión. Las conexiones se limitan por TIKTOK_SIMULTANEOS: las demás esperan un cupo. Las pausas manuales y las esperas indicadas por el proveedor se respetan. No se garantiza la conexión desde cualquier VPS ni recibir todos los mensajes.
+Cada fuente tiene su proceso, estado y espera independientes. Guardar la lista conserva las fuentes existentes y sus esperas; solo se retiran las que ya no figuran. El historial y los metadatos de los informes se conservan; los PDF y ZIP generados caducan a los cinco minutos. Si dos fuentes llegan a la misma sala, el mismo evento se guarda una vez y la sala no se cierra hasta terminar su última conexión. Las conexiones se limitan por TIKTOK_SIMULTANEOS: las demás esperan un cupo. Las pausas manuales y las esperas indicadas por el proveedor se respetan. No se garantiza la conexión desde cualquier VPS ni recibir todos los mensajes.
 
 ## Verificación
 
 Pruebas de Laravel: correo formal, copias históricas, aviso en HTML y texto MIME con transporte simulado, adjunto, comentarios debajo de cada perfil, creador por UID y coincidencia de usuario, detección de sala, separación entre perfil consultado y titular, referencias históricas y conservación de historiales. Capturador Python con TikTokLive 7.0.1: identificadores grandes, normalización, perfiles privados que comentan públicamente y restricciones.
 
 Revisión en Chromium: correo y registro de cuenta sin selección de invitado en escritorio y móvil, sin desbordamiento. PDF A4 de demostración con datos ficticios generado y su paquete verificado con `python3 verificar.py`. No se enviaron correos reales. No se ha instalado esta actualización en su VPS ni se ha confirmado un LIVE real desde él.
+
+La nueva auditoría en pantalla, el bot de Telegram con destinatario fijo y la limpieza de archivos se explican en **LEAME-AUDITORIA-TELEGRAM.md**.

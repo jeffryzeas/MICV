@@ -42,7 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn() => route("dashboard"));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->dontFlash(["clave_correo", "gmail_clave"]);
+        $exceptions->dontFlash(["clave_correo", "gmail_clave", "telegram_token"]);
         // "Página expirada" (419): la página estuvo abierta mucho tiempo o se volvió
         // con el botón Atrás. En vez de la pantalla de error, se vuelve al formulario
         // con un aviso amable y un token nuevo, sin perder lo escrito.
@@ -73,7 +73,7 @@ return Application::configure(basePath: dirname(__DIR__))
                         "password_confirmation",
                         "actual",
                         "clave_correo",
-                        "gmail_clave",
+                        "gmail_clave", "telegram_token",
                         "_token",
                         "foto",
                     ]),

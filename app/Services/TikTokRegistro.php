@@ -73,7 +73,7 @@ class TikTokRegistro {
                 $fila['hash_registro']=hash('sha256',TikTokIntegridad::json(TikTokIntegridad::registro($fila,$publicos)));$fila['datos_publicos']=TikTokIntegridad::json($publicos);
                 $lotes[$live->id]['filas'][]=$fila;
             }
-            foreach($lotes as$lote){$n=0;foreach(array_chunk($lote['filas'],200)as$filas)$n+=TikTokComentario::insertOrIgnore($filas);$live=$lote['live'];if($n){$live->increment('comentarios',$n);$insertados+=$n;}DB::table('tiktok_sesiones')->where('live_id',$live->id)->whereNull('fin_ms')->update(['ultimo_ms'=>$lote['ultimo']]);$live->refresh()->update(['ultimo_ms'=>max($live->ultimo_ms,$lote['ultimo'])]);}
+            foreach($lotes as$lote){$n=0;foreach(array_chunk($lote['filas'],200)as$filas){$n+=TikTokComentario::insertOrIgnore($filas);app(TikTokTelegram::class)->encolarClaves(array_column($filas,'clave'));}$live=$lote['live'];if($n){$live->increment('comentarios',$n);$insertados+=$n;}DB::table('tiktok_sesiones')->where('live_id',$live->id)->whereNull('fin_ms')->update(['ultimo_ms'=>$lote['ultimo']]);$live->refresh()->update(['ultimo_ms'=>max($live->ultimo_ms,$lote['ultimo'])]);}
             if($fuente)TikTokFuentes::resumir($c);
         });return $insertados;
     }

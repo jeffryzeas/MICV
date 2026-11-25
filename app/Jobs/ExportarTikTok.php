@@ -13,7 +13,7 @@ class ExportarTikTok implements ShouldQueue {
   if(!TikTokExportacion::whereKey($this->id)->where('estado','en_cola')->update(['estado'=>'procesando','updated_at'=>now()]))return;
   $e=TikTokExportacion::find($this->id);if(!$e)return;$u=User::find($e->user_id);
   if(!$u?->activo||!$u->esAdmin()){$e->update(['estado'=>'error','error'=>'La cuenta solicitante ya no tiene acceso.']);return;}
-  try{$datos=app(TikTokInforme::class)->crear($e,$consulta,$pdf);$e->update($datos+['estado'=>'listo']);}
+  try{$datos=app(TikTokInforme::class)->crear($e,$consulta,$pdf);$e->update($datos+['estado'=>'listo','expira_en'=>now()->addMinutes(5)]);}
   catch(\Throwable $error){Storage::disk('local')->deleteDirectory('tiktok/exportaciones/'.$e->id);$e->update(['estado'=>'error','error'=>'No se pudo generar el informe. Revise Chromium y el servicio micv-tiktok-pdf.']);throw $error;}
  }
  public function failed(?\Throwable $e): void{TikTokExportacion::whereKey($this->id)->whereIn('estado',['en_cola','procesando'])->update(['estado'=>'error','error'=>'La exportación se interrumpió. Revise el trabajador PDF.']);Storage::disk('local')->deleteDirectory('tiktok/exportaciones/'.$this->id);}
