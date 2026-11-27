@@ -10,6 +10,7 @@ use App\Models\Configuracion;
 use App\Models\TelegramCvCuenta as Cuenta;
 use App\Models\TelegramCvEnvio as Envio;
 use App\Services\CvDatos;
+use App\Services\CvEnvioRetencion;
 use App\Services\PostulacionPdf;
 use App\Services\TelegramCvCliente;
 use App\Services\TelegramCvError;
@@ -165,10 +166,8 @@ class EnvioController extends Controller
     public function pdf(Request $r, string $id)
     {
         $e = $this->envio($r, $id);
-        $ruta = 'telegram-cv/envios/'.$e->id.'/cv.pdf';
-        abort_unless($e->tipo === 'cv' && $e->cv_ruta === $ruta && Storage::disk('local')->exists($ruta), 404);
 
-        return Storage::disk('local')->download($ruta, $e->cv_nombre, ['Content-Type' => 'application/pdf', 'Cache-Control' => 'private, no-store']);
+        return app(CvEnvioRetencion::class)->respuesta($e, $r->user(), true);
     }
 
     public function eliminar(Request $r, string $id)

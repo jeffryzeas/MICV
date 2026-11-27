@@ -1,3 +1,5 @@
+> **Actualización vigente:** consulte LEAME-INSTALADOR-GENERAL.md. Los PDF de envíos terminados se retiran; las descargas se regeneran con los datos actuales del perfil y las opciones guardadas. El instalador general reúne los servicios.
+
 # Mi CV · Telegram del sistema con inicio por QR
 
 Una sola cuenta de Telegram del sistema, vinculada por la administración, envía los CV que solicitan los usuarios. El usuario no registra su Telegram, api_id, api_hash ni contraseña: solo indica un número de destino, revisa su CV y confirma. El bot de comentarios de TikTok mantiene su configuración independiente.

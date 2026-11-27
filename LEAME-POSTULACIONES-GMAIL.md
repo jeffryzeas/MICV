@@ -1,3 +1,5 @@
+> **Actualización vigente:** consulte LEAME-INSTALADOR-GENERAL.md. Los PDF de envíos terminados se retiran; las descargas se regeneran con los datos actuales del perfil y las opciones guardadas. El instalador general reúne los servicios.
+
 # CV a empresas: Gmail por cuenta, empresas e historial
 
 Esta actualización agrega los módulos al proyecto Mi CV de esta conversación. Mantiene Laravel Blade, Tailwind y Symfony Mailer, sin contratar servicios de IA ni añadir paquetes de Composer o npm.

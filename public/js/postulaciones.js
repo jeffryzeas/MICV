@@ -77,7 +77,7 @@
             const badge = document.getElementById('post-estado'); badge.textContent=d.etiqueta; badge.dataset.estado=d.estado;
             document.getElementById('post-detalle').textContent=d.detalle || ({en_cola:d.espera ? 'El envío sigue en cola. La administración debe comprobar el servicio micv-postulaciones del servidor.' : 'Esperando al trabajador de correo. Puede salir y volver a esta página.',enviando:'Conectando con Gmail y enviando el archivo adjunto.',enviado:'Gmail aceptó el mensaje. La recepción y lectura por la empresa no están confirmadas.'}[d.estado] || '');
             if (d.fecha) document.getElementById('post-fecha').textContent=d.fecha+' · Costa Rica';
-            terminado=!['en_cola','enviando'].includes(d.estado);
+            terminado=!['en_cola','enviando'].includes(d.estado);if(terminado)setTimeout(()=>location.reload(),300);
         } catch { document.getElementById('post-detalle').textContent='No se pudo actualizar el estado. Se consultará de nuevo automáticamente; no confirme otro envío.'; }
         finally { consultando=false; }
     }

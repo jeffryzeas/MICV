@@ -15,6 +15,8 @@ chown "$micv_usuario:$micv_usuario" storage/app/private/postulaciones
 chmod 700 storage/app/private/postulaciones
 runuser -u "$micv_usuario" -- "$micv_php" artisan optimize:clear
 runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_22_000001_create_postulaciones_tables.php
+runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_26_000012_add_retencion_cv_postulaciones.php
+runuser -u "$micv_usuario" -- "$micv_php" artisan micv:cv-limpiar-temporales
 cat > /etc/systemd/system/micv-postulaciones.service <<EOF
 [Unit]
 Description=Envios de CV a empresas - Mi CV

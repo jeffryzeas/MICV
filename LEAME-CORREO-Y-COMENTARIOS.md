@@ -1,3 +1,5 @@
+> **Actualización vigente:** consulte LEAME-INSTALADOR-GENERAL.md. Los PDF de envíos terminados se retiran; las descargas se regeneran con los datos actuales del perfil y las opciones guardadas. El instalador general reúne los servicios.
+
 # Correo formal, comentarios por perfil y salas con invitados
 
 Actualización para la instalación existente de Mi CV. Copie el contenido del ZIP en la raíz del proyecto, conservando las subcarpetas; no elimine el proyecto anterior ni sustituya su .env. Mantenga una copia del proyecto y la base de datos antes de actualizar.

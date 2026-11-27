@@ -29,6 +29,9 @@
             </div>
             <div>
                 <p class="text-xs font-semibold uppercase text-azul-800 mb-2">Idioma del CV</p>
+                    <button type="button" onclick="jzCv('ver')" class="inline-flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold px-3 py-2.5 rounded-lg">
+                        <x-icono name="eye" class="size-4" /> Ver PDF
+                    </button>
                 <div class="grid grid-cols-2 gap-2">
                     <label class="cursor-pointer"><input type="radio" name="idioma" value="es" class="peer hidden" checked>
                         <span class="flex items-center justify-center gap-2 border-2 border-gray-200 rounded-lg py-2 text-sm font-semibold text-gray-600 peer-checked:border-azul-800 peer-checked:bg-blue-50 peer-checked:text-azul-800">Español</span></label>
@@ -45,16 +48,13 @@
                     <x-icono name="file-type" class="size-4" /> Descargar en Word (.docx)
                 </button>
                 <div class="grid grid-cols-2 gap-2">
-                    <button type="button" onclick="jzCv('ver')" class="inline-flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold px-3 py-2.5 rounded-lg">
-                        <x-icono name="eye" class="size-4" /> Ver PDF
-                    </button>
                     <button type="button" onclick="jzCv('correo')" @disabled(!$correoDestino) title="{{ $correoDestino ? 'Se envía a ' . $correoDestino : 'No hay correo registrado' }}" class="inline-flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold px-3 py-2.5 rounded-lg disabled:opacity-40">
                         <x-icono name="send" class="size-4" /> {{ $esUsuario ? 'A mi correo' : 'Al correo' }}
                     </button>
-                </div>
                 @if(auth()->user()?->esAdmin() || auth()->user()?->esCliente())
                 <button type="button" onclick="jzCv('telegram')" class="inline-flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-azul-800 text-sm font-semibold px-3 py-2.5 rounded-lg"><x-icono name="send" class="size-4"/>A Telegram</button>
                 @endif
+                </div>
                 @unless($correoDestino)<p class="text-[11px] text-gray-400">Para enviarlo por correo, agregue el correo de la persona en sus datos.</p>@endunless
             </div>
         </div>

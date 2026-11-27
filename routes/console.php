@@ -44,3 +44,5 @@ Artisan::command('micv:video-promocional {--salida=Mi-CV-Tutorial.mp4}', functio
 
 \Illuminate\Support\Facades\Schedule::call(fn () => app(\App\Services\VideosPromocionales::class)->limpiar())
     ->name('videos-promocionales-limpiar')->dailyAt('03:30');
+
+\Illuminate\Support\Facades\Schedule::command('micv:cv-limpiar-temporales')->everyMinute()->withoutOverlapping();

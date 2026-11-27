@@ -1,3 +1,5 @@
+> **Instalador general y PDF temporales.** La entrega actual reúne los servicios del VPS, selector de CV para Telegram y registros de envío sin PDF archivados. Consulte [LEAME-INSTALADOR-GENERAL.md](LEAME-INSTALADOR-GENERAL.md).
+
 > **Video promocional de Mi CV.** Consulte [LEAME-VIDEO-PROMOCIONAL.md](LEAME-VIDEO-PROMOCIONAL.md) para habilitar el generador.
 
 > **Actualización de la edición web.** Consulte [LEAME-SOLO-WEB.md](LEAME-SOLO-WEB.md) antes de desplegar.

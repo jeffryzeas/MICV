@@ -24,3 +24,14 @@ Homestead.yaml
 Thumbs.db
 /.cache
 /storage/app/chromium
+
+# Configuraciones privadas y copias de parches locales
+.env.*
+!.env.example
+*.bak
+
+# Cachés de los adaptadores Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/

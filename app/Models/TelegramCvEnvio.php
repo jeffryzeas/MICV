@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CvEnvioRetencion;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,11 @@ class TelegramCvEnvio extends Model
     {
         static::deleted(function (self $e) {
             DB::afterCommit(fn () => Storage::disk('local')->deleteDirectory('telegram-cv/envios/'.$e->id));
+        });
+        static::updated(function (self $e) {
+            if ($e->wasChanged('estado') && in_array($e->estado, CvEnvioRetencion::TERMINALES, true)) {
+                DB::afterCommit(fn () => app(CvEnvioRetencion::class)->borrar($e));
+            }
         });
     }
 
@@ -25,11 +31,11 @@ class TelegramCvEnvio extends Model
 
     protected $hidden = ['peer', 'cv_ruta'];
 
-    public const ESTADOS = ['borrador' => 'Pendiente de confirmar', 'en_cola' => 'En cola', 'enviando' => 'Enviando', 'enviado' => 'Aceptado por Telegram', 'fallido' => 'No enviado', 'incierto' => 'Revisar en Telegram'];
+    public const ESTADOS = ['borrador' => 'Pendiente de confirmar', 'en_cola' => 'En cola', 'enviando' => 'Enviando', 'enviado' => 'Aceptado por Telegram', 'fallido' => 'No enviado', 'incierto' => 'Revisar en Telegram', 'caducado' => 'Caducado'];
 
     protected function casts(): array
     {
-        return ['peer' => 'encrypted:array', 'cv_opciones' => 'array', 'encolado_en' => 'datetime', 'iniciado_en' => 'datetime', 'enviado_en' => 'datetime'];
+        return ['peer' => 'encrypted:array', 'cv_opciones' => 'array', 'encolado_en' => 'datetime', 'iniciado_en' => 'datetime', 'enviado_en' => 'datetime', 'cv_eliminado_en' => 'datetime'];
     }
 
     public function cuenta()

@@ -22,6 +22,8 @@ systemctl stop micv-telegram-cv micv-telegram-login 2>/dev/null || true
 runuser -u "$micv_usuario" -- "$micv_php" artisan optimize:clear
 runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_25_000010_create_telegram_cv.php
 runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_25_000011_telegram_sistema_y_qr.php
+runuser -u "$micv_usuario" -- "$micv_php" artisan migrate --force --path=database/migrations/2026_11_26_000013_add_retencion_cv_telegram.php
+runuser -u "$micv_usuario" -- "$micv_php" artisan micv:cv-limpiar-temporales
 cat > /etc/systemd/system/micv-telegram-cv.service <<EOF
 [Unit]
 Description=Mensajes y CV desde Telegram del sistema - Mi CV
